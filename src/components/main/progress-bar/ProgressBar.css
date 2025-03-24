@@ -5,14 +5,14 @@
 .progress-bar {
   width: 100%;
   height: 12px;
-  background-color: #e0e0e0;
+  background-color: rgba(165, 91, 75, 0.3); /* Lighter version of the progress color */
   border-radius: 6px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: #3498db;
+  background-color: #A55B4B; /* Changed to progress color */
   transition: width 0.3s ease;
 }
 
@@ -20,5 +20,5 @@
   text-align: center;
   margin-top: 8px;
   font-size: 0.9rem;
-  color: #666;
+  color: #210F37; /* Changed to primary color for text */
 }

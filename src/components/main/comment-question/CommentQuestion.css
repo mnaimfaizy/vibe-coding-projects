@@ -1,5 +1,5 @@
 .comment-question-container {
-  background-color: #fff;
+  background-color: #E5C9A5; /* Changed to lighter version of #DCA06D */
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -7,7 +7,7 @@
 }
 
 .comment-question-container .question-number {
-  color: #3498db;
+  color: #210F37; /* Changed to primary color */
   font-size: 1.1rem;
   margin: 0 0 0.5rem 0;
 }
@@ -16,7 +16,7 @@
   font-size: 1.2rem;
   margin: 0 0 1.5rem 0;
   font-weight: 500;
-  color: #333;
+  color: #210F37; /* Changed to primary color */
 }
 
 .comment-field {
@@ -35,6 +35,6 @@
 
 .comment-field textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  border-color: #4F1C51; /* Changed to secondary color */
+  box-shadow: 0 0 0 2px rgba(79, 28, 81, 0.2); /* Changed to match secondary color */
 }

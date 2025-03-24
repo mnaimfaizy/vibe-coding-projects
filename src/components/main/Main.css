@@ -29,21 +29,21 @@
 }
 
 .button-previous {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: #4F1C51; /* Changed to secondary color */
+  color: white;
 }
 
 .button-previous:hover:not(:disabled) {
-  background-color: #e0e0e0;
+  background-color: #3d1640; /* Darker version of secondary color */
 }
 
 .button-next {
-  background-color: #3498db;
+  background-color: #A55B4B; /* Changed to progress/other color */
   color: white;
 }
 
 .button-next:hover:not(:disabled) {
-  background-color: #2980b9;
+  background-color: #8a4c3f; /* Darker version of progress color */
 }
 
 .button:active:not(:disabled) {

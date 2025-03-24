@@ -1,5 +1,5 @@
 .app-footer {
-  background-color: #f5f5f5;
+  background-color: #4F1C51; /* Changed to secondary color */
   padding: 1rem 0;
   text-align: center;
   border-top: 1px solid #e0e0e0;
@@ -15,10 +15,10 @@
 .app-footer p {
   margin: 0.3rem 0;
   font-size: 0.9rem;
-  color: #666;
+  color: #fff; /* Changed to white for better contrast on dark background */
 }
 
 .privacy-note {
   font-size: 0.8rem !important;
-  color: #888 !important;
+  color: rgba(255, 255, 255, 0.8) !important; /* Changed for better readability */
 }
