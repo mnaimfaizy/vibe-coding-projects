@@ -1,0 +1,51 @@
+.main-container {
+  padding: 2rem 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.survey-container {
+  min-height: 400px;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-previous {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.button-previous:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.button-next {
+  background-color: #3498db;
+  color: white;
+}
+
+.button-next:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}

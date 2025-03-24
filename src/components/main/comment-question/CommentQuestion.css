@@ -1,0 +1,40 @@
+.comment-question-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.comment-question-container .question-number {
+  color: #3498db;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.comment-question-container .question-text {
+  font-size: 1.2rem;
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.comment-field {
+  width: 100%;
+}
+
+.comment-field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.comment-field textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}

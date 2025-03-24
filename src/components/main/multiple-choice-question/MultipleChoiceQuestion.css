@@ -1,0 +1,40 @@
+.question-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.question-number {
+  color: #3498db;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.question-text {
+  font-size: 1.2rem;
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.ratings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rating-option {
+  display: flex;
+  align-items: center;
+}
+
+.rating-option input[type="radio"] {
+  margin-right: 0.75rem;
+}
+
+.rating-option label {
+  font-size: 1rem;
+  cursor: pointer;
+}
