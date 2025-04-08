@@ -8,6 +8,7 @@ import { EmailVerificationComponent } from './components/auth/EmailVerificationC
 import { BooksComponent } from './components/books/BooksComponent';
 import { CreateBookComponent } from './components/books/CreateBookComponent';
 import { EditBookComponent } from './components/books/EditBookComponent';
+import { MainLayout } from './components/shared/MainLayout';
 
 function App() {
   // Simple routing system
@@ -85,9 +86,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <MainLayout>
       {renderRoute()}
-    </div>
+    </MainLayout>
   );
 }
 

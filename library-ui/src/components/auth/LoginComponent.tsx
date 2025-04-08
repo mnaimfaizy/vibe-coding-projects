@@ -3,15 +3,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import AuthService from '@/services/authService';
 
 export function LoginComponent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, this would connect to your authentication API
-    console.log('Login submitted:', { email, password });
+    
+    // Reset error state
+    setError('');
+    
+    try {
+      setIsLoading(true);
+      await AuthService.login({
+        email,
+        password
+      });
+      
+      // Redirect to books page after successful login
+      window.location.href = '/books';
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -25,6 +45,11 @@ export function LoginComponent() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="email">Email</Label>
@@ -51,9 +76,11 @@ export function LoginComponent() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit">Login</Button>
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
+            </Button>
             <div className="mt-4 text-sm text-center">
-              <a href="/forgot-password" className="text-blue-600 hover:underline">
+              <a href="/reset-password" className="text-blue-600 hover:underline">
                 Forgot Password?
               </a>
               <div className="mt-2">

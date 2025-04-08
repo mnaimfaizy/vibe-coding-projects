@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BookOpen, Home, Info, Library, Mail, Search, Settings, UserPlus, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Info, Library, Mail, Search, Settings, UserPlus, Users, BookOpen } from "lucide-react";
 
 interface NavigationItem {
   name: string;
@@ -10,7 +10,6 @@ interface NavigationItem {
 
 export function NavigationComponent() {
   const [navigation, setNavigation] = useState<NavigationItem[]>([
-    { name: 'Home', href: '/', icon: <Home className="h-5 w-5" />, current: true },
     { name: 'Browse Books', href: '/books', icon: <BookOpen className="h-5 w-5" />, current: false },
     { name: 'Search', href: '/search', icon: <Search className="h-5 w-5" />, current: false },
     { name: 'Categories', href: '/categories', icon: <Library className="h-5 w-5" />, current: false },
@@ -21,6 +20,15 @@ export function NavigationComponent() {
     { name: 'Settings', href: '/settings', icon: <Settings className="h-5 w-5" />, current: false },
   ]);
 
+  // Set current navigation item based on the current path
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    setNavigation(navigation.map(item => ({
+      ...item,
+      current: item.href === currentPath
+    })));
+  }, []);
+
   const handleNavItemClick = (clickedItem: NavigationItem) => {
     setNavigation(navigation.map(item => ({
       ...item,
@@ -30,27 +38,18 @@ export function NavigationComponent() {
 
   return (
     <nav className="bg-white shadow dark:bg-gray-800">
-      <div className="container px-6 py-4 mx-auto">
-        <div className="md:flex md:items-center md:justify-between">
-          <div className="flex items-center justify-between">
-            <div className="text-xl font-semibold text-gray-700">
-              <div className="flex items-center justify-center text-gray-800 dark:text-white">
-                <BookOpen className="h-6 w-6 mr-2" />
-                <span>Library Nav</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="flex-1 md:flex md:items-center md:justify-between">
-            <div className="flex flex-col -mx-4 md:flex-row md:items-center md:mx-8 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="container px-6 py-2 mx-auto">
+        {/* Desktop Navigation - No logo, just the navigation items */}
+        <div className="flex items-center justify-center">
+          <div className="overflow-x-auto pb-1 hide-scrollbar">
+            <div className="flex flex-row items-center space-x-1">
               {navigation.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
                   onClick={() => handleNavItemClick(item)}
                   className={`
-                    px-2 py-1 mx-2 mt-2 text-sm font-medium transition-colors duration-300 transform rounded-md md:mt-0 flex items-center space-x-2 whitespace-nowrap
+                    px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-md flex items-center space-x-1 whitespace-nowrap
                     ${item.current
                       ? 'text-white bg-blue-600'
                       : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -58,7 +57,7 @@ export function NavigationComponent() {
                   `}
                 >
                   {item.icon}
-                  <span>{item.name}</span>
+                  <span className="ml-1">{item.name}</span>
                 </a>
               ))}
             </div>
