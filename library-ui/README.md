@@ -1,54 +1,118 @@
-# React + TypeScript + Vite
+# Library UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive user interface for a library management system built with React, TypeScript, and Vite.
 
-Currently, two official plugins are available:
+## 📚 Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Library UI provides a comprehensive interface for managing a library's digital presence. It supports user authentication, book browsing, and book management functionalities.
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **User Authentication**
+  - Login & Signup
+  - Password Management (Reset, Change)
+  - Email Verification
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **Book Management**
+  - Browse books in catalog or list view
+  - Add new books
+  - Edit existing books
+  - Book details view
+
+- **Modern UI Components**
+  - Responsive design with Tailwind CSS
+  - Accessible components using Radix UI primitives
+  - Custom UI component library
+
+## 🛠️ Tech Stack
+
+- **React 19** - Frontend library
+- **TypeScript** - Static type checking
+- **Vite** - Build tool and development server
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Unstyled, accessible UI components
+- **Lucide React** - Icon library
+- **Shadcn UI** - Component collection based on Radix UI
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (recommended: latest LTS version)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Navigate to the library-ui directory:
+   ```
+   cd library-ui
+   ```
+3. Install dependencies:
+   ```
+   npm install
+   ```
+   or
+   ```
+   yarn
+   ```
+
+### Development
+
+Start the development server:
+```
+npm run dev
+```
+or
+```
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open your browser and visit `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Building for Production
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Build the project:
 ```
+npm run build
+```
+or
+```
+yarn build
+```
+
+Preview the production build:
+```
+npm run preview
+```
+or
+```
+yarn preview
+```
+
+## 🔗 Related Projects
+
+This UI interfaces with the library-api backend service located in the parent directory.
+
+## 📊 Project Structure
+
+```
+library-ui/
+├── public/            # Static assets
+├── src/
+│   ├── assets/        # Project assets (images, etc.)
+│   ├── components/    # UI components
+│   │   ├── auth/      # Authentication components
+│   │   ├── books/     # Book management components
+│   │   ├── landing/   # Landing page components
+│   │   ├── shared/    # Shared components (Header, Footer, etc.)
+│   │   └── ui/        # Base UI components
+│   ├── lib/           # Library code and utilities
+│   ├── App.tsx        # Main application component
+│   └── main.tsx       # Application entry point
+└── [config files]     # Various configuration files
+```
+
+## 📝 License
+
+This project is licensed under the MIT License.
