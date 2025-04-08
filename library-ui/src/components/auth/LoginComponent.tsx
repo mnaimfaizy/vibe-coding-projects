@@ -1,27 +1,45 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import AuthService from '@/services/authService';
+import { Loader2 } from "lucide-react";
+
+// Define validation schema using zod
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+// Infer the TypeScript type from the schema
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors, isSubmitting } 
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const onSubmit = async (data: LoginFormValues) => {
     // Reset error state
     setError('');
     
     try {
-      setIsLoading(true);
       await AuthService.login({
-        email,
-        password
+        email: data.email,
+        password: data.password
       });
       
       // Redirect to books page after successful login
@@ -29,8 +47,6 @@ export function LoginComponent() {
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -43,7 +59,7 @@ export function LoginComponent() {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent>
             {error && (
               <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -56,11 +72,12 @@ export function LoginComponent() {
                 <Input 
                   id="email"
                   placeholder="your.email@example.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register('email')}
+                  aria-invalid={errors.email ? 'true' : 'false'}
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+                )}
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
@@ -68,16 +85,23 @@ export function LoginComponent() {
                   id="password"
                   placeholder="••••••••"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register('password')}
+                  aria-invalid={errors.password ? 'true' : 'false'}
                 />
+                {errors.password && (
+                  <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+                )}
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : 'Login'}
             </Button>
             <div className="mt-4 text-sm text-center">
               <a href="/reset-password" className="text-blue-600 hover:underline">

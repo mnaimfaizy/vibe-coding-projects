@@ -40,7 +40,6 @@ const featuredBooks = [
 export function LandingPageComponent() {
   return (
     <div className="flex flex-col min-h-screen">
-      <HeaderComponent />
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
@@ -198,14 +197,13 @@ export function LandingPageComponent() {
               personalized recommendations, and more.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button size="lg">Sign Up Now</Button>
+              <Button size="lg" variant="default">Sign Up Now</Button>
               <Button size="lg" variant="outline">Learn More</Button>
             </div>
           </div>
         </div>
       </section>
       
-      <FooterComponent />
     </div>
   );
 }

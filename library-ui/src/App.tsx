@@ -5,6 +5,7 @@ import { SignUpComponent } from './components/auth/SignUpComponent';
 import { ResetPasswordComponent } from './components/auth/ResetPasswordComponent';
 import { ChangePasswordComponent } from './components/auth/ChangePasswordComponent';
 import { EmailVerificationComponent } from './components/auth/EmailVerificationComponent';
+import { SetNewPasswordComponent } from './components/auth/SetNewPasswordComponent';
 import { BooksComponent } from './components/books/BooksComponent';
 import { CreateBookComponent } from './components/books/CreateBookComponent';
 import { EditBookComponent } from './components/books/EditBookComponent';
@@ -61,6 +62,8 @@ function App() {
         return <SignUpComponent />;
       case '/reset-password':
         return <ResetPasswordComponent />;
+      case '/set-new-password':
+        return <SetNewPasswordComponent />;
       case '/change-password':
         return <ChangePasswordComponent />;
       case '/verify-email':
