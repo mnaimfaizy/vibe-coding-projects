@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  library-api:
+    build:
+      context: ./library-api
+      dockerfile: Dockerfile
+    container_name: library-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./library-api:/app
+      - db-data:/app/db
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
+  library-ui:
+    build:
+      context: ./library-ui
+      dockerfile: Dockerfile
+    container_name: library-ui
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./library-ui:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - library-api
+    restart: unless-stopped
+
+volumes:
+  db-data:
+    driver: local

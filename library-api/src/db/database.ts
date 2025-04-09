@@ -1,24 +1,24 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import path from "path";
 
 // Connect to SQLite database
 export const connectDatabase = async () => {
   try {
     // Create database connection
     const db = await open({
-      filename: path.join(__dirname, '../../library.db'),
-      driver: sqlite3.Database
+      filename: path.join(__dirname, "../../db/library.db"),
+      driver: sqlite3.Database,
     });
-    
-    console.log('Connected to SQLite database');
-    
+
+    console.log("Connected to SQLite database");
+
     // Initialize database tables
     await initializeTables(db);
-    
+
     return db;
   } catch (error) {
-    console.error('Database connection error:', error);
+    console.error("Database connection error:", error);
     throw error;
   }
 };
@@ -56,6 +56,6 @@ async function initializeTables(db: any): Promise<void> {
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
-  
-  console.log('Database tables initialized');
+
+  console.log("Database tables initialized");
 }
