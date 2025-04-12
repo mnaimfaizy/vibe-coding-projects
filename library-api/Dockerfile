@@ -20,8 +20,9 @@ RUN npm run build
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Set environment variables for production
+# Set environment variables
 ENV NODE_ENV=production
+ENV RUNNING_IN_DOCKER=true
 
 # Command to run the application
 CMD ["node", "dist/index.js"]

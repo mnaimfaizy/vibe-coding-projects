@@ -10,11 +10,17 @@ services:
       - "3000:3000"
     volumes:
       - ./library-api:/app
-      - db-data:/app/db
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_SECURE=false
+      - SMTP_USER=
+      - SMTP_PASS=
     restart: unless-stopped
+    depends_on:
+      - mailhog
 
   library-ui:
     build:
@@ -32,6 +38,10 @@ services:
       - library-api
     restart: unless-stopped
 
-volumes:
-  db-data:
-    driver: local
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP server port
+      - "8025:8025" # Web UI port
+    restart: unless-stopped

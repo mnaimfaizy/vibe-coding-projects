@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,13 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BookOpen, Menu, User, X } from "lucide-react";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { logoutUser } from "@/store/slices/authSlice";
 
 export function HeaderComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // In real app, this would come from auth state
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
-  // Toggle login status for demo purposes
-  const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
 
   return (
     <header className="bg-slate-900 text-white">
@@ -29,39 +33,62 @@ export function HeaderComponent() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="/" className="hover:text-blue-400 transition-colors">Home</a>
-            <a href="/books" className="hover:text-blue-400 transition-colors">Books</a>
-            <a href="/about" className="hover:text-blue-400 transition-colors">About</a>
-            <a href="/contact" className="hover:text-blue-400 transition-colors">Contact</a>
+            <a href="/" className="hover:text-blue-400 transition-colors">
+              Home
+            </a>
+            <a href="/books" className="hover:text-blue-400 transition-colors">
+              Books
+            </a>
+            <a href="/about" className="hover:text-blue-400 transition-colors">
+              About
+            </a>
+            <a
+              href="/contact"
+              className="hover:text-blue-400 transition-colors"
+            >
+              Contact
+            </a>
           </nav>
 
           {/* User Menu (Desktop) */}
           <div className="hidden md:block">
-            {isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <a href="/profile" className="flex w-full">Profile</a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <a href="/bookmarks" className="flex w-full">Bookmarks</a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <a href="/settings" className="flex w-full">Settings</a>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleLogin}>
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm font-medium">{user?.name || "User"}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Account Options</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <a href="/profile" className="flex w-full">
+                        Profile
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <a href="/bookmarks" className="flex w-full">
+                        Bookmarks
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <a href="/settings" className="flex w-full">
+                        Settings
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <div className="space-x-2">
                 <Button variant="ghost" asChild>
@@ -81,42 +108,84 @@ export function HeaderComponent() {
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </Button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-4">
-            <nav className="flex flex-col space-y-4">
-              <a href="/" className="hover:text-blue-400 transition-colors">Home</a>
-              <a href="/books" className="hover:text-blue-400 transition-colors">Books</a>
-              <a href="/about" className="hover:text-blue-400 transition-colors">About</a>
-              <a href="/contact" className="hover:text-blue-400 transition-colors">Contact</a>
-            </nav>
-            <div className="pt-4 border-t border-slate-700">
-              {isLoggedIn ? (
-                <>
-                  <a href="/profile" className="block py-2 hover:text-blue-400 transition-colors">Profile</a>
-                  <a href="/bookmarks" className="block py-2 hover:text-blue-400 transition-colors">Bookmarks</a>
-                  <a href="/settings" className="block py-2 hover:text-blue-400 transition-colors">Settings</a>
-                  <button 
-                    onClick={toggleLogin}
-                    className="block py-2 hover:text-blue-400 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <Button className="w-full" variant="outline" asChild>
-                    <a href="/login">Login</a>
-                  </Button>
-                  <Button className="w-full" asChild>
-                    <a href="/signup">Sign Up</a>
-                  </Button>
-                </div>
-              )}
+          <div className="md:hidden py-4 border-t border-slate-700 mt-3">
+            <div className="md:hidden py-4 space-y-4">
+              <nav className="flex flex-col space-y-4">
+                <a href="/" className="hover:text-blue-400 transition-colors">
+                  Home
+                </a>
+                <a
+                  href="/books"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Books
+                </a>
+                <a
+                  href="/about"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  About
+                </a>
+                <a
+                  href="/contact"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Contact
+                </a>
+              </nav>
+              <div className="pt-4 border-t border-slate-700">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-2 py-2">
+                      <User className="h-4 w-4" />
+                      <span>{user?.name || "User"}</span>
+                    </div>
+                    <a
+                      href="/profile"
+                      className="block py-2 hover:text-blue-400 transition-colors"
+                    >
+                      Profile
+                    </a>
+                    <a
+                      href="/bookmarks"
+                      className="block py-2 hover:text-blue-400 transition-colors"
+                    >
+                      Bookmarks
+                    </a>
+                    <a
+                      href="/settings"
+                      className="block py-2 hover:text-blue-400 transition-colors"
+                    >
+                      Settings
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="block py-2 hover:text-blue-400 transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <Button className="w-full" variant="outline" asChild>
+                      <a href="/login">Login</a>
+                    </Button>
+                    <Button className="w-full" asChild>
+                      <a href="/signup">Sign Up</a>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

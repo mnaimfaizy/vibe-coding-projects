@@ -1,181 +1,198 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Clock, Loader2 } from "lucide-react";
-import AuthService from '@/services/authService';
-import { useLocation } from 'react-router-dom';
-
-// Define validation schema using zod
-const verificationSchema = z.object({
-  verificationCode: z.string()
-    .min(6, 'Verification code must be at least 6 characters')
-    .max(6, 'Verification code must be exactly 6 characters')
-});
-
-// Infer the TypeScript type from the schema
-type VerificationFormValues = z.infer<typeof verificationSchema>;
+import { CheckCircle, AlertCircle, Loader2, MailIcon } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { verifyEmail, resetAuthError } from "@/store/slices/authSlice";
+import AuthService from "@/services/authService";
 
 export function EmailVerificationComponent() {
-  const [isVerified, setIsVerified] = useState(false);
-  const [isResent, setIsResent] = useState(false);
-  const [error, setError] = useState('');
-  const [resendLoading, setResendLoading] = useState(false);
-  const location = useLocation();
-  
-  const { 
-    register, 
-    handleSubmit,
-    setValue, 
-    formState: { errors, isSubmitting } 
-  } = useForm<VerificationFormValues>({
-    resolver: zodResolver(verificationSchema),
-    defaultValues: {
-      verificationCode: ''
-    }
-  });
-  
-  // Check URL for token and auto-verify if present
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isLoading, error, emailVerified } = useAppSelector(
+    (state) => state.auth
+  );
+
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState("");
+  const [email, setEmail] = useState("");
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-    
+    // Reset auth errors when component unmounts
+    return () => {
+      dispatch(resetAuthError());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+
+    // If there's a token in the URL, try to verify it
     if (token) {
-      setValue('verificationCode', token);
-      verifyEmail(token);
+      setVerificationAttempted(true);
+      dispatch(verifyEmail(token));
     }
-  }, [location.search, setValue]);
-  
-  const verifyEmail = async (token: string) => {
+  }, [searchParams, dispatch]);
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      setResendError("Please enter your email address");
+      return;
+    }
+
+    setIsResending(true);
+    setResendError("");
+
     try {
-      await AuthService.verifyEmail(token);
-      setIsVerified(true);
-    } catch (err: any) {
-      console.error('Verification error:', err);
-      setError(err.response?.data?.message || 'Invalid or expired verification code.');
+      await AuthService.resendVerification(email);
+      setResendSuccess(true);
+      setResendError("");
+    } catch (error: any) {
+      setResendError(
+        error.response?.data?.message || "Failed to resend verification email"
+      );
+      setResendSuccess(false);
+    } finally {
+      setIsResending(false);
     }
   };
-  
-  const onSubmit = async (data: VerificationFormValues) => {
-    // Reset error state
-    setError('');
-    
-    try {
-      await verifyEmail(data.verificationCode);
-    } catch (err) {
-      // Error already handled in verifyEmail function
-    }
+
+  const handleLogin = () => {
+    navigate("/login");
   };
-  
-  const handleResendCode = async () => {
-    // Reset states
-    setError('');
-    setResendLoading(true);
-    
-    try {
-      // In a real implementation, this would call an endpoint to resend the verification email
-      // For now, we'll just simulate it with a timeout
-      setTimeout(() => {
-        setIsResent(true);
-        setResendLoading(false);
-        
-        // Clear resent message after some time
-        setTimeout(() => setIsResent(false), 5000);
-      }, 1000);
-    } catch (err: any) {
-      console.error('Resend verification error:', err);
-      setError(err.response?.data?.message || 'Failed to resend verification code. Please try again.');
-      setResendLoading(false);
-    }
-  };
+
+  // Only show success state when verification was both attempted and successful
+  const isVerificationSuccessful =
+    verificationAttempted && emailVerified && !error;
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-50">
-      <Card className="w-[400px]">
+      <Card className="w-[400px] max-w-[90%]">
         <CardHeader>
-          <CardTitle className="text-2xl">Verify Your Email</CardTitle>
+          <CardTitle className="text-2xl">Email Verification</CardTitle>
           <CardDescription>
-            We've sent a verification code to your email
+            {isVerificationSuccessful
+              ? "Your email has been verified successfully!"
+              : "Verify your email address to complete registration"}
           </CardDescription>
         </CardHeader>
-        {error && (
-          <div className="mx-6 mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-        {isVerified ? (
-          <CardContent>
-            <Alert className="bg-green-50 border-green-200">
+
+        <CardContent>
+          {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
+
+          {!isLoading && isVerificationSuccessful && (
+            <Alert className="bg-green-50 border-green-200 mb-4">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-600">
-                Email verified successfully! You may now access all features.
+                Your email has been verified successfully! You can now log in to
+                your account.
               </AlertDescription>
             </Alert>
-            <div className="mt-4 text-center">
-              <a href="/dashboard" className="text-blue-600 hover:underline">
-                Continue to Dashboard
-              </a>
-            </div>
-          </CardContent>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent>
-              <div className="grid w-full items-center gap-4">
-                {isResent && (
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-600">
-                      New verification code sent. Please check your email.
+          )}
+
+          {!isLoading && error && (
+            <Alert className="bg-red-50 border-red-200 mb-4">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-600">
+                {error ||
+                  "Verification failed. The token may be invalid or expired."}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!isLoading && !verificationAttempted && (
+            <>
+              <div className="text-center mb-6">
+                <MailIcon className="mx-auto h-12 w-12 text-primary mb-4" />
+                <p className="mb-4">
+                  We've sent a verification link to your email address. Please
+                  check your inbox and click the link to verify your email.
+                </p>
+                <p className="text-sm text-gray-500">
+                  If you don't see the email, check your spam folder.
+                </p>
+              </div>
+
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-medium mb-2">Didn't receive the email?</h3>
+                {resendSuccess ? (
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-600">
+                      Verification email has been resent. Please check your
+                      inbox.
                     </AlertDescription>
                   </Alert>
-                )}
-                <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="verificationCode">Verification Code</Label>
-                  <Input 
-                    id="verificationCode"
-                    placeholder="Enter the 6-digit code"
-                    {...register('verificationCode')}
-                    aria-invalid={errors.verificationCode ? 'true' : 'false'}
-                  />
-                  {errors.verificationCode && (
-                    <p className="text-sm text-red-500 mt-1">{errors.verificationCode.message}</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col">
-              <Button className="w-full" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
+                ) : (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
+                    <div className="mb-3">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full px-3 py-2 border rounded-md"
+                      />
+                      {resendError && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {resendError}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleResendVerification}
+                      disabled={isResending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isResending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Resending...
+                        </>
+                      ) : (
+                        "Resend Verification Email"
+                      )}
+                    </Button>
                   </>
-                ) : 'Verify Email'}
-              </Button>
-              <div className="mt-4 text-sm text-center">
-                Didn't receive the code?{" "}
-                <button 
-                  type="button" 
-                  onClick={handleResendCode}
-                  disabled={resendLoading}
-                  className="text-blue-600 hover:underline disabled:text-blue-300"
-                >
-                  {resendLoading ? (
-                    <>
-                      <Loader2 className="inline mr-1 h-3 w-3 animate-spin" />
-                      Resending...
-                    </>
-                  ) : 'Resend Code'}
-                </button>
+                )}
               </div>
-            </CardFooter>
-          </form>
-        )}
+            </>
+          )}
+        </CardContent>
+
+        <CardFooter className="flex justify-center">
+          {isVerificationSuccessful && (
+            <Button onClick={handleLogin} className="w-full">
+              Continue to Login
+            </Button>
+          )}
+          {error && (
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="w-full"
+            >
+              Back to Home
+            </Button>
+          )}
+        </CardFooter>
       </Card>
     </div>
   );

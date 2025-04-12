@@ -31,6 +31,9 @@ async function initializeTables(db: any): Promise<void> {
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
+      email_verified BOOLEAN DEFAULT 0,
+      verification_token TEXT,
+      verification_token_expires DATETIME,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );

@@ -20,7 +20,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "nodemailer": "^6.9.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
@@ -29,6 +30,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.14.0",
     "@types/sqlite3": "^5.1.0",
+    "@types/nodemailer": "^6.4.10",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
