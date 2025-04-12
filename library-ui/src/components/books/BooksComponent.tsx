@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { BooksCatalogComponent } from './BooksCatalogComponent';
-import { BooksListComponent } from './BooksListComponent';
-import { Plus, RefreshCcw } from 'lucide-react';
+import { BooksCatalogComponent } from "./BooksCatalogComponent";
+import { BooksListComponent } from "./BooksListComponent";
+import { Plus, RefreshCcw, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function BooksComponent() {
-  const [view, setView] = useState('catalog');
+  const [view, setView] = useState("catalog");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRefresh = () => {
@@ -23,7 +24,11 @@ export function BooksComponent() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Books Collection</h1>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
             {isLoading ? (
               <RefreshCcw className="h-4 w-4 animate-spin mr-2" />
             ) : (
@@ -31,11 +36,17 @@ export function BooksComponent() {
             )}
             Refresh
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/books/search">
+              <Search className="h-4 w-4 mr-2" />
+              Search Books
+            </Link>
+          </Button>
           <Button asChild>
-            <a href="/books/create">
+            <Link to="/books/create">
               <Plus className="h-4 w-4 mr-2" />
               Add Book
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

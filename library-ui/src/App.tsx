@@ -16,6 +16,7 @@ import { SetNewPasswordComponent } from "./components/auth/SetNewPasswordCompone
 import { BooksComponent } from "./components/books/BooksComponent";
 import { CreateBookComponent } from "./components/books/CreateBookComponent";
 import { EditBookComponent } from "./components/books/EditBookComponent";
+import { BookSearchComponent } from "./components/books/search/BookSearchComponent";
 import { ProfileComponent } from "./components/profile/ProfileComponent";
 import { MainLayout } from "./components/shared/MainLayout";
 import { AuthGuard } from "./components/auth/guards/AuthGuard";
@@ -66,6 +67,14 @@ function App() {
             element={
               <AuthGuard>
                 <BooksComponent />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/books/search"
+            element={
+              <AuthGuard>
+                <BookSearchComponent />
               </AuthGuard>
             }
           />
