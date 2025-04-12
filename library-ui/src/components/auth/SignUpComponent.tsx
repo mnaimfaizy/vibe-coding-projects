@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -42,6 +43,7 @@ const signupSchema = z
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function SignUpComponent() {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isLoading, error, verificationRequired } = useAppSelector(
     (state) => state.auth
@@ -74,7 +76,7 @@ export function SignUpComponent() {
     if (verificationRequired) {
       setRegistrationComplete(true);
       const timer = setTimeout(() => {
-        window.location.href = "/login";
+        navigate("/login");
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -203,9 +205,9 @@ export function SignUpComponent() {
                 </Button>
                 <div className="mt-4 text-sm text-center">
                   Already have an account?{" "}
-                  <a href="/login" className="text-blue-600 hover:underline">
+                  <Link to="/login" className="text-blue-600 hover:underline">
                     Login
-                  </a>
+                  </Link>
                 </div>
               </CardFooter>
             </form>

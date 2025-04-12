@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
 
 interface GuestGuardProps {
@@ -10,14 +11,15 @@ interface GuestGuardProps {
  * If user is authenticated, it will redirect to the books page
  */
 export function GuestGuard({ children }: GuestGuardProps) {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
       // Redirect authenticated users to books page
-      window.location.href = "/books";
+      navigate("/books");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   return <>{children}</>;
 }

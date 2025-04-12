@@ -1,64 +1,76 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Loader2 } from "lucide-react";
-import AuthService from '@/services/authService';
+import AuthService from "@/services/authService";
 
 // Define validation schema using zod
-const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters long')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 // Infer the TypeScript type from the schema
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function SetNewPasswordComponent() {
+  const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
-  
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors, isSubmitting } 
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      password: '',
-      confirmPassword: ''
-    }
+      password: "",
+      confirmPassword: "",
+    },
   });
-  
+
   // Extract token from URL on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
-    
+    const tokenParam = urlParams.get("token");
+
     if (tokenParam) {
       setToken(tokenParam);
       // Optionally verify if token is valid before displaying form
       validateToken(tokenParam);
     } else {
-      setError('No reset token provided. Please request a new password reset.');
+      setError("No reset token provided. Please request a new password reset.");
       setTokenValid(false);
     }
   }, []);
-  
+
   // Function to validate the token
   const validateToken = async (tokenValue: string) => {
     try {
@@ -66,32 +78,39 @@ export function SetNewPasswordComponent() {
       // For now, we'll assume it's valid if it exists
       setTokenValid(true);
     } catch (err: any) {
-      console.error('Token validation error:', err);
-      setError('Invalid or expired reset token. Please request a new password reset.');
+      console.error("Token validation error:", err);
+      setError(
+        "Invalid or expired reset token. Please request a new password reset."
+      );
       setTokenValid(false);
     }
   };
-  
+
   const onSubmit = async (data: ResetPasswordFormValues) => {
     // Reset error state
-    setError('');
-    
+    setError("");
+
     if (!token) {
-      setError('No reset token available. Please request a new password reset.');
+      setError(
+        "No reset token available. Please request a new password reset."
+      );
       return;
     }
-    
+
     try {
       await AuthService.resetPassword(token, data.password);
       setIsSuccess(true);
-      
+
       // Redirect to login page after 3 seconds
       setTimeout(() => {
-        window.location.href = '/login';
+        navigate("/login");
       }, 3000);
     } catch (err: any) {
-      console.error('Password reset error:', err);
-      setError(err.response?.data?.message || 'Failed to reset password. Please try again or request a new reset link.');
+      console.error("Password reset error:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to reset password. Please try again or request a new reset link."
+      );
     }
   };
 
@@ -124,9 +143,9 @@ export function SetNewPasswordComponent() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button 
-              className="w-full" 
-              onClick={() => window.location.href = '/reset-password'}
+            <Button
+              className="w-full"
+              onClick={() => navigate("/reset-password")}
             >
               Request New Reset Link
             </Button>
@@ -155,7 +174,7 @@ export function SetNewPasswordComponent() {
             </Alert>
           </CardContent>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <CardContent>
               {error && (
                 <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -165,29 +184,33 @@ export function SetNewPasswordComponent() {
               <div className="grid w-full items-center gap-4">
                 <div className="flex flex-col space-y-1.5">
                   <Label htmlFor="password">New Password</Label>
-                  <Input 
+                  <Input
                     id="password"
                     placeholder="••••••••"
                     type="password"
-                    {...register('password')}
-                    aria-invalid={errors.password ? 'true' : 'false'}
+                    {...register("password")}
+                    aria-invalid={errors.password ? "true" : "false"}
                   />
                   {errors.password && (
-                    <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
-                
+
                 <div className="flex flex-col space-y-1.5">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input 
+                  <Input
                     id="confirmPassword"
                     placeholder="••••••••"
                     type="password"
-                    {...register('confirmPassword')}
-                    aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                    {...register("confirmPassword")}
+                    aria-invalid={errors.confirmPassword ? "true" : "false"}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-sm text-red-500 mt-1">{errors.confirmPassword.message}</p>
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -199,7 +222,9 @@ export function SetNewPasswordComponent() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Resetting Password...
                   </>
-                ) : 'Reset Password'}
+                ) : (
+                  "Reset Password"
+                )}
               </Button>
             </CardFooter>
           </form>
@@ -208,4 +233,3 @@ export function SetNewPasswordComponent() {
     </div>
   );
 }
-

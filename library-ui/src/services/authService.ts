@@ -1,4 +1,5 @@
 import api from "./api";
+import appNavigate from "@/lib/navigation";
 
 // Types for API requests and responses
 export interface LoginRequest {
@@ -141,8 +142,8 @@ const AuthService = {
   logout: (): void => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    // Redirect to home page
-    window.location.href = "/";
+    // Redirect to home page using navigation utility
+    appNavigate("/");
   },
 
   // Check if user is logged in

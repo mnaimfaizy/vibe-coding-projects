@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,6 +29,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginComponent() {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.auth);
 
@@ -54,8 +56,8 @@ export function LoginComponent() {
     dispatch(loginUser(data))
       .unwrap()
       .then(() => {
-        // Successful login will redirect to books page
-        window.location.href = "/books";
+        // Successful login will navigate to books page
+        navigate("/books");
       })
       .catch(() => {
         // Error handling is done in the slice
@@ -72,7 +74,7 @@ export function LoginComponent() {
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <CardContent>
               {error && (
                 <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -123,17 +125,17 @@ export function LoginComponent() {
                 )}
               </Button>
               <div className="mt-4 text-sm text-center">
-                <a
-                  href="/reset-password"
+                <Link
+                  to="/reset-password"
                   className="text-blue-600 hover:underline"
                 >
                   Forgot Password?
-                </a>
+                </Link>
                 <div className="mt-2">
                   Don't have an account?{" "}
-                  <a href="/signup" className="text-blue-600 hover:underline">
+                  <Link to="/signup" className="text-blue-600 hover:underline">
                     Sign up
-                  </a>
+                  </Link>
                 </div>
               </div>
             </CardFooter>

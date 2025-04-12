@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
 
 interface AuthGuardProps {
@@ -11,14 +12,15 @@ interface AuthGuardProps {
  * If user is not authenticated, it will redirect to login page
  */
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (!isAuthenticated) {
       // Redirect to login
-      window.location.href = "/login";
+      navigate("/login");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   // Show fallback or nothing while checking authentication
   if (!isAuthenticated) {

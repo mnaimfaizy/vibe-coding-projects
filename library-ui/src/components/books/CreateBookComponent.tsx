@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,40 +24,54 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
 
 export function CreateBookComponent() {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [genre, setGenre] = useState('');
-  const [publishedYear, setPublishedYear] = useState('');
-  const [isbn, setIsbn] = useState('');
-  const [description, setDescription] = useState('');
-  const [coverUrl, setCoverUrl] = useState('');
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [genre, setGenre] = useState("");
+  const [publishedYear, setPublishedYear] = useState("");
+  const [isbn, setIsbn] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
   const [available, setAvailable] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   // Available genres
   const genres = [
-    "Fiction", "Non-Fiction", "Mystery", "Thriller", "Romance", 
-    "Science Fiction", "Fantasy", "Biography", "History", "Self-Help",
-    "Business", "Children's Books", "Young Adult", "Horror", "Poetry",
-    "Classic", "Dystopian", "Adventure"
+    "Fiction",
+    "Non-Fiction",
+    "Mystery",
+    "Thriller",
+    "Romance",
+    "Science Fiction",
+    "Fantasy",
+    "Biography",
+    "History",
+    "Self-Help",
+    "Business",
+    "Children's Books",
+    "Young Adult",
+    "Horror",
+    "Poetry",
+    "Classic",
+    "Dystopian",
+    "Adventure",
   ];
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // In a real implementation, this would be an API call
     setTimeout(() => {
-      console.log('Book submitted:', { 
-        title, 
-        author, 
-        genre, 
-        publishedYear: parseInt(publishedYear), 
+      console.log("Book submitted:", {
+        title,
+        author,
+        genre,
+        publishedYear: parseInt(publishedYear),
         isbn,
         description,
         coverUrl,
-        available
+        available,
       });
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -67,15 +81,15 @@ export function CreateBookComponent() {
       }, 2000);
     }, 1500);
   };
-  
+
   const resetForm = () => {
-    setTitle('');
-    setAuthor('');
-    setGenre('');
-    setPublishedYear('');
-    setIsbn('');
-    setDescription('');
-    setCoverUrl('');
+    setTitle("");
+    setAuthor("");
+    setGenre("");
+    setPublishedYear("");
+    setIsbn("");
+    setDescription("");
+    setCoverUrl("");
     setAvailable(true);
     setIsSuccess(false);
   };
@@ -89,7 +103,7 @@ export function CreateBookComponent() {
         </Button>
         <h1 className="text-3xl font-bold">Add New Book</h1>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -100,7 +114,7 @@ export function CreateBookComponent() {
             Fill in the details below to add a new book to the library.
           </CardDescription>
         </CardHeader>
-        
+
         {isSuccess && (
           <Alert className="mx-6 bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -109,13 +123,15 @@ export function CreateBookComponent() {
             </AlertDescription>
           </Alert>
         )}
-        
-        <form onSubmit={handleSubmit}>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                <Label htmlFor="title">
+                  Title <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="title"
                   placeholder="Enter book title"
@@ -124,10 +140,12 @@ export function CreateBookComponent() {
                   required
                 />
               </div>
-              
+
               {/* Author */}
               <div className="space-y-2">
-                <Label htmlFor="author">Author <span className="text-red-500">*</span></Label>
+                <Label htmlFor="author">
+                  Author <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="author"
                   placeholder="Enter author name"
@@ -136,22 +154,26 @@ export function CreateBookComponent() {
                   required
                 />
               </div>
-              
+
               {/* Genre */}
               <div className="space-y-2">
-                <Label htmlFor="genre">Genre <span className="text-red-500">*</span></Label>
+                <Label htmlFor="genre">
+                  Genre <span className="text-red-500">*</span>
+                </Label>
                 <Select value={genre} onValueChange={setGenre} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select genre" />
                   </SelectTrigger>
                   <SelectContent>
                     {genres.map((g) => (
-                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                      <SelectItem key={g} value={g}>
+                        {g}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Published Year */}
               <div className="space-y-2">
                 <Label htmlFor="publishedYear">Published Year</Label>
@@ -165,7 +187,7 @@ export function CreateBookComponent() {
                   onChange={(e) => setPublishedYear(e.target.value)}
                 />
               </div>
-              
+
               {/* ISBN */}
               <div className="space-y-2">
                 <Label htmlFor="isbn">ISBN</Label>
@@ -176,7 +198,7 @@ export function CreateBookComponent() {
                   onChange={(e) => setIsbn(e.target.value)}
                 />
               </div>
-              
+
               {/* Cover URL */}
               <div className="space-y-2">
                 <Label htmlFor="coverUrl">Cover Image URL</Label>
@@ -188,7 +210,7 @@ export function CreateBookComponent() {
                   onChange={(e) => setCoverUrl(e.target.value)}
                 />
               </div>
-              
+
               {/* Description */}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description">Description</Label>
@@ -200,7 +222,7 @@ export function CreateBookComponent() {
                   rows={5}
                 />
               </div>
-              
+
               {/* Availability Switch */}
               <div className="flex items-center space-x-2 md:col-span-2">
                 <Switch
@@ -208,11 +230,13 @@ export function CreateBookComponent() {
                   checked={available}
                   onCheckedChange={setAvailable}
                 />
-                <Label htmlFor="available">Book is available for borrowing</Label>
+                <Label htmlFor="available">
+                  Book is available for borrowing
+                </Label>
               </div>
             </div>
           </CardContent>
-          
+
           <CardFooter className="flex justify-between border-t p-6">
             <Button type="button" variant="outline" onClick={resetForm}>
               Clear Form

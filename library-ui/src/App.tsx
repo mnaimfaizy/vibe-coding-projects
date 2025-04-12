@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import { useEffect } from "react";
 import { LandingPageComponent } from "./components/landing/LandingPageComponent";
 import { LoginComponent } from "./components/auth/LoginComponent";
 import { SignUpComponent } from "./components/auth/SignUpComponent";
@@ -12,10 +19,23 @@ import { EditBookComponent } from "./components/books/EditBookComponent";
 import { ProfileComponent } from "./components/profile/ProfileComponent";
 import { MainLayout } from "./components/shared/MainLayout";
 import { AuthGuard } from "./components/auth/guards/AuthGuard";
+import { registerNavigate } from "./lib/navigation";
+
+// Wrapper component to register the navigation function
+function NavigationRegistrar() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    registerNavigate(navigate);
+  }, [navigate]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
+      <NavigationRegistrar />
       <MainLayout>
         <Routes>
           {/* Public routes */}
