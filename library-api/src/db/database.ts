@@ -50,6 +50,17 @@ async function initializeTables(db: any): Promise<void> {
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
+    CREATE TABLE IF NOT EXISTS user_collections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      bookId INTEGER NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE,
+      UNIQUE(userId, bookId)
+    );
+    
     CREATE TABLE IF NOT EXISTS reset_tokens (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userId INTEGER NOT NULL,

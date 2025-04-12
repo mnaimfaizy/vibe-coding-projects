@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BooksCatalogComponent } from "./BooksCatalogComponent";
 import { BooksListComponent } from "./BooksListComponent";
+import { UserCollectionComponent } from "./UserCollectionComponent";
 import { Plus, RefreshCcw, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -52,15 +53,19 @@ export function BooksComponent() {
       </div>
 
       <Tabs defaultValue={view} onValueChange={setView} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+        <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
           <TabsTrigger value="catalog">Grid View</TabsTrigger>
           <TabsTrigger value="list">List View</TabsTrigger>
+          <TabsTrigger value="collection">My Collection</TabsTrigger>
         </TabsList>
         <TabsContent value="catalog">
           <BooksCatalogComponent />
         </TabsContent>
         <TabsContent value="list">
           <BooksListComponent />
+        </TabsContent>
+        <TabsContent value="collection">
+          <UserCollectionComponent />
         </TabsContent>
       </Tabs>
     </div>

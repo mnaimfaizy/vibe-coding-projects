@@ -84,14 +84,23 @@ export const getBookById = async (
 };
 
 /**
- * Create a book manually with provided details
+ * Create a book manually with provided details and optionally add to user collection
  */
 export const createBookManually = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { title, isbn, publishYear, author, cover, description } = req.body;
+    const {
+      title,
+      isbn,
+      publishYear,
+      author,
+      cover,
+      description,
+      addToCollection,
+    } = req.body;
+    const userId = (req as any).user?.id;
 
     // Validate input
     if (!title) {
@@ -108,12 +117,20 @@ export const createBookManually = async (
     if (isbn) {
       existingBook = await db.get("SELECT * FROM books WHERE isbn = ?", [isbn]);
       if (existingBook) {
-        res
-          .status(400)
-          .json({
-            message: "Book with this ISBN already exists in your collection",
+        // If book exists and user wants to add to collection, add it directly
+        if (addToCollection && userId) {
+          await addBookToUserCollection(db, userId, existingBook.id);
+          res.status(200).json({
+            message: "Book already exists and was added to your collection",
+            book: existingBook,
           });
-        return;
+          return;
+        } else {
+          res.status(400).json({
+            message: "Book with this ISBN already exists in the catalog",
+          });
+          return;
+        }
       }
     }
 
@@ -124,13 +141,21 @@ export const createBookManually = async (
         [title, author]
       );
       if (existingBook) {
-        res
-          .status(400)
-          .json({
-            message:
-              "Book with this title and author already exists in your collection",
+        // If book exists and user wants to add to collection, add it directly
+        if (addToCollection && userId) {
+          await addBookToUserCollection(db, userId, existingBook.id);
+          res.status(200).json({
+            message: "Book already exists and was added to your collection",
+            book: existingBook,
           });
-        return;
+          return;
+        } else {
+          res.status(400).json({
+            message:
+              "Book with this title and author already exists in the catalog",
+          });
+          return;
+        }
       }
     }
 
@@ -152,10 +177,20 @@ export const createBookManually = async (
       const newBook = (await db.get("SELECT * FROM books WHERE id = ?", [
         result.lastID,
       ])) as Book;
-      res.status(201).json({
-        message: "Book created successfully",
-        book: newBook,
-      });
+
+      // Add to user collection if requested
+      if (addToCollection && userId) {
+        await addBookToUserCollection(db, userId, result.lastID);
+        res.status(201).json({
+          message: "Book created successfully and added to your collection",
+          book: newBook,
+        });
+      } else {
+        res.status(201).json({
+          message: "Book created successfully",
+          book: newBook,
+        });
+      }
     } else {
       res.status(500).json({ message: "Failed to create book" });
     }
@@ -166,14 +201,15 @@ export const createBookManually = async (
 };
 
 /**
- * Create a book using ISBN and Open Library API
+ * Create a book using ISBN and Open Library API and optionally add to user collection
  */
 export const createBookByIsbn = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { isbn } = req.body;
+    const { isbn, addToCollection } = req.body;
+    const userId = (req as any).user?.id;
 
     if (!isbn) {
       res.status(400).json({ message: "ISBN is required" });
@@ -196,8 +232,22 @@ export const createBookByIsbn = async (
       isbn,
     ]);
     if (existingBook) {
-      res.status(400).json({ message: "Book with this ISBN already exists" });
-      return;
+      // If book exists and user wants to add to collection, add it directly
+      if (addToCollection && userId) {
+        await addBookToUserCollection(db, userId, existingBook.id);
+        res.status(200).json({
+          message: "Book already exists and was added to your collection",
+          book: existingBook,
+        });
+        return;
+      } else {
+        res
+          .status(400)
+          .json({
+            message: "Book with this ISBN already exists in the catalog",
+          });
+        return;
+      }
     }
 
     // Fetch book details from Open Library API
@@ -239,10 +289,21 @@ export const createBookByIsbn = async (
       const newBook = (await db.get("SELECT * FROM books WHERE id = ?", [
         result.lastID,
       ])) as Book;
-      res.status(201).json({
-        message: "Book created successfully from ISBN",
-        book: newBook,
-      });
+
+      // Add to user collection if requested
+      if (addToCollection && userId) {
+        await addBookToUserCollection(db, userId, result.lastID);
+        res.status(201).json({
+          message:
+            "Book created successfully from ISBN and added to your collection",
+          book: newBook,
+        });
+      } else {
+        res.status(201).json({
+          message: "Book created successfully from ISBN",
+          book: newBook,
+        });
+      }
     } else {
       res.status(500).json({ message: "Failed to create book" });
     }
@@ -339,7 +400,7 @@ export const deleteBook = async (
       return;
     }
 
-    // Delete book
+    // Delete book - note: this will also delete any user collection entries due to CASCADE
     await db.run("DELETE FROM books WHERE id = ?", [id]);
 
     res.status(200).json({ message: "Book deleted successfully" });
@@ -505,3 +566,140 @@ export const searchOpenLibrary = async (
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * Add a book to a user's collection
+ */
+export const addToUserCollection = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { bookId } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!bookId) {
+      res.status(400).json({ message: "Book ID is required" });
+      return;
+    }
+
+    const db = await connectDatabase();
+
+    // Check if book exists
+    const book = await db.get("SELECT * FROM books WHERE id = ?", [bookId]);
+    if (!book) {
+      res.status(404).json({ message: "Book not found" });
+      return;
+    }
+
+    // Add to user collection
+    await addBookToUserCollection(db, userId, bookId);
+
+    res.status(201).json({
+      message: "Book added to your collection successfully",
+    });
+  } catch (error: any) {
+    console.error("Error adding book to collection:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * Remove a book from a user's collection
+ */
+export const removeFromUserCollection = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { bookId } = req.params;
+    const userId = (req as any).user?.id;
+
+    const db = await connectDatabase();
+
+    // Check if the book is in the user's collection
+    const userBook = await db.get(
+      "SELECT * FROM user_collections WHERE userId = ? AND bookId = ?",
+      [userId, bookId]
+    );
+
+    if (!userBook) {
+      res.status(404).json({ message: "Book not found in your collection" });
+      return;
+    }
+
+    // Remove from user collection
+    await db.run(
+      "DELETE FROM user_collections WHERE userId = ? AND bookId = ?",
+      [userId, bookId]
+    );
+
+    res.status(200).json({
+      message: "Book removed from your collection successfully",
+    });
+  } catch (error: any) {
+    console.error("Error removing book from collection:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * Get a user's book collection
+ */
+export const getUserCollection = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = (req as any).user?.id;
+
+    const db = await connectDatabase();
+
+    // Get all books in the user's collection
+    const books = await db.all(
+      `
+      SELECT b.* 
+      FROM books b
+      JOIN user_collections uc ON b.id = uc.bookId
+      WHERE uc.userId = ?
+      ORDER BY b.title
+    `,
+      [userId]
+    );
+
+    res.status(200).json({ books });
+  } catch (error: any) {
+    console.error("Error fetching user collection:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * Helper function to add a book to a user's collection
+ */
+async function addBookToUserCollection(
+  db: any,
+  userId: number,
+  bookId: number
+): Promise<void> {
+  try {
+    // Check if the book is already in the user's collection
+    const existingEntry = await db.get(
+      "SELECT * FROM user_collections WHERE userId = ? AND bookId = ?",
+      [userId, bookId]
+    );
+
+    if (existingEntry) {
+      return; // Book is already in the collection, no need to add again
+    }
+
+    // Add to user collection
+    await db.run(
+      `INSERT INTO user_collections (userId, bookId) VALUES (?, ?)`,
+      [userId, bookId]
+    );
+  } catch (error) {
+    console.error("Error in addBookToUserCollection:", error);
+    throw error;
+  }
+}

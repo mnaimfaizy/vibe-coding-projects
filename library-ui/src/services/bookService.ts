@@ -78,8 +78,14 @@ const BookService = {
   },
 
   // Create new book
-  createBook: async (bookData: Book): Promise<Book> => {
-    const response = await api.post<Book>("/api/books", bookData);
+  createBook: async (
+    bookData: Book,
+    addToCollection: boolean = false
+  ): Promise<Book> => {
+    const response = await api.post<Book>("/api/books", {
+      ...bookData,
+      addToCollection,
+    });
     return response.data;
   },
 
@@ -117,7 +123,8 @@ const BookService = {
 
   // Add book from Open Library to collection
   addBookFromOpenLibrary: async (
-    bookData: OpenLibraryBookResult
+    bookData: OpenLibraryBookResult,
+    addToCollection: boolean = false
   ): Promise<Book> => {
     // Helper function to safely process potentially complex values
     const safeProcess = (value: any): string => {
@@ -149,9 +156,39 @@ const BookService = {
       cover: bookData.cover || "", // Match the backend field name
       description: safeProcess(bookData.description),
       // Backend doesn't have genre or publishedDate fields
+      addToCollection: addToCollection, // Include the addToCollection flag
     };
 
     return BookService.createBook(book as any);
+  },
+
+  // User Collection Methods
+
+  // Get user's book collection
+  getUserCollection: async (): Promise<Book[]> => {
+    const response = await api.get<Book[]>("/api/books/user/collection");
+    return response.data;
+  },
+
+  // Add book to user collection
+  addToUserCollection: async (bookId: number): Promise<void> => {
+    await api.post("/api/books/user/collection", { bookId });
+  },
+
+  // Remove book from user collection
+  removeFromUserCollection: async (bookId: number): Promise<void> => {
+    await api.delete(`/api/books/user/collection/${bookId}`);
+  },
+
+  // Check if a book is in user's collection
+  isBookInUserCollection: async (bookId: number): Promise<boolean> => {
+    try {
+      const collection = await BookService.getUserCollection();
+      return collection.some((book) => book.id === bookId);
+    } catch (error) {
+      console.error("Error checking if book is in user collection:", error);
+      return false;
+    }
   },
 };
 

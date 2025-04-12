@@ -21,6 +21,7 @@ import { ProfileComponent } from "./components/profile/ProfileComponent";
 import { MainLayout } from "./components/shared/MainLayout";
 import { AuthGuard } from "./components/auth/guards/AuthGuard";
 import { registerNavigate } from "./lib/navigation";
+import { Toaster } from "./components/ui/sonner";
 
 // Wrapper component to register the navigation function
 function NavigationRegistrar() {
@@ -122,6 +123,7 @@ function App() {
             }
           />
         </Routes>
+        <Toaster />
       </MainLayout>
     </BrowserRouter>
   );

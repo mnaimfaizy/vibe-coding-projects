@@ -1,6 +1,14 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash, Star, Eye, Download } from "lucide-react";
+import {
+  Edit,
+  Trash,
+  Star,
+  Eye,
+  BookmarkPlus,
+  BookmarkCheck,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,82 +17,107 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  cover: string;
-  rating: number;
-  genre: string;
-  publishedYear: number;
-  available: boolean;
-}
+import { Link } from "react-router-dom";
+import BookService, { Book } from "@/services/bookService";
+import { toast } from "sonner";
 
 export function BooksListComponent() {
-  // Sample books data - in a real app, this would come from API
-  const books: Book[] = [
-    {
-      id: 1,
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200',
-      rating: 4.5,
-      genre: 'Classic',
-      publishedYear: 1960,
-      available: true
-    },
-    {
-      id: 2,
-      title: '1984',
-      author: 'George Orwell',
-      cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=200',
-      rating: 4.7,
-      genre: 'Dystopian',
-      publishedYear: 1949,
-      available: true
-    },
-    {
-      id: 3,
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      cover: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=200',
-      rating: 4.3,
-      genre: 'Classic',
-      publishedYear: 1925,
-      available: false
-    },
-    {
-      id: 4,
-      title: 'Pride and Prejudice',
-      author: 'Jane Austen',
-      cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=200',
-      rating: 4.4,
-      genre: 'Romance',
-      publishedYear: 1813,
-      available: true
-    },
-    {
-      id: 5,
-      title: 'The Hobbit',
-      author: 'J.R.R. Tolkien',
-      cover: 'https://images.unsplash.com/photo-1633477189729-9290b3261d0a?q=80&w=200',
-      rating: 4.6,
-      genre: 'Fantasy',
-      publishedYear: 1937,
-      available: true
-    },
-    {
-      id: 6,
-      title: 'Brave New World',
-      author: 'Aldous Huxley',
-      cover: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?q=80&w=200',
-      rating: 4.2,
-      genre: 'Dystopian',
-      publishedYear: 1932,
-      available: false
-    },
-  ];
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [userCollection, setUserCollection] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetchBooks();
+    fetchUserCollection();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await BookService.getAllBooks();
+
+      // Handle the response properly, ensuring it's an array
+      if (Array.isArray(response)) {
+        setBooks(response);
+      } else if (
+        response &&
+        typeof response === "object" &&
+        "books" in response
+      ) {
+        // If API returns {books: [...]} format
+        setBooks(response.books as Book[]);
+      } else {
+        console.error("Unexpected API response format:", response);
+        setBooks([]);
+        toast.error("Received invalid data format from API");
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      toast.error("Failed to load books catalog.");
+      setBooks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserCollection = async () => {
+    try {
+      const response = await BookService.getUserCollection();
+
+      // Handle the response properly, ensuring we get an array of books
+      if (Array.isArray(response)) {
+        const bookIds = response
+          .map((book) => book.id as number)
+          .filter(Boolean);
+        setUserCollection(bookIds);
+      } else if (
+        response &&
+        typeof response === "object" &&
+        "books" in response
+      ) {
+        // If API returns {books: [...]} format
+        const bookIds = (response.books as Book[])
+          .map((book) => book.id as number)
+          .filter(Boolean);
+        setUserCollection(bookIds);
+      } else {
+        console.error(
+          "Unexpected API response format for user collection:",
+          response
+        );
+        setUserCollection([]);
+      }
+    } catch (error) {
+      console.error("Error fetching user collection:", error);
+      setUserCollection([]);
+    }
+  };
+
+  const handleAddToCollection = async (bookId: number) => {
+    try {
+      await BookService.addToUserCollection(bookId);
+      setUserCollection([...userCollection, bookId]);
+      toast.success("Book added to your collection.");
+    } catch (error) {
+      toast.error("Failed to add book to collection.");
+      console.error("Error adding book to collection:", error);
+    }
+  };
+
+  const handleRemoveFromCollection = async (bookId: number) => {
+    try {
+      await BookService.removeFromUserCollection(bookId);
+      setUserCollection(userCollection.filter((id) => id !== bookId));
+      toast.success("Book removed from your collection.");
+    } catch (error) {
+      toast.error("Failed to remove book from collection.");
+      console.error("Error removing book from collection:", error);
+    }
+  };
+
+  const isInCollection = (bookId?: number) => {
+    return bookId ? userCollection.includes(bookId) : false;
+  };
 
   const renderRating = (rating: number) => {
     return (
@@ -95,6 +128,24 @@ export function BooksListComponent() {
     );
   };
 
+  if (loading) {
+    return <div className="flex justify-center p-8">Loading books...</div>;
+  }
+
+  if (!books || books.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <h3 className="text-2xl font-semibold">No books found</h3>
+        <p className="text-muted-foreground mt-2">
+          Add some books to the catalog to get started.
+        </p>
+        <Button className="mt-4" asChild>
+          <Link to="/books/create">Add Your First Book</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -103,10 +154,8 @@ export function BooksListComponent() {
             <TableHead className="w-[100px]">Cover</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Author</TableHead>
-            <TableHead>Genre</TableHead>
+            <TableHead>Collection</TableHead>
             <TableHead>Year</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -114,34 +163,58 @@ export function BooksListComponent() {
           {books.map((book) => (
             <TableRow key={book.id}>
               <TableCell>
-                <img 
-                  src={book.cover} 
-                  alt={`${book.title} cover`} 
+                <img
+                  src={
+                    book.coverImage ||
+                    book.cover ||
+                    "https://via.placeholder.com/200x300?text=No+Cover"
+                  }
+                  alt={`${book.title} cover`}
                   className="w-16 h-20 object-cover rounded-sm"
                 />
               </TableCell>
               <TableCell className="font-medium">{book.title}</TableCell>
               <TableCell>{book.author}</TableCell>
               <TableCell>
-                <Badge variant="outline">{book.genre}</Badge>
+                {isInCollection(book.id) ? (
+                  <Badge variant="secondary">In Collection</Badge>
+                ) : (
+                  <Badge variant="outline">Not Collected</Badge>
+                )}
               </TableCell>
-              <TableCell>{book.publishedYear}</TableCell>
-              <TableCell>{renderRating(book.rating)}</TableCell>
               <TableCell>
-                <Badge variant={book.available ? "default" : "destructive"}>
-                  {book.available ? "Available" : "Unavailable"}
-                </Badge>
+                {book.publishedDate
+                  ? new Date(book.publishedDate).getFullYear()
+                  : book.publishYear || "N/A"}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button size="icon" variant="ghost">
-                    <Eye className="h-4 w-4" />
+                  <Button size="icon" variant="ghost" asChild>
+                    <Link to={`/books/${book.id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Link>
                   </Button>
-                  <Button size="icon" variant="ghost">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <Edit className="h-4 w-4" />
+                  {isInCollection(book.id) ? (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRemoveFromCollection(book.id!)}
+                    >
+                      <BookmarkCheck className="h-4 w-4 text-primary" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleAddToCollection(book.id!)}
+                    >
+                      <BookmarkPlus className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" asChild>
+                    <Link to={`/books/edit/${book.id}`}>
+                      <Edit className="h-4 w-4" />
+                    </Link>
                   </Button>
                   <Button size="icon" variant="ghost" className="text-red-500">
                     <Trash className="h-4 w-4" />

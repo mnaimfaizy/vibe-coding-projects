@@ -22,6 +22,9 @@ import { Switch } from "@/components/ui/switch";
 import { BookPlus, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import BookService from "@/services/bookService";
+import { toast } from "sonner";
 
 export function CreateBookComponent() {
   const [title, setTitle] = useState("");
@@ -32,8 +35,10 @@ export function CreateBookComponent() {
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [available, setAvailable] = useState(true);
+  const [addToCollection, setAddToCollection] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
 
   // Available genres
   const genres = [
@@ -57,29 +62,44 @@ export function CreateBookComponent() {
     "Adventure",
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // In a real implementation, this would be an API call
-    setTimeout(() => {
-      console.log("Book submitted:", {
+    try {
+      const bookData = {
         title,
         author,
         genre,
-        publishedYear: parseInt(publishedYear),
+        publishedDate: publishedYear
+          ? new Date(parseInt(publishedYear), 0, 1).toISOString()
+          : undefined,
         isbn,
         description,
-        coverUrl,
-        available,
-      });
-      setIsSubmitting(false);
+        coverImage: coverUrl,
+        // other fields as needed by your API
+      };
+
+      await BookService.createBook(bookData, addToCollection);
       setIsSuccess(true);
+
+      toast.success(
+        `Book "${title}" was successfully added ${
+          addToCollection ? "and added to your collection" : ""
+        }!`
+      );
+
       // Reset form after successful submission
       setTimeout(() => {
         resetForm();
+        navigate("/books");
       }, 2000);
-    }, 1500);
+    } catch (error) {
+      console.error("Error creating book:", error);
+      toast.error("Failed to create book. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -91,13 +111,18 @@ export function CreateBookComponent() {
     setDescription("");
     setCoverUrl("");
     setAvailable(true);
+    setAddToCollection(true);
     setIsSuccess(false);
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="flex items-center mb-6">
-        <Button variant="ghost" className="mr-4">
+        <Button
+          variant="ghost"
+          className="mr-4"
+          onClick={() => navigate("/books")}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Books
         </Button>
@@ -224,7 +249,7 @@ export function CreateBookComponent() {
               </div>
 
               {/* Availability Switch */}
-              <div className="flex items-center space-x-2 md:col-span-2">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="available"
                   checked={available}
@@ -232,6 +257,18 @@ export function CreateBookComponent() {
                 />
                 <Label htmlFor="available">
                   Book is available for borrowing
+                </Label>
+              </div>
+
+              {/* Add to Collection Switch */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="addToCollection"
+                  checked={addToCollection}
+                  onCheckedChange={setAddToCollection}
+                />
+                <Label htmlFor="addToCollection">
+                  Add to my personal collection
                 </Label>
               </div>
             </div>
