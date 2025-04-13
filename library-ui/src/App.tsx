@@ -2,8 +2,8 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
   useNavigate,
+  Link,
 } from "react-router-dom";
 import { useEffect } from "react";
 import { LandingPageComponent } from "./components/landing/LandingPageComponent";
@@ -13,6 +13,7 @@ import { ResetPasswordComponent } from "./components/auth/ResetPasswordComponent
 import { ChangePasswordComponent } from "./components/auth/ChangePasswordComponent";
 import { EmailVerificationComponent } from "./components/auth/EmailVerificationComponent";
 import { SetNewPasswordComponent } from "./components/auth/SetNewPasswordComponent";
+import { PublicBooksComponent } from "./components/books/PublicBooksComponent";
 import { BooksComponent } from "./components/books/BooksComponent";
 import { CreateBookComponent } from "./components/books/CreateBookComponent";
 import { EditBookComponent } from "./components/books/EditBookComponent";
@@ -56,6 +57,10 @@ function App() {
             path="/verify-email"
             element={<EmailVerificationComponent />}
           />
+          {/* Public books route */}
+          <Route path="/books" element={<PublicBooksComponent />} />
+          {/* Public route for book details */}
+          <Route path="/books/:bookId" element={<BookDetailsComponent />} />
 
           {/* Protected routes */}
           <Route
@@ -67,7 +72,7 @@ function App() {
             }
           />
           <Route
-            path="/books"
+            path="/my-books"
             element={
               <AuthGuard>
                 <BooksComponent />
@@ -75,7 +80,7 @@ function App() {
             }
           />
           <Route
-            path="/books/search"
+            path="/my-books/search"
             element={
               <AuthGuard>
                 <BookSearchComponent />
@@ -95,15 +100,6 @@ function App() {
             element={
               <AuthGuard>
                 <EditBookComponent />
-              </AuthGuard>
-            }
-          />
-          {/* New route for book details */}
-          <Route
-            path="/books/:bookId"
-            element={
-              <AuthGuard>
-                <BookDetailsComponent />
               </AuthGuard>
             }
           />
@@ -142,12 +138,12 @@ function App() {
                 <p className="mb-4">
                   Sorry, the page you are looking for doesn't exist.
                 </p>
-                <a
-                  href="/"
+                <Link
+                  to="/"
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block"
                 >
                   Return to Home
-                </a>
+                </Link>
               </div>
             }
           />

@@ -23,7 +23,7 @@ export function BooksComponent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Books Collection</h1>
+        <h1 className="text-3xl font-bold">My Books Collection</h1>
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -38,7 +38,7 @@ export function BooksComponent() {
             Refresh
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/books/search">
+            <Link to="/my-books/search">
               <Search className="h-4 w-4 mr-2" />
               Search Books
             </Link>

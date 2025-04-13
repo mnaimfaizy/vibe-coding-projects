@@ -11,14 +11,18 @@ import {
 import { BookOpen, Menu, User, X } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { logoutUser } from "@/store/slices/authSlice";
+import { Link, useNavigate } from "react-router-dom";
 
 export function HeaderComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     dispatch(logoutUser());
+    // Optional: navigate to home or login page after logout
+    navigate("/");
   };
 
   return (
@@ -33,28 +37,38 @@ export function HeaderComponent() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="/" className="hover:text-blue-400 transition-colors">
+            <Link to="/" className="hover:text-blue-400 transition-colors">
               Home
-            </a>
-            <a href="/books" className="hover:text-blue-400 transition-colors">
+            </Link>
+            <Link to="/books" className="hover:text-blue-400 transition-colors">
               Books
-            </a>
-            <a href="/about" className="hover:text-blue-400 transition-colors">
+            </Link>
+            {isAuthenticated && (
+              <Link
+                to="/my-books"
+                className="hover:text-blue-400 transition-colors"
+              >
+                My Books
+              </Link>
+            )}
+            <Link to="/about" className="hover:text-blue-400 transition-colors">
               About
-            </a>
-            <a
-              href="/contact"
+            </Link>
+            <Link
+              to="/contact"
               className="hover:text-blue-400 transition-colors"
             >
               Contact
-            </a>
+            </Link>
           </nav>
 
           {/* User Menu (Desktop) */}
           <div className="hidden md:block">
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium">{user?.name || "User"}</span>
+                <span className="text-sm font-medium">
+                  {user?.name || "User"}
+                </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -68,19 +82,19 @@ export function HeaderComponent() {
                     <DropdownMenuLabel>Account Options</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
-                      <a href="/profile" className="flex w-full">
+                      <Link to="/profile" className="flex w-full">
                         Profile
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <a href="/bookmarks" className="flex w-full">
-                        Bookmarks
-                      </a>
+                      <Link to="/my-books" className="flex w-full">
+                        My Books
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <a href="/settings" className="flex w-full">
+                      <Link to="/settings" className="flex w-full">
                         Settings
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
@@ -92,10 +106,10 @@ export function HeaderComponent() {
             ) : (
               <div className="space-x-2">
                 <Button variant="ghost" asChild>
-                  <a href="/login">Login</a>
+                  <Link to="/login">Login</Link>
                 </Button>
                 <Button variant="default" asChild>
-                  <a href="/signup">Sign Up</a>
+                  <Link to="/signup">Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -121,27 +135,35 @@ export function HeaderComponent() {
           <div className="md:hidden py-4 border-t border-slate-700 mt-3">
             <div className="md:hidden py-4 space-y-4">
               <nav className="flex flex-col space-y-4">
-                <a href="/" className="hover:text-blue-400 transition-colors">
+                <Link to="/" className="hover:text-blue-400 transition-colors">
                   Home
-                </a>
-                <a
-                  href="/books"
+                </Link>
+                <Link
+                  to="/books"
                   className="hover:text-blue-400 transition-colors"
                 >
                   Books
-                </a>
-                <a
-                  href="/about"
+                </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/my-books"
+                    className="hover:text-blue-400 transition-colors"
+                  >
+                    My Books
+                  </Link>
+                )}
+                <Link
+                  to="/about"
                   className="hover:text-blue-400 transition-colors"
                 >
                   About
-                </a>
-                <a
-                  href="/contact"
+                </Link>
+                <Link
+                  to="/contact"
                   className="hover:text-blue-400 transition-colors"
                 >
                   Contact
-                </a>
+                </Link>
               </nav>
               <div className="pt-4 border-t border-slate-700">
                 {isAuthenticated ? (
@@ -150,24 +172,24 @@ export function HeaderComponent() {
                       <User className="h-4 w-4" />
                       <span>{user?.name || "User"}</span>
                     </div>
-                    <a
-                      href="/profile"
+                    <Link
+                      to="/profile"
                       className="block py-2 hover:text-blue-400 transition-colors"
                     >
                       Profile
-                    </a>
-                    <a
-                      href="/bookmarks"
+                    </Link>
+                    <Link
+                      to="/my-books"
                       className="block py-2 hover:text-blue-400 transition-colors"
                     >
-                      Bookmarks
-                    </a>
-                    <a
-                      href="/settings"
+                      My Books
+                    </Link>
+                    <Link
+                      to="/settings"
                       className="block py-2 hover:text-blue-400 transition-colors"
                     >
                       Settings
-                    </a>
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="block py-2 hover:text-blue-400 transition-colors"
@@ -178,10 +200,10 @@ export function HeaderComponent() {
                 ) : (
                   <div className="space-y-2">
                     <Button className="w-full" variant="outline" asChild>
-                      <a href="/login">Login</a>
+                      <Link to="/login">Login</Link>
                     </Button>
                     <Button className="w-full" asChild>
-                      <a href="/signup">Sign Up</a>
+                      <Link to="/signup">Sign Up</Link>
                     </Button>
                   </div>
                 )}
