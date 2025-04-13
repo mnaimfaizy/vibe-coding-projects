@@ -1,10 +1,11 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { connectDatabase } from './db/database';
-import authRoutes from './routes/authRoutes';
-import bookRoutes from './routes/bookRoutes';
-import config from './config/config';
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDatabase } from "./db/database";
+import authRoutes from "./routes/authRoutes";
+import bookRoutes from "./routes/bookRoutes";
+import authorRoutes from "./routes/authorRoutes";
+import config from "./config/config";
 
 // Load environment variables
 dotenv.config();
@@ -23,29 +24,30 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 // Connect to database
-connectDatabase().catch(err => {
-  console.error('Failed to connect to database:', err);
+connectDatabase().catch((err) => {
+  console.error("Failed to connect to database:", err);
   process.exit(1);
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/books', bookRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/books", bookRoutes);
+app.use("/api/authors", authorRoutes);
 
 // Root route
-app.get('/', (_req: Request, res: Response) => {
-  res.json({ message: 'Library API is running' });
+app.get("/", (_req: Request, res: Response) => {
+  res.json({ message: "Library API is running" });
 });
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: "Route not found" });
 });
 
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong', error: err.message });
+  res.status(500).json({ message: "Something went wrong", error: err.message });
 });
 
 // Start the server

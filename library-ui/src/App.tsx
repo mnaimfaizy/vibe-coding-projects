@@ -16,6 +16,9 @@ import { SetNewPasswordComponent } from "./components/auth/SetNewPasswordCompone
 import { BooksComponent } from "./components/books/BooksComponent";
 import { CreateBookComponent } from "./components/books/CreateBookComponent";
 import { EditBookComponent } from "./components/books/EditBookComponent";
+import { BookDetailsComponent } from "./components/books/BookDetailsComponent";
+import { AuthorsComponent } from "./components/books/AuthorsComponent";
+import { AuthorsListComponent } from "./components/books/AuthorsListComponent";
 import { BookSearchComponent } from "./components/books/search/BookSearchComponent";
 import { ProfileComponent } from "./components/profile/ProfileComponent";
 import { MainLayout } from "./components/shared/MainLayout";
@@ -88,10 +91,36 @@ function App() {
             }
           />
           <Route
-            path="/books/edit"
+            path="/books/edit/:bookId"
             element={
               <AuthGuard>
                 <EditBookComponent />
+              </AuthGuard>
+            }
+          />
+          {/* New route for book details */}
+          <Route
+            path="/books/:bookId"
+            element={
+              <AuthGuard>
+                <BookDetailsComponent />
+              </AuthGuard>
+            }
+          />
+          {/* Authors routes */}
+          <Route
+            path="/authors"
+            element={
+              <AuthGuard>
+                <AuthorsListComponent />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/authors/:authorName"
+            element={
+              <AuthGuard>
+                <AuthorsComponent />
               </AuthGuard>
             }
           />

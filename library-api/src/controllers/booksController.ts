@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { connectDatabase } from "../db/database";
 import axios from "axios";
 import { Book } from "../models/Book";
+import { Author } from "../models/Author";
 import config from "../config/config";
 
 // Rate limiting implementation
@@ -41,7 +42,7 @@ const commonHeaders = {
 };
 
 /**
- * Get all books
+ * Get all books with their authors
  */
 export const getAllBooks = async (
   req: Request,
@@ -49,7 +50,25 @@ export const getAllBooks = async (
 ): Promise<void> => {
   try {
     const db = await connectDatabase();
+
+    // Get all books
     const books = await db.all("SELECT * FROM books ORDER BY title");
+
+    // For each book, get its authors
+    for (const book of books) {
+      const authors = await db.all(
+        `
+        SELECT a.* 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [book.id]
+      );
+
+      book.authors = authors;
+    }
 
     res.status(200).json({ books });
   } catch (error: any) {
@@ -59,7 +78,7 @@ export const getAllBooks = async (
 };
 
 /**
- * Get a single book by ID
+ * Get a single book by ID with its authors
  */
 export const getBookById = async (
   req: Request,
@@ -75,6 +94,20 @@ export const getBookById = async (
       res.status(404).json({ message: "Book not found" });
       return;
     }
+
+    // Get the book's authors
+    const authors = await db.all(
+      `
+      SELECT a.*, ab.is_primary 
+      FROM authors a
+      JOIN author_books ab ON a.id = ab.author_id
+      WHERE ab.book_id = ?
+      ORDER BY ab.is_primary DESC, a.name
+    `,
+      [id]
+    );
+
+    book.authors = authors;
 
     res.status(200).json({ book });
   } catch (error: any) {
@@ -95,9 +128,10 @@ export const createBookManually = async (
       title,
       isbn,
       publishYear,
-      author,
+      author, // For backward compatibility
       cover,
       description,
+      authors, // New field for multiple authors
       addToCollection,
     } = req.body;
     const userId = (req as any).user?.id;
@@ -110,77 +144,152 @@ export const createBookManually = async (
 
     const db = await connectDatabase();
 
-    // Check if book already exists by ISBN or title+author
+    // Check if book already exists by ISBN
     let existingBook = null;
-
-    // Check by ISBN first if available
     if (isbn) {
       existingBook = await db.get("SELECT * FROM books WHERE isbn = ?", [isbn]);
       if (existingBook) {
         // If book exists and user wants to add to collection, add it directly
         if (addToCollection && userId) {
           await addBookToUserCollection(db, userId, existingBook.id);
+
+          // Get the book's authors
+          const bookAuthors = await db.all(
+            `
+            SELECT a.* 
+            FROM authors a
+            JOIN author_books ab ON a.id = ab.author_id
+            WHERE ab.book_id = ?
+          `,
+            [existingBook.id]
+          );
+
+          existingBook.authors = bookAuthors;
+
           res.status(200).json({
             message: "Book already exists and was added to your collection",
             book: existingBook,
           });
-          return;
         } else {
           res.status(400).json({
             message: "Book with this ISBN already exists in the catalog",
           });
-          return;
         }
+        return;
       }
     }
 
-    // If no ISBN or no existing book found by ISBN, check by title+author
-    if (!existingBook && title && author) {
-      existingBook = await db.get(
-        "SELECT * FROM books WHERE LOWER(title) = LOWER(?) AND LOWER(author) = LOWER(?)",
-        [title, author]
+    // Start a transaction
+    await db.run("BEGIN TRANSACTION");
+
+    try {
+      // Create new book
+      const result = await db.run(
+        `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          title,
+          isbn || null,
+          publishYear || null,
+          author || null, // Keep author field for backward compatibility
+          cover || null,
+          description || null,
+        ]
       );
-      if (existingBook) {
-        // If book exists and user wants to add to collection, add it directly
-        if (addToCollection && userId) {
-          await addBookToUserCollection(db, userId, existingBook.id);
-          res.status(200).json({
-            message: "Book already exists and was added to your collection",
-            book: existingBook,
-          });
-          return;
-        } else {
-          res.status(400).json({
-            message:
-              "Book with this title and author already exists in the catalog",
-          });
-          return;
+
+      const bookId = result.lastID;
+
+      // Process authors
+      if (authors && Array.isArray(authors) && authors.length > 0) {
+        for (let i = 0; i < authors.length; i++) {
+          const authorName = authors[i].name;
+
+          if (!authorName) continue;
+
+          // Check if author already exists
+          let authorId;
+          const existingAuthor = await db.get(
+            "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
+            [authorName]
+          );
+
+          if (existingAuthor) {
+            authorId = existingAuthor.id;
+          } else {
+            // Create new author
+            const authorResult = await db.run(
+              "INSERT INTO authors (name) VALUES (?)",
+              [authorName]
+            );
+            authorId = authorResult.lastID;
+          }
+
+          // Create author-book relationship
+          await db.run(
+            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+            [authorId, bookId, i === 0 ? 1 : 0] // First author is primary
+          );
         }
       }
-    }
+      // If no authors array but author string is provided (backward compatibility)
+      else if (author) {
+        // Split author string in case it contains multiple names
+        const authorNames = author
+          .split(/,\s*/)
+          .filter((name: string) => name.trim() !== "");
 
-    // Create new book
-    const result = await db.run(
-      `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        title,
-        isbn || null,
-        publishYear || null,
-        author || null,
-        cover || null,
-        description || null,
-      ]
-    );
+        for (let i = 0; i < authorNames.length; i++) {
+          const authorName = authorNames[i].trim();
 
-    if (result.lastID) {
-      const newBook = (await db.get("SELECT * FROM books WHERE id = ?", [
-        result.lastID,
-      ])) as Book;
+          // Check if author already exists
+          let authorId;
+          const existingAuthor = await db.get(
+            "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
+            [authorName]
+          );
+
+          if (existingAuthor) {
+            authorId = existingAuthor.id;
+          } else {
+            // Create new author
+            const authorResult = await db.run(
+              "INSERT INTO authors (name) VALUES (?)",
+              [authorName]
+            );
+            authorId = authorResult.lastID;
+          }
+
+          // Create author-book relationship
+          await db.run(
+            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+            [authorId, bookId, i === 0 ? 1 : 0] // First author is primary
+          );
+        }
+      }
+
+      // Commit transaction
+      await db.run("COMMIT");
+
+      // Get the complete book with authors
+      const newBook = await db.get("SELECT * FROM books WHERE id = ?", [
+        bookId,
+      ]);
+      const bookAuthors = await db.all(
+        `
+        SELECT a.*, ab.is_primary 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [bookId]
+      );
+
+      newBook.authors = bookAuthors;
 
       // Add to user collection if requested
-      if (addToCollection && userId) {
-        await addBookToUserCollection(db, userId, result.lastID);
+      if (addToCollection && userId && bookId) {
+        await addBookToUserCollection(db, userId, bookId);
         res.status(201).json({
           message: "Book created successfully and added to your collection",
           book: newBook,
@@ -191,8 +300,10 @@ export const createBookManually = async (
           book: newBook,
         });
       }
-    } else {
-      res.status(500).json({ message: "Failed to create book" });
+    } catch (error) {
+      // Rollback transaction on error
+      await db.run("ROLLBACK");
+      throw error;
     }
   } catch (error: any) {
     console.error("Error creating book:", error.message);
@@ -231,23 +342,35 @@ export const createBookByIsbn = async (
     const existingBook = await db.get("SELECT * FROM books WHERE isbn = ?", [
       isbn,
     ]);
+
     if (existingBook) {
       // If book exists and user wants to add to collection, add it directly
       if (addToCollection && userId) {
         await addBookToUserCollection(db, userId, existingBook.id);
+
+        // Get the book's authors
+        const bookAuthors = await db.all(
+          `
+          SELECT a.* 
+          FROM authors a
+          JOIN author_books ab ON a.id = ab.author_id
+          WHERE ab.book_id = ?
+        `,
+          [existingBook.id]
+        );
+
+        existingBook.authors = bookAuthors;
+
         res.status(200).json({
           message: "Book already exists and was added to your collection",
           book: existingBook,
         });
-        return;
       } else {
-        res
-          .status(400)
-          .json({
-            message: "Book with this ISBN already exists in the catalog",
-          });
-        return;
+        res.status(400).json({
+          message: "Book with this ISBN already exists in the catalog",
+        });
       }
+      return;
     }
 
     // Fetch book details from Open Library API
@@ -268,9 +391,6 @@ export const createBookByIsbn = async (
 
     // Extract relevant data
     const title = bookData.title || "Unknown Title";
-    const author = bookData.authors
-      ? bookData.authors[0]?.name
-      : "Unknown Author";
     const publishYear = bookData.publish_date
       ? parseInt(bookData.publish_date.slice(-4))
       : null;
@@ -278,21 +398,86 @@ export const createBookByIsbn = async (
     const description =
       bookData.description?.value || bookData.description || null;
 
-    // Create book in database
-    const result = await db.run(
-      `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, isbn, publishYear, author, cover, description]
-    );
+    // Extract authors data
+    const authors = bookData.authors
+      ? bookData.authors.map((author: any) => ({
+          name: author.name,
+          url: author.url,
+        }))
+      : [{ name: "Unknown Author" }];
 
-    if (result.lastID) {
-      const newBook = (await db.get("SELECT * FROM books WHERE id = ?", [
-        result.lastID,
-      ])) as Book;
+    // Convert authors to string for backward compatibility
+    const authorString = authors
+      .map((a: { name: string }) => a.name)
+      .join(", ");
+
+    // Start a transaction
+    await db.run("BEGIN TRANSACTION");
+
+    try {
+      // Create book in database
+      const result = await db.run(
+        `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [title, isbn, publishYear, authorString, cover, description]
+      );
+
+      const bookId = result.lastID;
+
+      // Process authors
+      if (authors && authors.length > 0) {
+        for (let i = 0; i < authors.length; i++) {
+          const authorName = authors[i].name;
+
+          // Check if author already exists
+          let authorId;
+          const existingAuthor = await db.get(
+            "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
+            [authorName]
+          );
+
+          if (existingAuthor) {
+            authorId = existingAuthor.id;
+          } else {
+            // Create new author
+            const authorResult = await db.run(
+              "INSERT INTO authors (name) VALUES (?)",
+              [authorName]
+            );
+            authorId = authorResult.lastID;
+          }
+
+          // Create author-book relationship
+          await db.run(
+            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+            [authorId, bookId, i === 0 ? 1 : 0] // First author is primary
+          );
+        }
+      }
+
+      // Commit transaction
+      await db.run("COMMIT");
+
+      // Get the complete book with authors
+      const newBook = await db.get("SELECT * FROM books WHERE id = ?", [
+        bookId,
+      ]);
+      const bookAuthors = await db.all(
+        `
+        SELECT a.*, ab.is_primary 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [bookId]
+      );
+
+      newBook.authors = bookAuthors;
 
       // Add to user collection if requested
-      if (addToCollection && userId) {
-        await addBookToUserCollection(db, userId, result.lastID);
+      if (addToCollection && userId && bookId) {
+        await addBookToUserCollection(db, userId, bookId);
         res.status(201).json({
           message:
             "Book created successfully from ISBN and added to your collection",
@@ -304,8 +489,10 @@ export const createBookByIsbn = async (
           book: newBook,
         });
       }
-    } else {
-      res.status(500).json({ message: "Failed to create book" });
+    } catch (error) {
+      // Rollback transaction on error
+      await db.run("ROLLBACK");
+      throw error;
     }
   } catch (error: any) {
     console.error("Error creating book by ISBN:", error.message);
@@ -314,7 +501,7 @@ export const createBookByIsbn = async (
 };
 
 /**
- * Update a book
+ * Update a book, including its author relationships
  */
 export const updateBook = async (
   req: Request,
@@ -322,7 +509,15 @@ export const updateBook = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, isbn, publishYear, author, cover, description } = req.body;
+    const {
+      title,
+      isbn,
+      publishYear,
+      author, // For backward compatibility
+      cover,
+      description,
+      authors, // New field for multiple authors
+    } = req.body;
 
     // Validate input
     if (!title) {
@@ -351,30 +546,134 @@ export const updateBook = async (
       }
     }
 
-    // Update book
-    await db.run(
-      `UPDATE books 
-       SET title = ?, isbn = ?, publishYear = ?, author = ?, cover = ?, description = ?, updatedAt = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [
-        title,
-        isbn || null,
-        publishYear || null,
-        author || null,
-        cover || null,
-        description || null,
+    // Start a transaction
+    await db.run("BEGIN TRANSACTION");
+
+    try {
+      // Update book
+      await db.run(
+        `UPDATE books 
+         SET title = ?, isbn = ?, publishYear = ?, author = ?, cover = ?, description = ?, updatedAt = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [
+          title,
+          isbn || null,
+          publishYear || null,
+          author || null, // Keep author field for backward compatibility
+          cover || null,
+          description || null,
+          id,
+        ]
+      );
+
+      // Handle author relationships
+      if (authors && Array.isArray(authors)) {
+        // Remove existing author-book relationships
+        await db.run("DELETE FROM author_books WHERE book_id = ?", [id]);
+
+        // Create new author-book relationships
+        for (let i = 0; i < authors.length; i++) {
+          const authorName = authors[i].name;
+          const authorId = authors[i].id;
+
+          if (!authorName) continue;
+
+          let dbAuthorId = authorId;
+
+          // If no ID provided, check if author already exists by name
+          if (!dbAuthorId) {
+            const existingAuthor = await db.get(
+              "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
+              [authorName]
+            );
+
+            if (existingAuthor) {
+              dbAuthorId = existingAuthor.id;
+            } else {
+              // Create new author
+              const authorResult = await db.run(
+                "INSERT INTO authors (name) VALUES (?)",
+                [authorName]
+              );
+              dbAuthorId = authorResult.lastID;
+            }
+          }
+
+          // Create author-book relationship
+          await db.run(
+            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+            [dbAuthorId, id, i === 0 ? 1 : 0] // First author is primary
+          );
+        }
+      }
+      // If no authors array but author string is provided (backward compatibility)
+      else if (author) {
+        // Remove existing author-book relationships
+        await db.run("DELETE FROM author_books WHERE book_id = ?", [id]);
+
+        // Split author string in case it contains multiple names
+        const authorNames = author
+          .split(/,\s*/)
+          .filter((name: string) => name.trim() !== "");
+
+        for (let i = 0; i < authorNames.length; i++) {
+          const authorName = authorNames[i].trim();
+
+          // Check if author already exists
+          let authorId;
+          const existingAuthor = await db.get(
+            "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
+            [authorName]
+          );
+
+          if (existingAuthor) {
+            authorId = existingAuthor.id;
+          } else {
+            // Create new author
+            const authorResult = await db.run(
+              "INSERT INTO authors (name) VALUES (?)",
+              [authorName]
+            );
+            authorId = authorResult.lastID;
+          }
+
+          // Create author-book relationship
+          await db.run(
+            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+            [authorId, id, i === 0 ? 1 : 0] // First author is primary
+          );
+        }
+      }
+
+      // Commit transaction
+      await db.run("COMMIT");
+
+      // Get the updated book with authors
+      const updatedBook = await db.get("SELECT * FROM books WHERE id = ?", [
         id,
-      ]
-    );
+      ]);
+      const bookAuthors = await db.all(
+        `
+        SELECT a.*, ab.is_primary 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [id]
+      );
 
-    const updatedBook = (await db.get("SELECT * FROM books WHERE id = ?", [
-      id,
-    ])) as Book;
+      updatedBook.authors = bookAuthors;
 
-    res.status(200).json({
-      message: "Book updated successfully",
-      book: updatedBook,
-    });
+      res.status(200).json({
+        message: "Book updated successfully",
+        book: updatedBook,
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await db.run("ROLLBACK");
+      throw error;
+    }
   } catch (error: any) {
     console.error("Error updating book:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -400,7 +699,7 @@ export const deleteBook = async (
       return;
     }
 
-    // Delete book - note: this will also delete any user collection entries due to CASCADE
+    // Delete book - this will also cascade delete entries in author_books and user_collections
     await db.run("DELETE FROM books WHERE id = ?", [id]);
 
     res.status(200).json({ message: "Book deleted successfully" });
@@ -409,6 +708,67 @@ export const deleteBook = async (
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * Search books in our database
+ */
+export const searchBooks = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      res.status(400).json({ message: "Search query is required" });
+      return;
+    }
+
+    const searchQuery = `%${q}%`;
+
+    const db = await connectDatabase();
+
+    // Search books by title, description, or via authors
+    const books = await db.all(
+      `
+      SELECT DISTINCT b.* 
+      FROM books b
+      LEFT JOIN author_books ab ON b.id = ab.book_id
+      LEFT JOIN authors a ON ab.author_id = a.id
+      WHERE 
+        b.title LIKE ? OR 
+        b.description LIKE ? OR
+        b.author LIKE ? OR
+        a.name LIKE ?
+      ORDER BY b.title
+    `,
+      [searchQuery, searchQuery, searchQuery, searchQuery]
+    );
+
+    // Get authors for each book
+    for (const book of books) {
+      const authors = await db.all(
+        `
+        SELECT a.*, ab.is_primary 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [book.id]
+      );
+
+      book.authors = authors;
+    }
+
+    res.status(200).json({ books });
+  } catch (error: any) {
+    console.error("Error searching books:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ... the rest of the file remains mostly the same
 
 /**
  * Search Open Library for books by ISBN, title, or author
@@ -666,6 +1026,22 @@ export const getUserCollection = async (
     `,
       [userId]
     );
+
+    // Get authors for each book
+    for (const book of books) {
+      const authors = await db.all(
+        `
+        SELECT a.*, ab.is_primary 
+        FROM authors a
+        JOIN author_books ab ON a.id = ab.author_id
+        WHERE ab.book_id = ?
+        ORDER BY ab.is_primary DESC, a.name
+      `,
+        [book.id]
+      );
+
+      book.authors = authors;
+    }
 
     res.status(200).json({ books });
   } catch (error: any) {
