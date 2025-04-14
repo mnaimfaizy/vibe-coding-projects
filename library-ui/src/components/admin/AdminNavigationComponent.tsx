@@ -1,11 +1,13 @@
 import { useState, useEffect, JSX } from "react";
 import {
-  Library,
-  Search,
-  Settings,
   Users,
   BookOpen,
-  Bookmark,
+  Settings,
+  LayoutDashboard,
+  UserCog,
+  BookCopy,
+  MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { Link, useLocation } from "react-router-dom";
@@ -18,40 +20,51 @@ interface NavigationItem {
   current: boolean;
 }
 
-export function NavigationComponent() {
+export function AdminNavigationComponent() {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const location = useLocation();
   const isAdmin = user?.role === UserRole.ADMIN;
-  const isAdminPage = location.pathname.startsWith("/admin");
 
   const [navigation, setNavigation] = useState<NavigationItem[]>([
     {
-      name: "My Books",
-      href: "/my-books",
-      icon: <BookOpen className="h-5 w-5" />,
+      name: "Dashboard",
+      href: "/admin",
+      icon: <LayoutDashboard className="h-5 w-5" />,
       current: false,
     },
     {
-      name: "Search Books",
-      href: "/my-books/search",
-      icon: <Search className="h-5 w-5" />,
+      name: "Users",
+      href: "/admin/users",
+      icon: <UserCog className="h-5 w-5" />,
       current: false,
     },
     {
-      name: "My Collection",
-      href: "/my-books?view=collection",
-      icon: <Bookmark className="h-5 w-5" />,
+      name: "Books",
+      href: "/admin/books",
+      icon: <BookCopy className="h-5 w-5" />,
       current: false,
     },
     {
       name: "Authors",
-      href: "/authors",
+      href: "/admin/authors",
       icon: <Users className="h-5 w-5" />,
       current: false,
     },
     {
+      name: "Reviews",
+      href: "/admin/reviews",
+      icon: <MessageSquare className="h-5 w-5" />,
+      current: false,
+    },
+    {
+      name: "Analytics",
+      href: "/admin/analytics",
+      icon: <BarChart3 className="h-5 w-5" />,
+      current: false,
+    },
+    {
       name: "Settings",
-      href: "/profile",
+      href: "/admin/settings",
       icon: <Settings className="h-5 w-5" />,
       current: false,
     },
@@ -60,51 +73,34 @@ export function NavigationComponent() {
   // Set current navigation item based on the current path
   useEffect(() => {
     const currentPath = location.pathname;
-    const searchParams = new URLSearchParams(location.search);
 
     setNavigation(
       navigation.map((item) => ({
         ...item,
         current:
           currentPath === item.href ||
-          (currentPath.startsWith("/my-books") &&
-            item.href === "/my-books" &&
-            !item.href.includes("?view=") &&
-            !searchParams.has("view")) ||
-          (currentPath === "/my-books" &&
-            item.href === "/my-books?view=collection" &&
-            searchParams.get("view") === "collection") ||
           (item.href !== "/" && currentPath.startsWith(item.href)),
       }))
     );
   }, [location.pathname, location.search]);
 
-  // Add an admin dashboard link for admin users
-  useEffect(() => {
-    if (isAdmin && !navigation.some((item) => item.href === "/admin")) {
-      setNavigation((prev) => [
-        ...prev,
-        {
-          name: "Admin Dashboard",
-          href: "/admin",
-          icon: <Settings className="h-5 w-5 text-red-600" />,
-          current: false,
-        },
-      ]);
-    }
-  }, [isAdmin]);
-
-  // Don't render the regular navigation on admin pages
-  // Also don't render if user is not authenticated
-  if (!isAuthenticated || (isAdmin && isAdminPage)) {
+  // Show admin navigation only if user is authenticated and has admin role
+  // Also only show on admin pages
+  if (!isAuthenticated || !isAdmin || !location.pathname.startsWith("/admin")) {
     return null;
   }
 
   return (
-    <nav className="bg-white shadow dark:bg-gray-800">
+    <nav className="bg-gray-100 shadow dark:bg-gray-900">
       <div className="container px-6 py-2 mx-auto">
-        {/* Desktop Navigation - No logo, just the navigation items */}
-        <div className="flex items-center justify-center">
+        {/* Admin Navigation */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <BookOpen className="h-6 w-6 text-red-600" />
+            <span className="ml-2 text-lg font-semibold text-red-600">
+              Admin Panel
+            </span>
+          </div>
           <div className="overflow-x-auto pb-1 hide-scrollbar">
             <div className="flex flex-row items-center space-x-1">
               {navigation.map((item) => {
@@ -116,13 +112,8 @@ export function NavigationComponent() {
                       px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-md flex items-center space-x-1 whitespace-nowrap
                       ${
                         item.current
-                          ? "text-white bg-blue-600"
-                          : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      }
-                      ${
-                        item.href === "/admin"
-                          ? "bg-red-50 text-red-600 hover:bg-red-100"
-                          : ""
+                          ? "text-white bg-red-600"
+                          : "text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800"
                       }
                     `}
                   >

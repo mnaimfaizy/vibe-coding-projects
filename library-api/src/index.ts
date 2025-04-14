@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import bookRoutes from "./routes/bookRoutes";
 import authorRoutes from "./routes/authorRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
+import adminRoutes from "./routes/admin";
 import config from "./config/config";
 
 // Load environment variables
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/authors", authorRoutes);
 app.use("/api", reviewRoutes);
+app.use("/api/admin", adminRoutes); // Mount admin routes
 
 // Root route
 app.get("/", (_req: Request, res: Response) => {

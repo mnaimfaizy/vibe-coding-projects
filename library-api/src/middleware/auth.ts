@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { UserRole } from "../models/User";
 
 dotenv.config();
 
@@ -80,13 +81,13 @@ export const authenticateOptional = (
   }
 };
 
-// Admin middleware for future use if needed
+// Admin middleware to check if user has admin role
 export const isAdmin = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  if (req.user && req.user.isAdmin) {
+  if (req.user && req.user.role === UserRole.ADMIN) {
     next();
   } else {
     res
@@ -94,4 +95,18 @@ export const isAdmin = (
       .json({ message: "Access denied: Admin privilege required" });
     return;
   }
+};
+
+// Role-based middleware for future expansion of roles
+export const hasRole = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (req.user && roles.includes(req.user.role)) {
+      next();
+    } else {
+      res
+        .status(403)
+        .json({ message: "Access denied: Insufficient privileges" });
+      return;
+    }
+  };
 };

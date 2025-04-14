@@ -1,6 +1,7 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import path from "path";
+import { UserRole } from "../models/User";
 
 // Connect to SQLite database
 export const connectDatabase = async () => {
@@ -34,6 +35,7 @@ async function initializeTables(db: any): Promise<void> {
       email_verified BOOLEAN DEFAULT 0,
       verification_token TEXT,
       verification_token_expires DATETIME,
+      role TEXT DEFAULT '${UserRole.USER}',
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -108,6 +110,18 @@ async function initializeTables(db: any): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_reviews_book ON reviews(bookId);
     CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews(userId);
   `);
+
+  // Check if role column exists in users table
+  const tableInfo = await db.all("PRAGMA table_info(users)");
+  const hasRoleColumn = tableInfo.some((column: any) => column.name === "role");
+
+  // Add role column if it doesn't exist
+  if (!hasRoleColumn) {
+    await db.exec(
+      `ALTER TABLE users ADD COLUMN role TEXT DEFAULT '${UserRole.USER}'`
+    );
+    console.log("Added role column to users table");
+  }
 
   // Check if there are any authors to migrate from books table
   const existingBooks = await db.all(

@@ -26,6 +26,14 @@ import { MainLayout } from "./components/shared/MainLayout";
 import { AuthGuard } from "./components/auth/guards/AuthGuard";
 import { registerNavigate } from "./lib/navigation";
 import { Toaster } from "./components/ui/sonner";
+// Admin components
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { UsersList } from "@/components/admin/users/UsersList";
+import { CreateUser } from "@/components/admin/users/CreateUser";
+import { EditUser } from "@/components/admin/users/EditUser";
+import { ViewUser } from "@/components/admin/users/ViewUser";
+import { ChangeUserPassword } from "@/components/admin/users/ChangeUserPassword";
+import { AdminGuard } from "@/components/auth/guards/AdminGuard";
 
 // Wrapper component to register the navigation function
 function NavigationRegistrar() {
@@ -126,6 +134,56 @@ function App() {
               <AuthGuard>
                 <ProfileComponent />
               </AuthGuard>
+            }
+          />
+
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminGuard>
+                <AdminDashboard />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminGuard>
+                <UsersList />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users/create"
+            element={
+              <AdminGuard>
+                <CreateUser />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users/edit/:id"
+            element={
+              <AdminGuard>
+                <EditUser />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users/view/:id"
+            element={
+              <AdminGuard>
+                <ViewUser />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users/password/:id"
+            element={
+              <AdminGuard>
+                <ChangeUserPassword />
+              </AdminGuard>
             }
           />
 

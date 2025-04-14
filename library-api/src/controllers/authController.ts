@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { connectDatabase } from "../db/database";
-import { User } from "../models/User";
+import { User, UserRole } from "../models/User";
 import { emailService } from "../utils/emailService";
 import {
   hashPassword,
@@ -20,7 +20,7 @@ import {
 export const register = async (req: Request, res: Response): Promise<void> => {
   let db;
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -28,6 +28,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         .status(400)
         .json({ message: "Please provide name, email, and password" });
       return;
+    }
+
+    // Set default role if not provided or validate if provided
+    let userRole = UserRole.USER;
+    if (role) {
+      // Only allow role to be set to predefined roles
+      if (Object.values(UserRole).includes(role as UserRole)) {
+        userRole = role;
+      } else {
+        res.status(400).json({ message: "Invalid role specified" });
+        return;
+      }
     }
 
     // Connect to database
@@ -59,7 +71,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     try {
       // Create new user with email normalized to lowercase
       const result = await db.run(
-        "INSERT INTO users (name, email, password, email_verified, verification_token, verification_token_expires) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO users (name, email, password, email_verified, verification_token, verification_token_expires, role) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [
           name,
           email.toLowerCase(), // Store email in lowercase to prevent case-sensitivity issues
@@ -67,6 +79,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           false,
           verificationToken,
           verificationTokenExpires.toISOString(),
+          userRole,
         ]
       );
 
@@ -98,12 +111,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           .json({ message: "User with this email already exists" });
       } else {
         console.error("Registration insert error:", insertError.message);
-        res
-          .status(500)
-          .json({
-            message: "Server error during user creation",
-            error: insertError.message,
-          });
+        res.status(500).json({
+          message: "Server error during user creation",
+          error: insertError.message,
+        });
       }
     }
   } catch (error: any) {

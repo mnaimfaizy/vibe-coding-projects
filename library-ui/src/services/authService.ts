@@ -19,6 +19,7 @@ export interface AuthResponse {
     id: number;
     name: string;
     email: string;
+    role: string;
   };
 }
 
@@ -28,7 +29,13 @@ export interface UpdateProfileResponse {
     id: number;
     name: string;
     email: string;
+    role: string;
   };
+}
+
+export enum UserRole {
+  USER = "USER",
+  ADMIN = "ADMIN",
 }
 
 const AuthService = {

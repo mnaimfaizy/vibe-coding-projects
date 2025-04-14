@@ -1,8 +1,8 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { User, UserResponse } from '../models/User';
-import config from '../config/config';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { User, UserResponse } from "../models/User";
+import config from "../config/config";
 
 /**
  * Hash a password using bcrypt
@@ -28,7 +28,7 @@ export const comparePassword = async (
 export const generateToken = (user: User): string => {
   // @ts-ignore - Ignore TypeScript checking for this function due to complex jwt typings
   return jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, role: user.role },
     config.jwt.secret,
     { expiresIn: config.jwt.expiresIn }
   );
@@ -50,7 +50,7 @@ export const verifyToken = (token: string): any => {
  * Generate a random token for password reset
  */
 export const generateResetToken = (): string => {
-  return crypto.randomBytes(20).toString('hex');
+  return crypto.randomBytes(20).toString("hex");
 };
 
 /**
@@ -82,8 +82,9 @@ export const isValidEmail = (email: string): boolean => {
  * Validate password strength
  */
 export const isStrongPassword = (password: string): boolean => {
-  // Password must be at least 8 characters long and contain at least one uppercase letter, 
+  // Password must be at least 8 characters long and contain at least one uppercase letter,
   // one lowercase letter, one number, and one special character
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return passwordRegex.test(password);
 };
