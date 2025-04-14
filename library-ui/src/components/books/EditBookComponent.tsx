@@ -340,54 +340,54 @@ export function EditBookComponent() {
         <h1 className="text-2xl font-bold">Edit Book</h1>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold mb-4">Book Cover</h2>
+      <Form {...form}>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold mb-4">Book Cover</h2>
 
-            <div className="aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden mb-4">
-              {form.watch("cover") ? (
-                <img
-                  src={form.watch("cover")}
-                  alt="Book Cover"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://placehold.co/300x450?text=No+Cover";
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No Cover Image
-                </div>
-              )}
+              <div className="aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden mb-4">
+                {form.watch("cover") ? (
+                  <img
+                    src={form.watch("cover")}
+                    alt="Book Cover"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://placehold.co/300x450?text=No+Cover";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    No Cover Image
+                  </div>
+                )}
+              </div>
+
+              <FormField
+                control={form.control}
+                name="cover"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cover URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/cover.jpg"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the URL for the book's cover image
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-
-            <FormField
-              control={form.control}
-              name="cover"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cover URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com/cover.jpg"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Enter the URL for the book's cover image
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
-        </div>
 
-        <div className="md:col-span-2">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <Form {...form}>
+          <div className="md:col-span-2">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
@@ -409,7 +409,7 @@ export function EditBookComponent() {
                 {/* Authors Section */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <FormLabel>Authors</FormLabel>
+                    <label className="text-sm font-medium">Authors</label>
                     <div className="flex gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
@@ -494,21 +494,21 @@ export function EditBookComponent() {
                           </DialogHeader>
 
                           <div className="py-4">
-                            <FormItem>
-                              <FormLabel>Author Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Author name"
-                                  value={newAuthorName}
-                                  onChange={(e) =>
-                                    setNewAuthorName(e.target.value)
-                                  }
-                                />
-                              </FormControl>
-                              <FormDescription>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Author Name
+                              </label>
+                              <Input
+                                placeholder="Author name"
+                                value={newAuthorName}
+                                onChange={(e) =>
+                                  setNewAuthorName(e.target.value)
+                                }
+                              />
+                              <p className="text-xs text-gray-500">
                                 Enter the full name of the author
-                              </FormDescription>
-                            </FormItem>
+                              </p>
+                            </div>
                           </div>
 
                           <DialogFooter>
@@ -704,10 +704,10 @@ export function EditBookComponent() {
                   </Button>
                 </div>
               </form>
-            </Form>
+            </div>
           </div>
         </div>
-      </div>
+      </Form>
     </div>
   );
 }

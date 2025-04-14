@@ -28,11 +28,22 @@ import { registerNavigate } from "./lib/navigation";
 import { Toaster } from "./components/ui/sonner";
 // Admin components
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+// Admin User components
 import { UsersList } from "@/components/admin/users/UsersList";
 import { CreateUser } from "@/components/admin/users/CreateUser";
 import { EditUser } from "@/components/admin/users/EditUser";
 import { ViewUser } from "@/components/admin/users/ViewUser";
 import { ChangeUserPassword } from "@/components/admin/users/ChangeUserPassword";
+// Admin Book components
+import { BooksList } from "@/components/admin/books/BooksList";
+import { ViewBook } from "@/components/admin/books/ViewBook";
+// Admin Author components
+import { AuthorsList } from "@/components/admin/authors/AuthorsList";
+import { ViewAuthor } from "@/components/admin/authors/ViewAuthor";
+import { CreateAuthor } from "@/components/admin/authors/CreateAuthor";
+import { EditAuthor } from "@/components/admin/authors/EditAuthor";
+// Admin Review components
+import { ReviewsList } from "@/components/admin/reviews/ReviewsList";
 import { AdminGuard } from "@/components/auth/guards/AdminGuard";
 
 // Wrapper component to register the navigation function
@@ -146,6 +157,8 @@ function App() {
               </AdminGuard>
             }
           />
+
+          {/* Admin User routes */}
           <Route
             path="/admin/users"
             element={
@@ -183,6 +196,84 @@ function App() {
             element={
               <AdminGuard>
                 <ChangeUserPassword />
+              </AdminGuard>
+            }
+          />
+
+          {/* Admin Book routes */}
+          <Route
+            path="/admin/books"
+            element={
+              <AdminGuard>
+                <BooksList />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/books/create"
+            element={
+              <AdminGuard>
+                <CreateBookComponent />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/books/edit/:bookId"
+            element={
+              <AdminGuard>
+                <EditBookComponent />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/books/view/:bookId"
+            element={
+              <AdminGuard>
+                <ViewBook />
+              </AdminGuard>
+            }
+          />
+
+          {/* Admin Author routes */}
+          <Route
+            path="/admin/authors"
+            element={
+              <AdminGuard>
+                <AuthorsList />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/authors/create"
+            element={
+              <AdminGuard>
+                <CreateAuthor />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/authors/edit/:id"
+            element={
+              <AdminGuard>
+                <EditAuthor />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/authors/view/:id"
+            element={
+              <AdminGuard>
+                <ViewAuthor />
+              </AdminGuard>
+            }
+          />
+
+          {/* Admin Review routes */}
+          <Route
+            path="/admin/reviews"
+            element={
+              <AdminGuard>
+                <ReviewsList />
               </AdminGuard>
             }
           />
