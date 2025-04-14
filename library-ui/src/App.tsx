@@ -26,6 +26,9 @@ import { MainLayout } from "./components/shared/MainLayout";
 import { AuthGuard } from "./components/auth/guards/AuthGuard";
 import { registerNavigate } from "./lib/navigation";
 import { Toaster } from "./components/ui/sonner";
+// New page imports
+import { AboutPage } from "./components/about/AboutPage";
+import { ContactPage } from "./components/contact/ContactPage";
 // Admin components
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 // Admin User components
@@ -76,6 +79,11 @@ function App() {
             path="/verify-email"
             element={<EmailVerificationComponent />}
           />
+
+          {/* New About and Contact routes */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+
           {/* Public books route */}
           <Route path="/books" element={<PublicBooksComponent />} />
           {/* Public route for book details */}
