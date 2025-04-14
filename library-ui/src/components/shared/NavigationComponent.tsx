@@ -26,7 +26,7 @@ export function NavigationComponent() {
 
   const [navigation, setNavigation] = useState<NavigationItem[]>([
     {
-      name: "My Books",
+      name: "All Books",
       href: "/my-books",
       icon: <BookOpen className="h-5 w-5" />,
       current: false,

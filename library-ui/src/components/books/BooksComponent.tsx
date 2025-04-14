@@ -54,9 +54,15 @@ export function BooksComponent() {
 
       <Tabs defaultValue={view} onValueChange={setView} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
-          <TabsTrigger value="catalog">Grid View</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="collection">My Collection</TabsTrigger>
+          <TabsTrigger value="catalog" className="cursor-pointer">
+            Grid View
+          </TabsTrigger>
+          <TabsTrigger value="list" className="cursor-pointer">
+            List View
+          </TabsTrigger>
+          <TabsTrigger value="collection" className="cursor-pointer">
+            My Collection
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="catalog">
           <BooksCatalogComponent />
