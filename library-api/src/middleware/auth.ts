@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -13,37 +13,85 @@ declare global {
   }
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ message: 'Authentication required' });
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ message: "Authentication required" });
       return;
     }
-    
-    const token = authHeader.split(' ')[1];
-    
+
+    const token = authHeader.split(" ")[1];
+
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "default_secret"
+    );
+
     // Add user to request object
     req.user = decoded;
-    
+
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Invalid or expired token' });
+    res.status(401).json({ message: "Invalid or expired token" });
+    return;
+  }
+};
+
+// Optional authentication middleware - doesn't require auth but will use it if available
+export const authenticateOptional = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    // Get token from header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      // No auth token, continue without user info
+      next();
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Verify token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "default_secret"
+    );
+
+    // Add user to request object
+    req.user = decoded;
+
+    next();
+  } catch (error) {
+    // Invalid token, but it's optional so just continue without user info
+    next();
     return;
   }
 };
 
 // Admin middleware for future use if needed
-export const isAdmin = (req: Request, res: Response, next: NextFunction): void => {
+export const isAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   if (req.user && req.user.isAdmin) {
     next();
   } else {
-    res.status(403).json({ message: 'Access denied: Admin privilege required' });
+    res
+      .status(403)
+      .json({ message: "Access denied: Admin privilege required" });
     return;
   }
 };

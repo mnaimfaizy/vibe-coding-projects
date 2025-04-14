@@ -5,6 +5,7 @@ import { connectDatabase } from "./db/database";
 import authRoutes from "./routes/authRoutes";
 import bookRoutes from "./routes/bookRoutes";
 import authorRoutes from "./routes/authorRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
 import config from "./config/config";
 
 // Load environment variables
@@ -33,6 +34,7 @@ connectDatabase().catch((err) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/authors", authorRoutes);
+app.use("/api", reviewRoutes);
 
 // Root route
 app.get("/", (_req: Request, res: Response) => {

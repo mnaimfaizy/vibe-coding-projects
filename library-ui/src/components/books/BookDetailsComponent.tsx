@@ -14,12 +14,15 @@ import {
   Users,
   Bookmark,
   BookMarked,
-  Star,
   Pencil,
   AlertTriangle,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReviewListComponent } from "./ReviewListComponent";
+import { ReviewFormComponent } from "./ReviewFormComponent";
+import { StarRating } from "@/components/ui/star-rating";
 
 // Define enhanced interface for book details from API
 interface BookDetails {
@@ -56,6 +59,7 @@ export function BookDetailsComponent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [similarBooks, setSimilarBooks] = useState<SimilarBook[]>([]);
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
 
   // Check if the book is in the user's collection
   const [isInCollection, setIsInCollection] = useState<boolean>(false);
@@ -173,6 +177,11 @@ export function BookDetailsComponent() {
     }
   };
 
+  const handleReviewSubmitted = () => {
+    // Trigger a refresh of the reviews list
+    setReviewRefreshTrigger((prev) => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -271,20 +280,7 @@ export function BookDetailsComponent() {
 
               {book.rating > 0 && (
                 <div className="flex items-center mt-2">
-                  {/* Generate star rating */}
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${
-                        i < book.rating
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
-                    {book.rating} / 5
-                  </span>
+                  <StarRating rating={book.rating} />
                 </div>
               )}
 
@@ -352,6 +348,13 @@ export function BookDetailsComponent() {
               <TabsList className="mb-4">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger
+                  value="reviews"
+                  className="flex items-center gap-1"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Reviews
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent
@@ -411,6 +414,25 @@ export function BookDetailsComponent() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="reviews">
+                <div className="space-y-8">
+                  {/* Review Form */}
+                  <div className="mb-8">
+                    <ReviewFormComponent
+                      bookId={book.id}
+                      onReviewSubmitted={handleReviewSubmitted}
+                    />
+                  </div>
+
+                  {/* Reviews List */}
+                  <ReviewListComponent
+                    bookId={book.id}
+                    key={`reviews-${reviewRefreshTrigger}`}
+                    onReviewDeleted={handleReviewSubmitted}
+                  />
                 </div>
               </TabsContent>
             </Tabs>

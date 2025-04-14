@@ -90,8 +90,23 @@ async function initializeTables(db: any): Promise<void> {
       FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
     );
     
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bookId INTEGER NOT NULL,
+      userId INTEGER,
+      username TEXT NOT NULL,
+      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      comment TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE,
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL
+    );
+    
     CREATE INDEX IF NOT EXISTS idx_author_books_author ON author_books(author_id);
     CREATE INDEX IF NOT EXISTS idx_author_books_book ON author_books(book_id);
+    CREATE INDEX IF NOT EXISTS idx_reviews_book ON reviews(bookId);
+    CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews(userId);
   `);
 
   // Check if there are any authors to migrate from books table
