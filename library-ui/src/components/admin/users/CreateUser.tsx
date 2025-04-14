@@ -46,6 +46,7 @@ const createUserSchema = z.object({
     .regex(/[0-9]/, "Password must include at least one number"),
   role: z.string().default(UserRole.USER),
   email_verified: z.boolean().default(true),
+  sendVerificationEmail: z.boolean().default(false),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -64,6 +65,7 @@ export function CreateUser() {
       password: "",
       role: UserRole.USER,
       email_verified: true,
+      sendVerificationEmail: false,
     },
   });
 
@@ -202,6 +204,28 @@ export function CreateUser() {
                     <FormLabel>Email Verified</FormLabel>
                     <p className="text-sm text-muted-foreground">
                       User can log in immediately without verifying their email
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sendVerificationEmail"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Send Verification Email</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Send a verification email to the user (will set email
+                      verification to false)
                     </p>
                   </div>
                 </FormItem>

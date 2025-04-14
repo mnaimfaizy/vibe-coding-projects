@@ -1,7 +1,14 @@
 import { Request, Response } from "express";
 import { connectDatabase } from "../../db/database";
 import { User, UserRole } from "../../models/User";
-import { hashPassword, sanitizeUser } from "../../utils/helpers";
+import {
+  hashPassword,
+  sanitizeUser,
+  generateResetToken,
+  calculateExpiryTime,
+} from "../../utils/helpers";
+import { emailService } from "../../utils/emailService";
+import crypto from "crypto";
 
 /**
  * Get all users (admin only)
@@ -81,7 +88,14 @@ export const createUser = async (
 ): Promise<void> => {
   let db;
   try {
-    const { name, email, password, role, email_verified = true } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      email_verified = true,
+      sendVerificationEmail = false,
+    } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -118,15 +132,29 @@ export const createUser = async (
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Generate verification token if needed
+    let verificationToken = null;
+    let verificationTokenExpires = null;
+
+    // If email is not verified and we want to send verification email
+    if (!email_verified || sendVerificationEmail) {
+      verificationToken = crypto.randomBytes(32).toString("hex");
+      verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    }
+
     // Create new user
     const result = await db.run(
-      "INSERT INTO users (name, email, password, email_verified, role) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO users (name, email, password, email_verified, role, verification_token, verification_token_expires) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
         name,
         email.toLowerCase(),
         hashedPassword,
-        email_verified ? 1 : 0,
+        !sendVerificationEmail && email_verified ? 1 : 0, // If sending verification email, set to false
         userRole,
+        verificationToken,
+        verificationTokenExpires
+          ? verificationTokenExpires.toISOString()
+          : null,
       ]
     );
 
@@ -140,8 +168,15 @@ export const createUser = async (
         [result.lastID]
       );
 
+      // Send verification email if requested
+      if (sendVerificationEmail && verificationToken) {
+        await emailService.sendVerificationEmail(email, verificationToken);
+      }
+
       res.status(201).json({
-        message: "User created successfully",
+        message: sendVerificationEmail
+          ? "User created successfully. Verification email sent."
+          : "User created successfully",
         user: newUser,
       });
     } else {

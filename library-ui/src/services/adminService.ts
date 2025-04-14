@@ -21,6 +21,7 @@ export interface CreateUserRequest {
   password: string;
   role?: string;
   email_verified?: boolean;
+  sendVerificationEmail?: boolean;
 }
 
 export interface UpdateUserRequest {
