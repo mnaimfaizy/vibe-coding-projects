@@ -203,7 +203,7 @@ export function BookDetailsComponent() {
             {error || "The book you're looking for couldn't be found."}
           </p>
           <Button asChild>
-            <Link to="/books">Return to Books Catalog</Link>
+            <Link to="/my-books">Return to Books Catalog</Link>
           </Button>
         </div>
       </div>
@@ -222,6 +222,12 @@ export function BookDetailsComponent() {
           <ChevronLeft className="h-4 w-4" />
           <span>Back</span>
         </Button>
+        <Link to="/my-books/collection" className="ml-4">
+          <Button variant="outline" size="sm">
+            <Bookmark className="h-4 w-4 mr-2" />
+            View My Collection
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -29,6 +29,8 @@ import { Toaster } from "./components/ui/sonner";
 // New page imports
 import { AboutPage } from "./components/about/AboutPage";
 import { ContactPage } from "./components/contact/ContactPage";
+// User Collection Page import
+import { UserCollectionPage } from "./components/books/UserCollectionPage";
 // Admin components
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 // Admin User components
@@ -111,6 +113,14 @@ function App() {
             element={
               <AuthGuard>
                 <BookSearchComponent />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/my-books/collection"
+            element={
+              <AuthGuard>
+                <UserCollectionPage />
               </AuthGuard>
             }
           />

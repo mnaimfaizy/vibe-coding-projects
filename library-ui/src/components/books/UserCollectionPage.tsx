@@ -1,12 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BooksCatalogComponent } from "./BooksCatalogComponent";
-import { BooksListComponent } from "./BooksListComponent";
-import { Plus, RefreshCcw, Search, Grid, List, Bookmark } from "lucide-react";
+import { UserCollectionComponent } from "./UserCollectionComponent";
+import { Plus, RefreshCcw, Search, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
-export function BooksComponent() {
-  const [view, setView] = useState("catalog");
+export function UserCollectionPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRefresh = () => {
@@ -21,7 +19,15 @@ export function BooksComponent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">My Books Collection</h1>
+        <div className="flex items-center">
+          <Button variant="ghost" size="sm" asChild className="mr-2">
+            <Link to="/my-books">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Books
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-bold">My Collection</h1>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -41,12 +47,6 @@ export function BooksComponent() {
               Search Books
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to="/my-books/collection">
-              <Bookmark className="h-4 w-4 mr-2" />
-              My Collection
-            </Link>
-          </Button>
           <Button asChild>
             <Link to="/books/create">
               <Plus className="h-4 w-4 mr-2" />
@@ -57,30 +57,7 @@ export function BooksComponent() {
       </div>
 
       <div className="mb-6">
-        <div className="flex space-x-2 mb-4">
-          <Button
-            variant={view === "catalog" ? "default" : "outline"}
-            onClick={() => setView("catalog")}
-            className="flex items-center"
-          >
-            <Grid className="h-4 w-4 mr-2" />
-            Grid View
-          </Button>
-          <Button
-            variant={view === "list" ? "default" : "outline"}
-            onClick={() => setView("list")}
-            className="flex items-center"
-          >
-            <List className="h-4 w-4 mr-2" />
-            List View
-          </Button>
-        </div>
-
-        {view === "catalog" ? (
-          <BooksCatalogComponent />
-        ) : (
-          <BooksListComponent />
-        )}
+        <UserCollectionComponent />
       </div>
     </div>
   );

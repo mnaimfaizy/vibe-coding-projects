@@ -39,7 +39,7 @@ export function NavigationComponent() {
     },
     {
       name: "My Collection",
-      href: "/my-books?view=collection",
+      href: "/my-books/collection",
       icon: <Bookmark className="h-5 w-5" />,
       current: false,
     },
@@ -60,20 +60,12 @@ export function NavigationComponent() {
   // Set current navigation item based on the current path
   useEffect(() => {
     const currentPath = location.pathname;
-    const searchParams = new URLSearchParams(location.search);
 
     setNavigation(
       navigation.map((item) => ({
         ...item,
         current:
           currentPath === item.href ||
-          (currentPath.startsWith("/my-books") &&
-            item.href === "/my-books" &&
-            !item.href.includes("?view=") &&
-            !searchParams.has("view")) ||
-          (currentPath === "/my-books" &&
-            item.href === "/my-books?view=collection" &&
-            searchParams.get("view") === "collection") ||
           (item.href !== "/" && currentPath.startsWith(item.href)),
       }))
     );
