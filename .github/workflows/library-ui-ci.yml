@@ -1,0 +1,54 @@
+name: Library UI CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "library-ui/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "library-ui/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: library-ui
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: "library-ui/package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Vitest
+        run: |
+          npm install vitest --no-save
+          npm install @testing-library/react @testing-library/jest-dom --no-save
+
+      - name: Run tests
+        run: |
+          echo '/// <reference types="vitest" />' > vitest.config.ts
+          echo 'import { defineConfig } from "vite";' >> vitest.config.ts
+          echo 'export default defineConfig({ test: { environment: "jsdom" } });' >> vitest.config.ts
+          npx vitest run

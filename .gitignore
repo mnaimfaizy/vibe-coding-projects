@@ -14,6 +14,12 @@ jspm_packages/
 /dist
 /out
 
+# Project-specific build folders
+/library-api/dist/
+/library-api/build/
+/library-ui/dist/
+/library-ui/build/
+
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
@@ -33,6 +39,8 @@ logs
 
 # Testing
 /coverage
+/library-api/coverage/
+/library-ui/coverage/
 
 # Production
 /build
