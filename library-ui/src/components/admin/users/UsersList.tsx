@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AdminService, { User } from "@/services/adminService";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -9,25 +21,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, UserPlus, Edit, Trash, Key, Eye } from "lucide-react";
-import { format } from "date-fns";
+import AdminService, { User } from "@/services/adminService";
 import { UserRole } from "@/services/authService";
-import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import {
+  Edit,
+  Eye,
+  Key,
+  Loader2,
+  MoreHorizontal,
+  Trash,
+  UserPlus,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function UsersList() {
   const [users, setUsers] = useState<User[]>([]);
@@ -160,7 +167,7 @@ export function UsersList() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={user.email_verified ? "success" : "destructive"}
+                      variant={user.email_verified ? "default" : "destructive"}
                     >
                       {user.email_verified ? "Verified" : "Unverified"}
                     </Badge>

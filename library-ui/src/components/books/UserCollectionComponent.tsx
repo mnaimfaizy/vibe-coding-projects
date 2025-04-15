@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,9 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Bookmark, Eye, Trash } from "lucide-react";
 import BookService, { Book } from "@/services/bookService";
+import { Bookmark, Eye, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function UserCollectionComponent() {
@@ -27,24 +27,8 @@ export function UserCollectionComponent() {
       setLoading(true);
       const response = await BookService.getUserCollection();
 
-      // Handle the response properly, ensuring it's an array
-      if (Array.isArray(response)) {
-        setBooks(response);
-      } else if (
-        response &&
-        typeof response === "object" &&
-        "books" in response
-      ) {
-        // If API returns {books: [...]} format
-        setBooks(response.books as Book[]);
-      } else {
-        console.error(
-          "Unexpected API response format for user collection:",
-          response
-        );
-        setBooks([]);
-        toast.error("Received invalid data format from API");
-      }
+      // BookService.getUserCollection returns Book[] directly
+      setBooks(response);
     } catch (error) {
       console.error("Error fetching user collection:", error);
       toast.error("Failed to load your book collection.");

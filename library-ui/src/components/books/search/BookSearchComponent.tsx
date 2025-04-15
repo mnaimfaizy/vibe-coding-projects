@@ -163,11 +163,20 @@ export function BookSearchComponent() {
       ) {
         setError(`No books found for this ${searchType} search.`);
       }
-    } catch (err: Error | unknown) {
+    } catch (err: unknown) {
       console.error("Search error:", err);
       setError(
-        err?.response?.data?.message ||
-          "An error occurred while searching. Please try again."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data
+          ? (err.response.data.message as string)
+          : "An error occurred while searching. Please try again."
       );
     } finally {
       setIsSearching(false);
@@ -213,18 +222,32 @@ export function BookSearchComponent() {
         err &&
         typeof err === "object" &&
         "response" in err &&
-        err.response?.status === 400 &&
-        err.response?.data?.message?.includes("already exists")
+        err.response &&
+        typeof err.response === "object" &&
+        "status" in err.response &&
+        err.response.status === 400 &&
+        "data" in err.response &&
+        err.response.data &&
+        typeof err.response.data === "object" &&
+        "message" in err.response.data &&
+        typeof err.response.data.message === "string" &&
+        err.response.data.message.includes("already exists")
       ) {
         setSuccessMessage(`"${book.title}" is already in your collection.`);
         setBooksInCollection((prev) => ({ ...prev, [bookKey]: true }));
       } else {
         setError(
-          (err &&
+          err &&
             typeof err === "object" &&
             "response" in err &&
-            err.response?.data?.message) ||
-            "Failed to add book to your collection."
+            err.response &&
+            typeof err.response === "object" &&
+            "data" in err.response &&
+            err.response.data &&
+            typeof err.response.data === "object" &&
+            "message" in err.response.data
+            ? (err.response.data.message as string)
+            : "Failed to add book to your collection."
         );
       }
     } finally {

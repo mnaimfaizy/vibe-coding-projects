@@ -1,6 +1,6 @@
-import React, { ReactNode, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
+import { ReactNode, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface AuthGuardProps {
   children: ReactNode;
