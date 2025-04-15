@@ -1,16 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,12 +8,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import AdminService, { UserDetail } from "@/services/adminService";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import * as z from "zod";
 
 // Define validation schema
 const passwordSchema = z
@@ -69,8 +68,20 @@ export function ChangeUserPassword() {
         const userData = await AdminService.getUserById(Number(id));
         setUser(userData);
         setFetchingUser(false);
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to load user data");
+      } catch (err: unknown) {
+        setError(
+          err &&
+            typeof err === "object" &&
+            "response" in err &&
+            err.response &&
+            typeof err.response === "object" &&
+            "data" in err.response &&
+            err.response.data &&
+            typeof err.response.data === "object" &&
+            "message" in err.response.data
+            ? String(err.response.data.message)
+            : "Failed to load user data"
+        );
         setFetchingUser(false);
       }
     };
@@ -95,11 +106,20 @@ export function ChangeUserPassword() {
       setTimeout(() => {
         navigate("/admin/users");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
       setError(
-        err.response?.data?.message ||
-          "Failed to change password. Please try again."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data
+          ? String(err.response.data.message)
+          : "Failed to change password. Please try again."
       );
     }
   };

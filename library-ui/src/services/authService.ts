@@ -1,5 +1,5 @@
-import api from "./api";
 import appNavigate from "@/lib/navigation";
+import api from "./api";
 
 // Types for API requests and responses
 export interface LoginRequest {
@@ -52,8 +52,13 @@ const AuthService = {
   },
 
   // Register new user
-  signup: async (userData: SignupRequest): Promise<any> => {
-    const response = await api.post("/api/auth/register", userData);
+  signup: async (
+    userData: SignupRequest
+  ): Promise<{ message: string; user?: { id: number; email: string } }> => {
+    const response = await api.post<{
+      message: string;
+      user?: { id: number; email: string };
+    }>("/api/auth/register", userData);
     // Don't store token or user data since email verification is required
     return response.data;
   },
@@ -159,7 +164,12 @@ const AuthService = {
   },
 
   // Get current user
-  getCurrentUser: (): { id: number; name: string; email: string } | null => {
+  getCurrentUser: (): {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  } | null => {
     const user = localStorage.getItem("user");
     if (user) {
       return JSON.parse(user);

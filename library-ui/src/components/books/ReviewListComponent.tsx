@@ -1,13 +1,11 @@
-// filepath: c:\Users\mnaim\Downloads\Projects\vibe-coding-projects\library-ui\src\components\books\ReviewListComponent.tsx
-import { useState, useEffect } from "react";
-import { Review } from "@/services/reviewService";
-import { StarRating } from "@/components/ui/star-rating";
-import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { ThumbsUp, MessageSquare, Trash, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { StarRating } from "@/components/ui/star-rating";
+import reviewService, { Review } from "@/services/reviewService";
 import { useAuth } from "@/services/useAuth";
-import reviewService from "@/services/reviewService";
+import { format } from "date-fns";
+import { AlertCircle, MessageSquare, ThumbsUp, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface ReviewListProps {
@@ -115,7 +113,7 @@ export function ReviewListComponent({
                 </Button>
               </div>
 
-              {user && (user.id === review.userId || user.isAdmin) && (
+              {user && (user.id === review.userId || user.role === "ADMIN") && (
                 <Button
                   variant="ghost"
                   size="sm"

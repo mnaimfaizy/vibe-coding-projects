@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import AdminService, { UserDetail } from "@/services/adminService";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,28 +8,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { UserRole } from "@/services/authService";
-import {
-  Loader2,
-  Edit,
-  Key,
-  Trash,
-  Clock,
-  Book,
-  User as UserIcon,
-} from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AdminService, { UserDetail } from "@/services/adminService";
+import { UserRole } from "@/services/authService";
+import { format } from "date-fns";
+import {
+  Book,
+  Clock,
+  Edit,
+  Key,
+  Loader2,
+  Trash,
+  User as UserIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function ViewUser() {
   const { id } = useParams();
@@ -48,9 +47,12 @@ export function ViewUser() {
         const userData = await AdminService.getUserById(Number(id));
         setUser(userData);
         setLoading(false);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error fetching user:", err);
-        setError(err.response?.data?.message || "Failed to load user data");
+        setError(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to load user data"
+        );
         setLoading(false);
       }
     };
@@ -77,9 +79,12 @@ export function ViewUser() {
       try {
         await AdminService.deleteUser(Number(id));
         navigate("/admin/users");
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error deleting user:", err);
-        setError(err.response?.data?.message || "Failed to delete user");
+        setError(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to delete user"
+        );
       }
     }
   };
@@ -181,7 +186,7 @@ export function ViewUser() {
                       Status:
                     </span>
                     <Badge
-                      variant={user.email_verified ? "success" : "destructive"}
+                      variant={user.email_verified ? "default" : "destructive"}
                     >
                       {user.email_verified ? "Verified" : "Unverified"}
                     </Badge>

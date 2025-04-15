@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,18 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Edit,
-  Star,
-  Trash,
-  BookmarkPlus,
-  BookmarkCheck,
-  Eye,
-} from "lucide-react";
-import { Link } from "react-router-dom";
 import BookService, { Book } from "@/services/bookService";
+import { BookmarkCheck, BookmarkPlus, Eye, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export function BooksCatalogComponent() {
@@ -34,7 +27,7 @@ export function BooksCatalogComponent() {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await BookService.getAllBooks();
+      const response: Book[] = await BookService.getAllBooks();
 
       // Handle the response properly, ensuring it's an array
       if (Array.isArray(response)) {
@@ -45,7 +38,7 @@ export function BooksCatalogComponent() {
         "books" in response
       ) {
         // If API returns {books: [...]} format
-        setBooks(response.books as Book[]);
+        setBooks(response as Book[]);
       } else {
         console.error("Unexpected API response format:", response);
         setBooks([]);
@@ -76,7 +69,7 @@ export function BooksCatalogComponent() {
         "books" in response
       ) {
         // If API returns {books: [...]} format
-        const bookIds = (response.books as Book[])
+        const bookIds = (response as Book[])
           .map((book) => book.id as number)
           .filter(Boolean);
         setUserCollection(bookIds);

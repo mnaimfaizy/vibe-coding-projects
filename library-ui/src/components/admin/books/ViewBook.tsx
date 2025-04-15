@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import AdminService, { Book } from "@/services/adminService";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,19 +7,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import AdminService, { Book } from "@/services/adminService";
 import { format } from "date-fns";
 import {
-  Loader2,
-  Edit,
-  Trash,
-  Calendar,
   BookOpen,
+  Calendar,
+  Edit,
   Hash,
+  Loader2,
+  Trash,
   User,
-  AlignLeft,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export function ViewBook() {
@@ -40,9 +38,12 @@ export function ViewBook() {
         const bookData = await AdminService.getBookById(Number(bookId));
         setBook(bookData);
         setLoading(false);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error fetching book:", err);
-        setError(err.response?.data?.message || "Failed to load book data");
+        setError(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to load book data"
+        );
         setLoading(false);
       }
     };
@@ -66,9 +67,12 @@ export function ViewBook() {
         await AdminService.deleteBook(Number(bookId));
         toast.success("Book deleted successfully");
         navigate("/admin/books");
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error deleting book:", err);
-        toast.error(err.response?.data?.message || "Failed to delete book");
+        toast.error(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to delete book"
+        );
       }
     }
   };

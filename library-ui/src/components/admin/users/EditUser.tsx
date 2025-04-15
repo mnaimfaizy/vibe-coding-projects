@@ -1,16 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,8 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -28,12 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { UserRole } from "@/services/authService";
 import AdminService, { UserDetail } from "@/services/adminService";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle } from "lucide-react";
+import { UserRole } from "@/services/authService";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import * as z from "zod";
 
 // Define validation schema
 const editUserSchema = z.object({
@@ -83,8 +82,20 @@ export function EditUser() {
         });
 
         setFetchingUser(false);
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to load user data");
+      } catch (err: unknown) {
+        setError(
+          err &&
+            typeof err === "object" &&
+            "response" in err &&
+            err.response &&
+            typeof err.response === "object" &&
+            "data" in err.response &&
+            err.response.data &&
+            typeof err.response.data === "object" &&
+            "message" in err.response.data
+            ? String(err.response.data.message)
+            : "Failed to load user data"
+        );
         setFetchingUser(false);
       }
     };
@@ -108,11 +119,20 @@ export function EditUser() {
       setTimeout(() => {
         navigate("/admin/users");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
       setError(
-        err.response?.data?.message ||
-          "Failed to update user. Please try again."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data
+          ? String(err.response.data.message)
+          : "Failed to update user. Please try again."
       );
     }
   };

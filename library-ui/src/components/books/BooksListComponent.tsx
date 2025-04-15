@@ -1,14 +1,5 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Edit,
-  Trash,
-  Star,
-  Eye,
-  BookmarkPlus,
-  BookmarkCheck,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,8 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Link } from "react-router-dom";
 import BookService, { Book } from "@/services/bookService";
+import { BookmarkCheck, BookmarkPlus, Edit, Eye, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export function BooksListComponent() {
@@ -45,7 +38,7 @@ export function BooksListComponent() {
         "books" in response
       ) {
         // If API returns {books: [...]} format
-        setBooks(response.books as Book[]);
+        setBooks(response as Book[]);
       } else {
         console.error("Unexpected API response format:", response);
         setBooks([]);
@@ -76,7 +69,7 @@ export function BooksListComponent() {
         "books" in response
       ) {
         // If API returns {books: [...]} format
-        const bookIds = (response.books as Book[])
+        const bookIds = (response as Book[])
           .map((book) => book.id as number)
           .filter(Boolean);
         setUserCollection(bookIds);
@@ -117,15 +110,6 @@ export function BooksListComponent() {
 
   const isInCollection = (bookId?: number) => {
     return bookId ? userCollection.includes(bookId) : false;
-  };
-
-  const renderRating = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-        <span>{rating.toFixed(1)}</span>
-      </div>
-    );
   };
 
   if (loading) {

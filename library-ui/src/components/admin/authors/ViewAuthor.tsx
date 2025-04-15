@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import AdminService, { Author, Book } from "@/services/adminService";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,28 +7,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import {
-  Loader2,
-  Edit,
-  Trash,
-  Calendar,
-  User,
-  Book as BookIcon,
-  Clock,
-} from "lucide-react";
-import { toast } from "sonner";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AdminService, { Author, Book } from "@/services/adminService";
+import { format } from "date-fns";
+import {
+  Book as BookIcon,
+  Calendar,
+  Clock,
+  Edit,
+  Loader2,
+  Trash,
+  User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export function ViewAuthor() {
   const { id } = useParams();
@@ -50,9 +48,12 @@ export function ViewAuthor() {
         setAuthor(data.author);
         setBooks(data.books);
         setLoading(false);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error fetching author:", err);
-        setError(err.response?.data?.message || "Failed to load author data");
+        setError(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to load author data"
+        );
         setLoading(false);
       }
     };
@@ -76,9 +77,12 @@ export function ViewAuthor() {
         await AdminService.deleteAuthor(Number(id));
         toast.success("Author deleted successfully");
         navigate("/admin/authors");
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error deleting author:", err);
-        toast.error(err.response?.data?.message || "Failed to delete author");
+        toast.error(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to delete author"
+        );
       }
     }
   };

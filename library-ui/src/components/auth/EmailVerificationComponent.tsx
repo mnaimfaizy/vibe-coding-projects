@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,11 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, Loader2, MailIcon } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { verifyEmail, resetAuthError } from "@/store/slices/authSlice";
 import AuthService from "@/services/authService";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { resetAuthError, verifyEmail } from "@/store/slices/authSlice";
+import { AlertCircle, CheckCircle, Loader2, MailIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export function EmailVerificationComponent() {
   const [searchParams] = useSearchParams();
@@ -59,9 +59,19 @@ export function EmailVerificationComponent() {
       await AuthService.resendVerification(email);
       setResendSuccess(true);
       setResendError("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       setResendError(
-        error.response?.data?.message || "Failed to resend verification email"
+        error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object" &&
+          "data" in error.response &&
+          error.response.data &&
+          typeof error.response.data === "object" &&
+          "message" in error.response.data
+          ? String(error.response.data.message)
+          : "Failed to resend verification email"
       );
       setResendSuccess(false);
     } finally {

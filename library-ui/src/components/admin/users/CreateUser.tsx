@@ -1,16 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,8 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -28,12 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { UserRole } from "@/services/authService";
 import AdminService from "@/services/adminService";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle } from "lucide-react";
+import { UserRole } from "@/services/authService";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import * as z from "zod";
 
 // Define validation schema
 const createUserSchema = z.object({
@@ -44,9 +43,9 @@ const createUserSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must include at least one uppercase letter")
     .regex(/[0-9]/, "Password must include at least one number"),
-  role: z.string().default(UserRole.USER),
-  email_verified: z.boolean().default(true),
-  sendVerificationEmail: z.boolean().default(false),
+  role: z.string(),
+  email_verified: z.boolean(),
+  sendVerificationEmail: z.boolean(),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -83,11 +82,20 @@ export function CreateUser() {
       setTimeout(() => {
         navigate("/admin/users");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
       setError(
-        err.response?.data?.message ||
-          "Failed to create user. Please try again."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data
+          ? String(err.response.data.message)
+          : "Failed to create user. Please try again."
       );
     }
   };

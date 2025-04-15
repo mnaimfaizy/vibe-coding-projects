@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,9 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Eye, BookOpen, Bookmark, Star } from "lucide-react";
+import { Eye, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Sample suggested books with carefully curated selections
 const suggestedBooks = [

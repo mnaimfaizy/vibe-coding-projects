@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,13 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
-import { Star, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
 import BookService, { Book } from "@/services/bookService";
+import { Eye, Star } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export function PublicBooksComponent() {
@@ -31,39 +30,7 @@ export function PublicBooksComponent() {
     fetchBooks();
   }, []);
 
-  // Update filtered books whenever books or search query changes
-  useEffect(() => {
-    filterBooks();
-  }, [books, searchQuery]);
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const response = await BookService.getAllBooks();
-
-      if (Array.isArray(response)) {
-        setBooks(response);
-      } else if (
-        response &&
-        typeof response === "object" &&
-        "books" in response
-      ) {
-        setBooks(response.books as Book[]);
-      } else {
-        console.error("Unexpected API response format:", response);
-        setBooks([]);
-        toast.error("Received invalid data format from API");
-      }
-    } catch (error) {
-      console.error("Error fetching books:", error);
-      toast.error("Failed to load books.");
-      setBooks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterBooks = () => {
+  const filterBooks = useCallback(() => {
     const query = searchQuery.toLowerCase().trim();
     if (!query) {
       setFilteredBooks(books);
@@ -81,6 +48,38 @@ export function PublicBooksComponent() {
     setFilteredBooks(filtered);
     setCurrentPage(1); // Reset to first page on new search
     setTotalPages(Math.ceil(filtered.length / booksPerPage));
+  }, [books, searchQuery, booksPerPage]);
+
+  // Update filtered books whenever books or search query changes
+  useEffect(() => {
+    filterBooks();
+  }, [books, searchQuery, booksPerPage, filterBooks]);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await BookService.getAllBooks();
+
+      if (Array.isArray(response)) {
+        setBooks(response);
+      } else if (
+        response &&
+        typeof response === "object" &&
+        "books" in response
+      ) {
+        setBooks(response as Book[]);
+      } else {
+        console.error("Unexpected API response format:", response);
+        setBooks([]);
+        toast.error("Received invalid data format from API");
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      toast.error("Failed to load books.");
+      setBooks([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

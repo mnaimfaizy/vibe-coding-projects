@@ -12,7 +12,7 @@ export interface User {
 }
 
 export interface UserDetail extends User {
-  books: any[];
+  books: Book[];
 }
 
 export interface CreateUserRequest {

@@ -1,11 +1,24 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import BookService, { Book, Author } from "@/services/bookService";
-import { toast } from "sonner";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -16,43 +29,30 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  ArrowLeft,
-  Loader2,
-  Plus,
-  Trash2,
-  X,
-  MoveUp,
-  MoveDown,
-  Check,
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import BookService, { Author } from "@/services/bookService";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
+  ArrowLeft,
+  Check,
+  Loader2,
+  MoveDown,
+  MoveUp,
+  Plus,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import * as z from "zod";
+import authorService from "../../services/authorService";
 
 // Form validation schema
 const bookSchema = z.object({
@@ -82,11 +82,8 @@ export function EditBookComponent() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [book, setBook] = useState<Book | null>(null);
   const [bookAuthors, setBookAuthors] = useState<Author[]>([]);
-  const [allAuthors, setAllAuthors] = useState<{ id: number; name: string }[]>(
-    []
-  );
+  const [allAuthors, setAllAuthors] = useState<Author[]>([]);
   const [searchAuthors, setSearchAuthors] = useState<Author[]>([]);
   const [authorSearch, setAuthorSearch] = useState<string>("");
   const [showAddAuthorDialog, setShowAddAuthorDialog] =
@@ -110,45 +107,44 @@ export function EditBookComponent() {
 
   useEffect(() => {
     if (id) {
+      const fetchBookDetails = async (bookId: number) => {
+        try {
+          setLoading(true);
+          const bookDetails = await BookService.getBookById(bookId);
+
+          // Set form values from book details
+          form.reset({
+            title: bookDetails?.title || "",
+            isbn: bookDetails?.isbn || "",
+            publishYear: bookDetails?.publishYear || null,
+            author: bookDetails?.author || "", // Keep for backward compatibility
+            description: bookDetails?.description || "",
+            cover: bookDetails?.cover || "",
+          });
+
+          // Set book authors if they exist in the new schema
+          if (bookDetails?.authors && bookDetails.authors.length > 0) {
+            setBookAuthors(bookDetails.authors);
+          }
+        } catch (error) {
+          console.error("Error fetching book details:", error);
+          toast.error("Failed to load book details.");
+          navigate("/books");
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchBookDetails(parseInt(id));
       fetchAllAuthors();
     } else {
       setLoading(false);
     }
-  }, [id]);
-
-  const fetchBookDetails = async (bookId: number) => {
-    try {
-      setLoading(true);
-      const bookDetails = await BookService.getBookById(bookId);
-      setBook(bookDetails);
-
-      // Set form values from book details
-      form.reset({
-        title: bookDetails.title || "",
-        isbn: bookDetails.isbn || "",
-        publishYear: bookDetails.publishYear || null,
-        author: bookDetails.author || "", // Keep for backward compatibility
-        description: bookDetails.description || "",
-        cover: bookDetails.cover || "",
-      });
-
-      // Set book authors if they exist in the new schema
-      if (bookDetails.authors && bookDetails.authors.length > 0) {
-        setBookAuthors(bookDetails.authors);
-      }
-    } catch (error) {
-      console.error("Error fetching book details:", error);
-      toast.error("Failed to load book details.");
-      navigate("/books");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, form, navigate]);
 
   const fetchAllAuthors = async () => {
     try {
-      const authors = await BookService.getAllAuthors();
+      const authors: Author[] = await authorService.getAuthors();
       setAllAuthors(authors);
     } catch (error) {
       console.error("Error fetching authors:", error);
@@ -209,7 +205,7 @@ export function EditBookComponent() {
         handleAddExistingAuthor(existingAuthor as Author);
       } else {
         // Create new author
-        const newAuthor = await BookService.createAuthor({
+        const newAuthor = await authorService.createAuthor({
           name: newAuthorName,
         });
 
@@ -304,7 +300,10 @@ export function EditBookComponent() {
           .join(", ");
       }
 
-      await BookService.updateBook(parseInt(id), bookData);
+      await BookService.updateBook(parseInt(id), {
+        ...bookData,
+        publishYear: bookData.publishYear ?? undefined,
+      });
 
       toast.success("Book updated successfully!");
       navigate(`/books/${id}`);

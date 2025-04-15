@@ -203,16 +203,17 @@ const BookService = {
   ): Promise<Book | null> => {
     try {
       // Helper function to safely process potentially complex values
-      const safeProcess = (value: any): string => {
+      const safeProcess = (value: unknown): string => {
         if (typeof value === "string") return value;
         if (typeof value === "number") return value.toString();
         if (value === null || value === undefined) return "";
         if (typeof value === "object") {
           // If it's an object with a name property (common in OpenLibrary API)
-          if (value.name) return value.name;
+          if (value && "name" in value && typeof value.name === "string")
+            return value.name;
           try {
             return JSON.stringify(value);
-          } catch (e) {
+          } catch {
             return "";
           }
         }
@@ -223,7 +224,7 @@ const BookService = {
       const publishYear = bookData.publishYear || bookData.firstPublishYear;
 
       // Process authors: either use the authors array or create from author string
-      let authors = bookData.authors
+      const authors = bookData.authors
         ? bookData.authors.map((a) => ({ name: a.name }))
         : bookData.author
         ? [{ name: safeProcess(bookData.author) }]

@@ -1,10 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -13,10 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Loader2 } from "lucide-react";
 import AuthService from "@/services/authService";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import * as z from "zod";
 
 // Define validation schema using zod
 const changePasswordSchema = z
@@ -43,7 +43,6 @@ const changePasswordSchema = z
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordComponent() {
-  const navigate = useNavigate();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,11 +73,21 @@ export function ChangePasswordComponent() {
       setTimeout(() => {
         setIsSuccess(false);
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Change password error:", err);
       setError(
-        err.response?.data?.message ||
-          "Failed to update password. Please try again."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data &&
+          typeof err.response.data.message === "string"
+          ? err.response.data.message
+          : "Failed to update password. Please try again."
       );
     }
   };

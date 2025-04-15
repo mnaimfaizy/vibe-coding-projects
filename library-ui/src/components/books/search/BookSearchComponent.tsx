@@ -1,6 +1,6 @@
-import { useState, FormEvent, useEffect, useMemo } from "react";
-import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -16,24 +16,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  BookOpen,
-  Search,
-  Loader2,
-  BookPlus,
-  Check,
-  Barcode,
-  User,
-  FileText,
-  ChevronLeft,
-  ChevronRight,
-  Library,
-} from "lucide-react";
 import BookService, {
   OpenLibraryBookResult,
   OpenLibrarySearchResponse,
 } from "@/services/bookService";
+import {
+  Barcode,
+  BookOpen,
+  BookPlus,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Library,
+  Loader2,
+  Search,
+  User,
+} from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Number of items to show per page
@@ -163,10 +163,10 @@ export function BookSearchComponent() {
       ) {
         setError(`No books found for this ${searchType} search.`);
       }
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error("Search error:", err);
       setError(
-        err.response?.data?.message ||
+        err?.response?.data?.message ||
           "An error occurred while searching. Please try again."
       );
     } finally {
@@ -200,16 +200,19 @@ export function BookSearchComponent() {
 
     setAddingBooks((prev) => ({ ...prev, [bookKey]: true }));
     try {
-      const addedBook = await BookService.addBookFromOpenLibrary(book);
+      await BookService.addBookFromOpenLibrary(book);
       setSuccessMessage(`"${book.title}" has been added to your collection.`);
 
       // Mark book as in collection
       setBooksInCollection((prev) => ({ ...prev, [bookKey]: true }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error adding book:", err);
 
       // Handle case where book already exists on the server
       if (
+        err &&
+        typeof err === "object" &&
+        "response" in err &&
         err.response?.status === 400 &&
         err.response?.data?.message?.includes("already exists")
       ) {
@@ -217,7 +220,10 @@ export function BookSearchComponent() {
         setBooksInCollection((prev) => ({ ...prev, [bookKey]: true }));
       } else {
         setError(
-          err.response?.data?.message ||
+          (err &&
+            typeof err === "object" &&
+            "response" in err &&
+            err.response?.data?.message) ||
             "Failed to add book to your collection."
         );
       }
@@ -458,13 +464,14 @@ export function BookSearchComponent() {
     const isInCollection = booksInCollection[bookKey];
 
     // Helper function to safely render potentially complex values
-    const safeRender = (value: any): string => {
+    const safeRender = (value: unknown): string => {
       if (typeof value === "string") return value;
       if (typeof value === "number") return value.toString();
       if (value === null || value === undefined) return "Not available";
       if (typeof value === "object") {
         // If it's an object with a name property (common in OpenLibrary API)
-        if (value.name) return value.name;
+        if (value !== null && "name" in value && typeof value.name === "string")
+          return value.name;
         return JSON.stringify(value);
       }
       return String(value);
@@ -587,7 +594,9 @@ export function BookSearchComponent() {
             <div className="w-full md:w-1/4">
               <Select
                 value={searchType}
-                onValueChange={(value: any) => setSearchType(value)}
+                onValueChange={(value: "title" | "author" | "isbn") =>
+                  setSearchType(value)
+                }
               >
                 <SelectTrigger className="cursor-pointer">
                   <SelectValue placeholder="Search by..." />

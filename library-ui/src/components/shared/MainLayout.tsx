@@ -1,20 +1,18 @@
-import { ReactNode } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { HeaderComponent } from "./HeaderComponent";
-import { FooterComponent } from "./FooterComponent";
-import { NavigationComponent } from "./NavigationComponent";
-import { AdminNavigationComponent } from "../admin/AdminNavigationComponent";
-import { UserRole } from "@/services/authService";
+import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { AdminNavigationComponent } from "../admin/AdminNavigationComponent";
+import { FooterComponent } from "./FooterComponent";
+import { HeaderComponent } from "./HeaderComponent";
+import { NavigationComponent } from "./NavigationComponent";
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const location = useLocation();
-  const isAdmin = user?.role === UserRole.ADMIN;
   const isAdminPage = location.pathname.startsWith("/admin");
 
   return (

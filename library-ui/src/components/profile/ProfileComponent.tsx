@@ -1,9 +1,5 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -12,24 +8,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Loader2,
-  CheckCircle,
-  AlertTriangle,
-  UserCog,
-  Lock,
-  ShieldAlert,
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   changePassword,
   deleteAccount,
-  updateProfile,
   resetAuthError,
+  updateProfile,
 } from "@/store/slices/authSlice";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Lock,
+  ShieldAlert,
+  UserCog,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { AuthGuard } from "../auth/guards/AuthGuard";
 
 // Profile update schema
@@ -61,7 +61,6 @@ const deleteAccountSchema = z.object({
     .min(1, "Password is required to confirm account deletion"),
   confirmation: z
     .literal("DELETE MY ACCOUNT")
-    .or(z.literal("delete my account"))
     .refine((val) => val === "DELETE MY ACCOUNT", {
       message: "Please type DELETE MY ACCOUNT to confirm",
     }),
@@ -117,7 +116,7 @@ export function ProfileComponent() {
     resolver: zodResolver(deleteAccountSchema),
     defaultValues: {
       password: "",
-      confirmation: "" as any,
+      confirmation: undefined,
     },
   });
 

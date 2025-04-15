@@ -1,21 +1,18 @@
-import React from "react";
-import { Link } from "react-router-dom";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
-  UsersIcon,
   BookIcon,
-  UserIcon,
-  Settings,
   BookOpen,
   LineChart,
+  Settings,
+  UserIcon,
+  UsersIcon,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function AdminDashboard() {
   const adminModules = [

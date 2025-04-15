@@ -1,17 +1,17 @@
-import { useState, useEffect, JSX } from "react";
-import {
-  Users,
-  BookOpen,
-  Settings,
-  LayoutDashboard,
-  UserCog,
-  BookCopy,
-  MessageSquare,
-  BarChart3,
-} from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
-import { Link, useLocation } from "react-router-dom";
 import { UserRole } from "@/services/authService";
+import { useAppSelector } from "@/store/hooks";
+import {
+  BarChart3,
+  BookCopy,
+  BookOpen,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  UserCog,
+  Users,
+} from "lucide-react";
+import { JSX, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 interface NavigationItem {
   name: string;
@@ -82,7 +82,7 @@ export function AdminNavigationComponent() {
           (item.href !== "/" && currentPath.startsWith(item.href)),
       }))
     );
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, navigation]);
 
   // Show admin navigation only if user is authenticated and has admin role
   // Also only show on admin pages

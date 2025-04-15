@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AdminService, { Review } from "@/services/adminService";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { StarRating } from "@/components/ui/star-rating";
 import {
   Table,
   TableBody,
@@ -9,33 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { StarRating } from "@/components/ui/star-rating";
-import { Badge } from "@/components/ui/badge";
-import {
-  MoreHorizontal,
-  Edit,
-  Trash,
-  Eye,
-  Book,
-  MessageCircle,
-  User,
-} from "lucide-react";
+import AdminService, { Review } from "@/services/adminService";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Book, Loader2, MoreHorizontal, Trash, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export function ReviewsList() {
@@ -152,7 +142,7 @@ export function ReviewsList() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <StarRating rating={review.rating} max={5} />
+                      <StarRating rating={review.rating} maxRating={5} />
                     </TableCell>
                     <TableCell>{truncateText(review.comment, 50)}</TableCell>
                     <TableCell>

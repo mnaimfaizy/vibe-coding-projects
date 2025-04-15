@@ -1,15 +1,8 @@
-import { useState, useEffect, JSX } from "react";
-import {
-  Library,
-  Search,
-  Settings,
-  Users,
-  BookOpen,
-  Bookmark,
-} from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
-import { Link, useLocation } from "react-router-dom";
 import { UserRole } from "@/services/authService";
+import { useAppSelector } from "@/store/hooks";
+import { BookOpen, Bookmark, Search, Settings, Users } from "lucide-react";
+import { JSX, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 interface NavigationItem {
   name: string;
@@ -61,8 +54,8 @@ export function NavigationComponent() {
   useEffect(() => {
     const currentPath = location.pathname;
 
-    setNavigation(
-      navigation.map((item) => ({
+    setNavigation((prevNavigation) =>
+      prevNavigation.map((item) => ({
         ...item,
         current:
           currentPath === item.href ||
@@ -84,7 +77,7 @@ export function NavigationComponent() {
         },
       ]);
     }
-  }, [isAdmin]);
+  }, [isAdmin, navigation]);
 
   // Don't render the regular navigation on admin pages
   // Also don't render if user is not authenticated

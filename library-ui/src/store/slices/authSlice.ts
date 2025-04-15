@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import AuthService, {
+  AuthResponse,
   LoginRequest,
   SignupRequest,
-  AuthResponse,
   UpdateProfileResponse,
 } from "../../services/authService";
 
@@ -11,6 +11,16 @@ interface User {
   id: number;
   name: string;
   email: string;
+  role: string;
+}
+
+// API Error interface
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
 }
 
 // Auth State interface
@@ -45,8 +55,9 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await AuthService.login(credentials);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Login failed");
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      return rejectWithValue(err?.response?.data?.message || "Login failed");
     }
   }
 );
@@ -57,8 +68,9 @@ export const signupUser = createAsyncThunk(
     try {
       const response = await AuthService.signup(userData);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || "Signup failed");
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      return rejectWithValue(err?.response?.data?.message || "Signup failed");
     }
   }
 );
@@ -74,9 +86,10 @@ export const verifyEmail = createAsyncThunk(
     try {
       const response = await AuthService.verifyEmail(token);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       return rejectWithValue(
-        error?.response?.data?.message || "Email verification failed"
+        err?.response?.data?.message || "Email verification failed"
       );
     }
   }
@@ -97,9 +110,10 @@ export const changePassword = createAsyncThunk(
         newPassword
       );
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       return rejectWithValue(
-        error?.response?.data?.message || "Password change failed"
+        err?.response?.data?.message || "Password change failed"
       );
     }
   }
@@ -111,9 +125,10 @@ export const updateProfile = createAsyncThunk(
     try {
       const response = await AuthService.updateProfile(name);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       return rejectWithValue(
-        error?.response?.data?.message || "Failed to update profile"
+        err?.response?.data?.message || "Failed to update profile"
       );
     }
   }
@@ -125,9 +140,10 @@ export const deleteAccount = createAsyncThunk(
     try {
       const response = await AuthService.deleteAccount(password);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       return rejectWithValue(
-        error?.response?.data?.message || "Failed to delete account"
+        err?.response?.data?.message || "Failed to delete account"
       );
     }
   }

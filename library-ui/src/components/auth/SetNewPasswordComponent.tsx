@@ -1,10 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -13,10 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Loader2 } from "lucide-react";
 import AuthService from "@/services/authService";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import * as z from "zod";
 
 // Define validation schema using zod
 const resetPasswordSchema = z
@@ -64,7 +64,7 @@ export function SetNewPasswordComponent() {
     if (tokenParam) {
       setToken(tokenParam);
       // Optionally verify if token is valid before displaying form
-      validateToken(tokenParam);
+      validateToken();
     } else {
       setError("No reset token provided. Please request a new password reset.");
       setTokenValid(false);
@@ -72,12 +72,12 @@ export function SetNewPasswordComponent() {
   }, []);
 
   // Function to validate the token
-  const validateToken = async (tokenValue: string) => {
+  const validateToken = async () => {
     try {
       // In a real app, you might have an API endpoint to validate the token
       // For now, we'll assume it's valid if it exists
       setTokenValid(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Token validation error:", err);
       setError(
         "Invalid or expired reset token. Please request a new password reset."
@@ -105,11 +105,21 @@ export function SetNewPasswordComponent() {
       setTimeout(() => {
         navigate("/login");
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Password reset error:", err);
       setError(
-        err.response?.data?.message ||
-          "Failed to reset password. Please try again or request a new reset link."
+        err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "data" in err.response &&
+          err.response.data &&
+          typeof err.response.data === "object" &&
+          "message" in err.response.data &&
+          typeof err.response.data.message === "string"
+          ? err.response.data.message
+          : "Failed to reset password. Please try again or request a new reset link."
       );
     }
   };

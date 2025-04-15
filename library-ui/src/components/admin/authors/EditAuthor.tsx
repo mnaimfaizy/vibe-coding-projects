@@ -1,16 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,16 +8,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
 import AdminService, {
   Author,
   UpdateAuthorRequest,
 } from "@/services/adminService";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import * as z from "zod";
 
 // Define validation schema using zod
 const authorSchema = z.object({
@@ -88,9 +88,12 @@ export function EditAuthor() {
         });
 
         setIsLoading(false);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error("Error fetching author:", err);
-        setError(err.response?.data?.message || "Failed to load author data");
+        setError(
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to load author data"
+        );
         setIsLoading(false);
       }
     };
@@ -108,9 +111,9 @@ export function EditAuthor() {
       // Format the data to match the API expectations
       const authorData: UpdateAuthorRequest = {
         name: data.name,
-        biography: data.biography || null,
-        birth_date: data.birth_date || null,
-        photo_url: data.photo_url || null,
+        biography: data.biography || undefined,
+        birth_date: data.birth_date || undefined,
+        photo_url: data.photo_url || undefined,
       };
 
       // Send data to API
@@ -121,10 +124,11 @@ export function EditAuthor() {
 
       // Navigate back to the author view
       navigate(`/admin/authors/view/${id}`);
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       setIsSubmitting(false);
       const errorMessage =
-        err.response?.data?.message || "Failed to update author";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || "Failed to update author";
       setError(errorMessage);
       toast.error(errorMessage);
     }
