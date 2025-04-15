@@ -1,13 +1,15 @@
-import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import express, { NextFunction, Request, Response } from "express";
+import swaggerUi from "swagger-ui-express";
+import config from "./config/config";
+import swaggerSpec from "./config/swagger";
 import { connectDatabase } from "./db/database";
+import adminRoutes from "./routes/admin";
+import authorRoutes from "./routes/authorRoutes";
 import authRoutes from "./routes/authRoutes";
 import bookRoutes from "./routes/bookRoutes";
-import authorRoutes from "./routes/authorRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
-import adminRoutes from "./routes/admin";
-import config from "./config/config";
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +31,13 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 connectDatabase().catch((err) => {
   console.error("Failed to connect to database:", err);
   process.exit(1);
+});
+
+// Swagger documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api-docs.json", (_req: Request, res: Response) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
 });
 
 // Routes
@@ -58,4 +67,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 const PORT = config.port;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(
+    `Swagger documentation available at http://localhost:${PORT}/api-docs`
+  );
 });

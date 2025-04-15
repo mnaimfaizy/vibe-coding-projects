@@ -1,8 +1,15 @@
 import express, { Router } from "express";
-import userRoutes from "./userRoutes";
-import bookRoutes from "./bookRoutes";
 import authorRoutes from "./authorRoutes";
+import bookRoutes from "./bookRoutes";
 import reviewRoutes from "./reviewRoutes";
+import userRoutes from "./userRoutes";
+
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Administrative operations for the library API
+ */
 
 const router: Router = express.Router();
 
