@@ -4,9 +4,35 @@ This repository contains a collection of AI-assisted coding projects. Each proje
 
 ## Projects
 
+### Library UI
+
+**Technology Stack:**
+
+- React 18
+- TypeScript 5.0
+- Vite
+- Tailwind CSS
+- Shadcn/UI Component Library
+- Vitest for testing
+
+**Test Coverage:** ![Test Coverage: 76%](https://img.shields.io/badge/coverage-76%25-brightgreen)
+
+**Purpose:**
+The Library UI is a modern frontend application for managing a digital library system. It provides a comprehensive interface for browsing, searching, and managing books, authors, and user collections. Key features include:
+
+- User authentication and role-based access control
+- Book catalog browsing with advanced search capabilities
+- Personal book collection management
+- Author information and bibliography viewing
+- Admin dashboard for managing books, authors, and users
+- Responsive design that works on desktop and mobile devices
+
+The application is built with modern React patterns including hooks, context API, and component composition to create a maintainable and extensible codebase.
+
 ### React Survey App
 
 **Technology Stack:**
+
 - React 19
 - TypeScript 4.9
 - React Testing Library
@@ -22,6 +48,7 @@ The React Survey App is an interactive survey application focused on collecting 
 - Thank you screen upon completion
 
 **Features:**
+
 - Clean component architecture with proper separation of concerns
 - TypeScript for type safety and improved developer experience
 - Customer satisfaction measurement for electronic products
