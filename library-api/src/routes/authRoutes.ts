@@ -186,7 +186,9 @@ router.post("/login", login as express.RequestHandler);
  *       500:
  *         description: Server error
  */
-router.post("/logout", logout as express.RequestHandler);
+router.post("/logout", (req: express.Request, res: express.Response) => {
+  return logout(req, res);
+});
 
 /**
  * @swagger
@@ -216,7 +218,9 @@ router.post("/logout", logout as express.RequestHandler);
  */
 router.post(
   "/request-password-reset",
-  requestPasswordReset as express.RequestHandler
+  (req: express.Request, res: express.Response) => {
+    return requestPasswordReset(req, res);
+  }
 );
 
 /**
@@ -248,7 +252,12 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.post("/reset-password", resetPassword as express.RequestHandler);
+router.post(
+  "/reset-password",
+  (req: express.Request, res: express.Response) => {
+    return resetPassword(req, res);
+  }
+);
 
 /**
  * @swagger
@@ -271,7 +280,12 @@ router.post("/reset-password", resetPassword as express.RequestHandler);
  *       500:
  *         description: Server error
  */
-router.get("/verify-email/:token", verifyEmail as express.RequestHandler);
+router.get(
+  "/verify-email/:token",
+  (req: express.Request, res: express.Response) => {
+    return verifyEmail(req, res);
+  }
+);
 
 /**
  * @swagger
@@ -303,7 +317,9 @@ router.get("/verify-email/:token", verifyEmail as express.RequestHandler);
  */
 router.post(
   "/resend-verification",
-  resendVerification as express.RequestHandler
+  (req: express.Request, res: express.Response) => {
+    return resendVerification(req, res);
+  }
 );
 
 /**
@@ -342,7 +358,9 @@ router.post(
 router.post(
   "/change-password",
   authenticate,
-  changePassword as express.RequestHandler
+  (req: express.Request, res: express.Response) => {
+    return changePassword(req, res);
+  }
 );
 
 /**
@@ -377,7 +395,9 @@ router.post(
 router.put(
   "/update-profile",
   authenticate,
-  updateUser as express.RequestHandler
+  (req: express.Request, res: express.Response) => {
+    return updateUser(req, res);
+  }
 );
 
 /**
@@ -399,7 +419,9 @@ router.put(
 router.delete(
   "/delete-account",
   authenticate,
-  deleteUser as express.RequestHandler
+  (req: express.Request, res: express.Response) => {
+    return deleteUser(req, res);
+  }
 );
 
 export default router;

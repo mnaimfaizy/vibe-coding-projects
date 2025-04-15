@@ -184,7 +184,11 @@ export const createUser = async (
   } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
-      await db.run("ROLLBACK").catch(console.error);
+      try {
+        await db.run("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error during rollback:", rollbackError);
+      }
     }
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -299,7 +303,11 @@ export const updateUser = async (
   } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
-      await db.run("ROLLBACK").catch(console.error);
+      try {
+        await db.run("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error during rollback:", rollbackError);
+      }
     }
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -350,7 +358,11 @@ export const deleteUser = async (
   } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
-      await db.run("ROLLBACK").catch(console.error);
+      try {
+        await db.run("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error during rollback:", rollbackError);
+      }
     }
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -407,7 +419,11 @@ export const changeUserPassword = async (
   } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
-      await db.run("ROLLBACK").catch(console.error);
+      try {
+        await db.run("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Error during rollback:", rollbackError);
+      }
     }
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

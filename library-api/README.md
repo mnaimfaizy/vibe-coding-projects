@@ -2,9 +2,12 @@
 
 A RESTful API for managing a library system, built with Node.js, Express, TypeScript, and SQLite.
 
+[![Test Coverage: 82.79%](https://img.shields.io/badge/Coverage-82.79%25-brightgreen.svg)](coverage/lcov-report/index.html)
+
 ## Features
 
 - **User Authentication**
+
   - Register
   - Login
   - Logout
@@ -29,6 +32,26 @@ A RESTful API for managing a library system, built with Node.js, Express, TypeSc
 - bcryptjs (Password hashing)
 - axios (HTTP client for external API calls)
 
+## Test Coverage
+
+Current test coverage (as of April 15, 2025):
+
+- Statements: 82.79%
+- Branches: 64.99%
+- Functions: 93.28%
+- Lines: 82.25%
+
+The project has significantly improved test coverage with 227 passing tests across all components.
+
+### Coverage by Component
+
+- Config: 91.66%
+- Controllers: 84.83%
+- Database and Middleware: 100%
+- Models: 100%
+- Routes: 62.90%
+- Utils: 100%
+
 ## Getting Started
 
 ### Prerequisites
@@ -39,17 +62,20 @@ A RESTful API for managing a library system, built with Node.js, Express, TypeSc
 ### Installation
 
 1. Clone the repository
+
 ```
 git clone <repository-url>
 cd library-api
 ```
 
 2. Install dependencies
+
 ```
 npm install
 ```
 
 3. Create a `.env` file in the root directory with the following content:
+
 ```
 PORT=3000
 JWT_SECRET=your_jwt_secret_key_here
@@ -57,16 +83,19 @@ RESET_PASSWORD_EXPIRY=3600000
 ```
 
 4. Build the project
+
 ```
 npm run build
 ```
 
 5. Start the server
+
 ```
 npm start
 ```
 
 For development:
+
 ```
 npm run dev
 ```
@@ -76,17 +105,21 @@ npm run dev
 ### Authentication
 
 - `POST /api/auth/register` - Register a new user
+
   - Body: `{ "name": "User Name", "email": "user@example.com", "password": "password123" }`
 
 - `POST /api/auth/login` - Login user
+
   - Body: `{ "email": "user@example.com", "password": "password123" }`
 
 - `POST /api/auth/logout` - Logout user (client-side token removal)
 
 - `POST /api/auth/change-password` - Change user password (requires authentication)
+
   - Body: `{ "currentPassword": "password123", "newPassword": "newpassword123" }`
 
 - `POST /api/auth/request-password-reset` - Request password reset
+
   - Body: `{ "email": "user@example.com" }`
 
 - `POST /api/auth/reset-password` - Reset password with token
@@ -99,12 +132,15 @@ npm run dev
 - `GET /api/books/:id` - Get book by ID
 
 - `POST /api/books` - Create a book manually (requires authentication)
+
   - Body: `{ "title": "Book Title", "isbn": "1234567890", "publishYear": 2023, "author": "Author Name", "cover": "cover_url", "description": "Book description" }`
 
 - `POST /api/books/isbn` - Create a book from ISBN (requires authentication)
+
   - Body: `{ "isbn": "1234567890" }`
 
 - `PUT /api/books/:id` - Update a book (requires authentication)
+
   - Body: `{ "title": "Updated Title", ... }`
 
 - `DELETE /api/books/:id` - Delete a book (requires authentication)

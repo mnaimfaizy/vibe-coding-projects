@@ -200,29 +200,30 @@ export const createBookManually = async (
       existingBook = await db.get("SELECT * FROM books WHERE isbn = ?", [isbn]);
       if (existingBook) {
         // If book exists and user wants to add to collection, add it directly
-        if (addToCollection && userId) {
+        if (userId) {
           await addBookToUserCollection(db, userId, existingBook.id);
 
-          // Get the book's authors
+          // Get the book authors for the response
           const bookAuthors = await db.all(
-            `
-            SELECT a.* 
-            FROM authors a
-            JOIN author_books ab ON a.id = ab.author_id
-            WHERE ab.book_id = ?
-          `,
+            `SELECT a.*, ab.is_primary 
+             FROM authors a
+             JOIN author_books ab ON a.id = ab.author_id
+             WHERE ab.book_id = ?
+             ORDER BY ab.is_primary DESC, a.name`,
             [existingBook.id]
           );
 
           existingBook.authors = bookAuthors;
 
           res.status(200).json({
-            message: "Book already exists and was added to your collection",
+            message:
+              "Book already exists and has been added to your collection",
             book: existingBook,
           });
         } else {
-          res.status(400).json({
-            message: "Book with this ISBN already exists in the catalog",
+          res.status(200).json({
+            message: "Book already exists",
+            book: existingBook,
           });
         }
         return;

@@ -8,6 +8,7 @@ import {
   getBookById,
   getUserCollection,
   removeFromUserCollection,
+  searchBooks,
   searchOpenLibrary,
   updateBook,
 } from "../controllers/booksController";
@@ -144,6 +145,38 @@ router.get("/", getAllBooks as express.RequestHandler);
  *         description: Server error
  */
 router.get("/search/openlibrary", searchOpenLibrary as express.RequestHandler);
+
+/**
+ * @swagger
+ * /api/books/search:
+ *   get:
+ *     summary: Search for books by query
+ *     tags: [Books]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *     responses:
+ *       200:
+ *         description: Search results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 books:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
+router.get("/search", searchBooks as express.RequestHandler);
 
 /**
  * @swagger
