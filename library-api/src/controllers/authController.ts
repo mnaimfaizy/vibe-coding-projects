@@ -1,17 +1,16 @@
-import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { Request, Response } from "express";
 import { connectDatabase } from "../db/database";
 import { User, UserRole } from "../models/User";
 import { emailService } from "../utils/emailService";
 import {
-  hashPassword,
-  comparePassword,
-  generateToken,
-  sanitizeUser,
-  generateResetToken,
   calculateExpiryTime,
+  comparePassword,
+  generateResetToken,
+  generateToken,
+  hashPassword,
+  sanitizeUser,
 } from "../utils/helpers";
 
 /**
@@ -99,10 +98,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         await db.run("ROLLBACK");
         res.status(500).json({ message: "Failed to register user" });
       }
-    } catch (insertError: any) {
+    } catch (insertError: Error | unknown) {
       await db.run("ROLLBACK");
       // Check if error is due to unique constraint violation
       if (
+        insertError instanceof Error &&
         insertError.message &&
         insertError.message.includes("UNIQUE constraint failed")
       ) {
@@ -110,20 +110,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           .status(400)
           .json({ message: "User with this email already exists" });
       } else {
-        console.error("Registration insert error:", insertError.message);
+        const errorMessage =
+          insertError instanceof Error ? insertError.message : "Unknown error";
+        console.error("Registration insert error:", errorMessage);
         res.status(500).json({
           message: "Server error during user creation",
-          error: insertError.message,
+          error: errorMessage,
         });
       }
     }
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback transaction on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Registration error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Registration error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -168,13 +172,15 @@ export const verifyEmail = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "Email verified successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Verification error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Verification error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -227,13 +233,15 @@ export const resendVerification = async (
     await emailService.sendVerificationEmail(email, verificationToken);
 
     res.status(200).json({ message: "Verification email sent" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Resend verification error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Resend verification error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -289,9 +297,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user: sanitizeUser(user),
       token,
     });
-  } catch (error: any) {
-    console.error("Login error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Login error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   } finally {
     // Close database connection if needed
     if (db) {
@@ -323,6 +333,12 @@ export const changePassword = async (
   let db;
   try {
     const { currentPassword, newPassword } = req.body;
+
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const userId = req.user.id;
 
     // Validate input
@@ -374,13 +390,15 @@ export const changePassword = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "Password changed successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Change password error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Change password error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -447,13 +465,15 @@ export const requestPasswordReset = async (
       // Only for development purposes
       resetToken,
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Request password reset error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Request password reset error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -520,13 +540,15 @@ export const resetPassword = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "Password has been reset successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Reset password error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Reset password error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -540,6 +562,12 @@ export const updateUser = async (
   let db;
   try {
     const { name } = req.body;
+
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const userId = req.user.id;
 
     // Validate input
@@ -583,13 +611,15 @@ export const updateUser = async (
       message: "Profile updated successfully",
       user: sanitizeUser(updatedUser),
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Update user error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Update user error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -603,6 +633,12 @@ export const deleteUser = async (
   let db;
   try {
     const { password } = req.body;
+
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const userId = req.user.id;
 
     // Validate input
@@ -648,12 +684,14 @@ export const deleteUser = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "User account deleted successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Delete user error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Delete user error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };

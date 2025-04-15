@@ -1,10 +1,10 @@
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
 import path from "path";
+import { Database, open } from "sqlite";
+import sqlite3 from "sqlite3";
 import { UserRole } from "../models/User";
 
 // Connect to SQLite database
-export const connectDatabase = async () => {
+export const connectDatabase = async (): Promise<Database> => {
   try {
     // Create database connection
     const db = await open({
@@ -25,7 +25,7 @@ export const connectDatabase = async () => {
 };
 
 // Initialize necessary tables if they don't exist
-async function initializeTables(db: any): Promise<void> {
+async function initializeTables(db: Database): Promise<void> {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,7 +113,9 @@ async function initializeTables(db: any): Promise<void> {
 
   // Check if role column exists in users table
   const tableInfo = await db.all("PRAGMA table_info(users)");
-  const hasRoleColumn = tableInfo.some((column: any) => column.name === "role");
+  const hasRoleColumn = tableInfo.some(
+    (column: { name: string }) => column.name === "role"
+  );
 
   // Add role column if it doesn't exist
   if (!hasRoleColumn) {
@@ -150,7 +152,11 @@ async function initializeTables(db: any): Promise<void> {
           const result = await db.run("INSERT INTO authors (name) VALUES (?)", [
             authorName,
           ]);
-          authorId = result.lastID;
+          if (result.lastID) {
+            authorId = result.lastID;
+          } else {
+            throw new Error("Failed to insert author");
+          }
         } else {
           authorId = author.id;
         }

@@ -39,9 +39,11 @@ export const getBookReviews = async (
     }));
 
     res.status(200).json(formattedReviews);
-  } catch (error: any) {
-    console.error("Error fetching book reviews:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching book reviews:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -100,7 +102,6 @@ export const createReview = async (
       const result = await db.run(
         `INSERT INTO reviews (bookId, userId, username, rating, comment, createdAt, updatedAt)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-
         [bookId, userId || null, username, rating, comment, now, now]
       );
 
@@ -122,9 +123,11 @@ export const createReview = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error creating book review:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error creating book review:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -227,9 +230,11 @@ export const updateReview = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error updating review:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error updating review:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -286,8 +291,10 @@ export const deleteReview = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error deleting review:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error deleting review:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };

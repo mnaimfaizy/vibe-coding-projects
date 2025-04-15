@@ -64,9 +64,11 @@ router.get("/", async (req, res) => {
        ORDER BY r.createdAt DESC`
     );
     res.status(200).json(reviews);
-  } catch (error: any) {
-    console.error("Error fetching all reviews:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching all reviews:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 });
 

@@ -1,16 +1,14 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import { UserRole } from "../models/User";
 
 dotenv.config();
 
 // Extend Express Request interface to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: jwt.JwtPayload;
   }
 }
 
@@ -37,10 +35,10 @@ export const authenticate = (
     );
 
     // Add user to request object
-    req.user = decoded;
+    req.user = decoded as jwt.JwtPayload;
 
     next();
-  } catch (error) {
+  } catch {
     res.status(401).json({ message: "Invalid or expired token" });
     return;
   }
@@ -71,10 +69,10 @@ export const authenticateOptional = (
     );
 
     // Add user to request object
-    req.user = decoded;
+    req.user = decoded as jwt.JwtPayload;
 
     next();
-  } catch (error) {
+  } catch {
     // Invalid token, but it's optional so just continue without user info
     next();
     return;
@@ -100,7 +98,7 @@ export const isAdmin = (
 // Role-based middleware for future expansion of roles
 export const hasRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (req.user && roles.includes(req.user.role)) {
+    if (req.user && roles.includes(req.user.role as string)) {
       next();
     } else {
       res

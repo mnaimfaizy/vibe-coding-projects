@@ -4,10 +4,18 @@ const tsParser = require("@typescript-eslint/parser");
 const js = require("@eslint/js");
 const globals = require("globals");
 
+// Determine if we're in production based on NODE_ENV
+const isProduction = process.env.NODE_ENV === "production";
+
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
   // Base ESLint recommended rules
   js.configs.recommended,
+
+  // Ignore the dist directory
+  {
+    ignores: ["dist/**/*"],
+  },
 
   // TypeScript rules
   {
@@ -23,8 +31,8 @@ module.exports = [
       },
     },
     rules: {
-      // Your existing rules
-      "no-console": "warn",
+      // Allow console statements in development, warn in production
+      "no-console": isProduction ? "warn" : "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       ...tseslint.configs.recommended.rules,
@@ -42,7 +50,6 @@ module.exports = [
           Object.entries(globals.node)
             .concat(Object.entries(globals.jest))
             .concat(Object.entries(globals.es2020))
-            .map(([key, value]) => [key, "readonly"])
         ),
       },
     },

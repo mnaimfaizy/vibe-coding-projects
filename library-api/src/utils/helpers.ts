@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { User, UserResponse } from "../models/User";
+import jwt from "jsonwebtoken";
 import config from "../config/config";
+import { User, UserResponse } from "../models/User";
 
 /**
  * Hash a password using bcrypt
@@ -26,7 +26,7 @@ export const comparePassword = async (
  * Generate a JWT token for a user
  */
 export const generateToken = (user: User): string => {
-  // @ts-ignore - Ignore TypeScript checking for this function due to complex jwt typings
+  // @ts-expect-error - Complex jwt typings
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     config.jwt.secret,
@@ -37,11 +37,11 @@ export const generateToken = (user: User): string => {
 /**
  * Verify a JWT token
  */
-export const verifyToken = (token: string): any => {
+export const verifyToken = (token: string): jwt.JwtPayload | null => {
   try {
-    // @ts-ignore - Ignore TypeScript checking for this function due to complex jwt typings
+    // @ts-expect-error - Complex jwt typings
     return jwt.verify(token, config.jwt.secret);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -66,7 +66,8 @@ export const calculateExpiryTime = (): Date => {
  * Sanitize user object by removing password
  */
 export const sanitizeUser = (user: User): UserResponse => {
-  const { password, ...sanitizedUser } = user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _, ...sanitizedUser } = user;
   return sanitizedUser as UserResponse;
 };
 

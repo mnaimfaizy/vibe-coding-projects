@@ -1,14 +1,9 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { connectDatabase } from "../../db/database";
-import { User, UserRole } from "../../models/User";
-import {
-  hashPassword,
-  sanitizeUser,
-  generateResetToken,
-  calculateExpiryTime,
-} from "../../utils/helpers";
+import { UserRole } from "../../models/User";
 import { emailService } from "../../utils/emailService";
-import crypto from "crypto";
+import { hashPassword } from "../../utils/helpers";
 
 /**
  * Get all users (admin only)
@@ -26,9 +21,11 @@ export const getAllUsers = async (
     );
 
     res.status(200).json({ users });
-  } catch (error: any) {
-    console.error("Error fetching users:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching users:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -73,9 +70,11 @@ export const getUserById = async (
     };
 
     res.status(200).json({ user: userData });
-  } catch (error: any) {
-    console.error("Error fetching user:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching user:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -182,13 +181,15 @@ export const createUser = async (
     } else {
       res.status(500).json({ message: "Failed to create user" });
     }
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Create user error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Create user error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -295,13 +296,15 @@ export const updateUser = async (
       message: "User updated successfully",
       user: updatedUser,
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Update user error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Update user error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -344,13 +347,15 @@ export const deleteUser = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "User deleted successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Delete user error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Delete user error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -399,12 +404,14 @@ export const changeUserPassword = async (
     await db.run("COMMIT");
 
     res.status(200).json({ message: "User password changed successfully" });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     // Rollback on error
     if (db) {
       await db.run("ROLLBACK").catch(console.error);
     }
-    console.error("Change user password error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Change user password error:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };

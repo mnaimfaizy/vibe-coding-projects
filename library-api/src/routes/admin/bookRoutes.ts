@@ -1,4 +1,4 @@
-import express, { Router } from "express";
+import express, { Request, Response, Router } from "express";
 import {
   createBookByIsbn,
   createBookManually,
@@ -8,6 +8,14 @@ import {
   updateBook,
 } from "../../controllers/booksController";
 import { authenticate, isAdmin } from "../../middleware/auth";
+
+// Define UserRequest interface to match the one in booksController.ts
+interface UserRequest extends Request {
+  user?: {
+    id: number;
+    isAdmin?: boolean;
+  };
+}
 
 const router: Router = express.Router();
 
@@ -156,7 +164,9 @@ router.get("/:id", getBookById);
  *       500:
  *         description: Server error
  */
-router.post("/", createBookManually);
+router.post("/", (req: Request, res: Response) =>
+  createBookManually(req as UserRequest, res)
+);
 
 /**
  * @swagger
@@ -194,7 +204,9 @@ router.post("/", createBookManually);
  *       500:
  *         description: Server error
  */
-router.post("/isbn", createBookByIsbn);
+router.post("/isbn", (req: Request, res: Response) =>
+  createBookByIsbn(req as UserRequest, res)
+);
 
 /**
  * @swagger
@@ -250,7 +262,9 @@ router.post("/isbn", createBookByIsbn);
  *       500:
  *         description: Server error
  */
-router.put("/:id", updateBook);
+router.put("/:id", (req: Request, res: Response) =>
+  updateBook(req as UserRequest, res)
+);
 
 /**
  * @swagger

@@ -1,8 +1,15 @@
+import axios from "axios";
 import { Request, Response } from "express";
 import { connectDatabase } from "../db/database";
-import axios from "axios";
-import { Author } from "../models/Author";
-import config from "../config/config";
+
+// Interface for OpenLibrary work data
+interface OpenLibraryWork {
+  title?: string;
+  key?: string;
+  first_publish_year?: number;
+  covers?: number[];
+  description?: string | { value: string };
+}
 
 // Rate limiting implementation (reusing from booksController)
 const rateLimitWindow = 60 * 1000; // 1 minute window
@@ -61,9 +68,11 @@ export const getAllAuthors = async (
     `);
 
     res.status(200).json({ authors });
-  } catch (error: any) {
-    console.error("Error fetching authors:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching authors:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -107,9 +116,11 @@ export const getAuthorById = async (
     );
 
     res.status(200).json({ author, books });
-  } catch (error: any) {
-    console.error("Error fetching author:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching author:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -158,9 +169,11 @@ export const getAuthorByName = async (
     );
 
     res.status(200).json({ author, books });
-  } catch (error: any) {
-    console.error("Error fetching author by name:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching author by name:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -215,9 +228,11 @@ export const createAuthor = async (
     } else {
       res.status(500).json({ message: "Failed to create author" });
     }
-  } catch (error: any) {
-    console.error("Error creating author:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error creating author:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -278,9 +293,11 @@ export const updateAuthor = async (
       message: "Author updated successfully",
       author: updatedAuthor,
     });
-  } catch (error: any) {
-    console.error("Error updating author:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error updating author:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -307,9 +324,11 @@ export const deleteAuthor = async (
     await db.run("DELETE FROM authors WHERE id = ?", [id]);
 
     res.status(200).json({ message: "Author deleted successfully" });
-  } catch (error: any) {
-    console.error("Error deleting author:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error deleting author:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -372,9 +391,11 @@ export const addBookToAuthor = async (
     res
       .status(201)
       .json({ message: "Author associated with book successfully" });
-  } catch (error: any) {
-    console.error("Error associating author with book:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error associating author with book:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -401,9 +422,11 @@ export const removeBookFromAuthor = async (
     } else {
       res.status(404).json({ message: "Association not found" });
     }
-  } catch (error: any) {
-    console.error("Error removing author-book association:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error removing author-book association:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -473,7 +496,7 @@ export const getAuthorInfo = async (
       });
 
       if (worksResponse.data.entries && worksResponse.data.entries.length > 0) {
-        works = worksResponse.data.entries.map((work: any) => ({
+        works = worksResponse.data.entries.map((work: OpenLibraryWork) => ({
           title: work.title || "Unknown Title",
           key: work.key,
           firstPublishYear: work.first_publish_year || null,
@@ -486,8 +509,10 @@ export const getAuthorInfo = async (
     }
 
     res.status(200).json({ author, works });
-  } catch (error: any) {
-    console.error("Error fetching author info:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching author info:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };

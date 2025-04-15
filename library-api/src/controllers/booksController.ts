@@ -1,9 +1,55 @@
-import { Request, Response } from "express";
-import { connectDatabase } from "../db/database";
 import axios from "axios";
-import { Book } from "../models/Book";
-import { Author } from "../models/Author";
-import config from "../config/config";
+import { Request, Response } from "express";
+import { Database } from "sqlite";
+import { connectDatabase } from "../db/database";
+
+// Define interface for Request with user property
+interface UserRequest extends Request {
+  user?: {
+    id: number;
+    isAdmin?: boolean;
+  };
+}
+
+// OpenLibrary API interfaces
+interface OpenLibraryAuthor {
+  name: string;
+  url?: string;
+}
+
+interface OpenLibraryBookData {
+  title?: string;
+  authors?: OpenLibraryAuthor[];
+  publish_date?: string;
+  cover?: {
+    small?: string;
+    medium?: string;
+    large?: string;
+  };
+  description?: string | { value: string };
+  publishers?: string[];
+  subjects?: Array<string | { name: string }>;
+  url?: string;
+}
+
+interface OpenLibrarySearchResult {
+  title?: string;
+  author_name?: string[];
+  first_publish_year?: number;
+  isbn?: string[];
+  cover_i?: number;
+  key?: string;
+  language?: string[];
+  publisher?: string[];
+}
+
+interface OpenLibraryWork {
+  title?: string;
+  key?: string;
+  covers?: number[];
+  first_publish_year?: number;
+  description?: string | { value: string };
+}
 
 // Rate limiting implementation
 const rateLimitWindow = 60 * 1000; // 1 minute window
@@ -71,9 +117,11 @@ export const getAllBooks = async (
     }
 
     res.status(200).json({ books });
-  } catch (error: any) {
-    console.error("Error fetching books:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching books:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -110,9 +158,11 @@ export const getBookById = async (
     book.authors = authors;
 
     res.status(200).json({ book });
-  } catch (error: any) {
-    console.error("Error fetching book:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching book:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -120,7 +170,7 @@ export const getBookById = async (
  * Create a book manually with provided details and optionally add to user collection
  */
 export const createBookManually = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -134,7 +184,7 @@ export const createBookManually = async (
       authors, // New field for multiple authors
       addToCollection,
     } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     // Validate input
     if (!title) {
@@ -305,9 +355,11 @@ export const createBookManually = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error creating book:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error creating book:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -315,12 +367,12 @@ export const createBookManually = async (
  * Create a book using ISBN and Open Library API and optionally add to user collection
  */
 export const createBookByIsbn = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
     const { isbn, addToCollection } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!isbn) {
       res.status(400).json({ message: "ISBN is required" });
@@ -400,7 +452,7 @@ export const createBookByIsbn = async (
 
     // Extract authors data
     const authors = bookData.authors
-      ? bookData.authors.map((author: any) => ({
+      ? bookData.authors.map((author: OpenLibraryAuthor) => ({
           name: author.name,
           url: author.url,
         }))
@@ -494,9 +546,11 @@ export const createBookByIsbn = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error creating book by ISBN:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error creating book by ISBN:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -504,7 +558,7 @@ export const createBookByIsbn = async (
  * Update a book, including its author relationships
  */
 export const updateBook = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -674,9 +728,11 @@ export const updateBook = async (
       await db.run("ROLLBACK");
       throw error;
     }
-  } catch (error: any) {
-    console.error("Error updating book:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error updating book:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -703,9 +759,11 @@ export const deleteBook = async (
     await db.run("DELETE FROM books WHERE id = ?", [id]);
 
     res.status(200).json({ message: "Book deleted successfully" });
-  } catch (error: any) {
-    console.error("Error deleting book:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error deleting book:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -762,9 +820,11 @@ export const searchBooks = async (
     }
 
     res.status(200).json({ books });
-  } catch (error: any) {
-    console.error("Error searching books:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error searching books:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -812,21 +872,28 @@ export const searchOpenLibrary = async (
       }
 
       // Format the book data for our API
-      const bookData = response.data[bookKey];
+      const bookData = response.data[bookKey] as OpenLibraryBookData;
+      const description =
+        typeof bookData.description === "string"
+          ? bookData.description
+          : bookData.description?.value || null;
+
       const book = {
         title: bookData.title || "Unknown Title",
         author: bookData.authors
-          ? bookData.authors.map((a: any) => a.name).join(", ")
+          ? bookData.authors.map((a: OpenLibraryAuthor) => a.name).join(", ")
           : "Unknown Author",
         publishYear: bookData.publish_date
           ? parseInt(bookData.publish_date.slice(-4))
           : null,
         isbn: searchQuery,
         cover: bookData.cover?.medium || null,
-        description:
-          bookData.description?.value || bookData.description || null,
+        description: description,
         publisher: bookData.publishers?.[0] || null,
-        subjects: bookData.subjects?.map((s: any) => s.name || s) || [],
+        subjects:
+          bookData.subjects?.map((s) =>
+            typeof s === "string" ? s : s.name || ""
+          ) || [],
         url: bookData.url || `https://openlibrary.org/isbn/${searchQuery}`,
       };
 
@@ -867,18 +934,25 @@ export const searchOpenLibrary = async (
       }
 
       // Format the books data
-      const books = worksResponse.data.entries.map((work: any) => ({
-        title: work.title || "Unknown Title",
-        author: authorsResponse.data.docs[0].name || "Unknown Author",
-        workKey: work.key,
-        coverId: work.covers?.[0] || null,
-        cover: work.covers?.[0]
-          ? `https://covers.openlibrary.org/b/id/${work.covers[0]}-M.jpg`
-          : null,
-        firstPublishYear: work.first_publish_year || null,
-        url: `https://openlibrary.org${work.key}`,
-        description: work.description?.value || work.description || null,
-      }));
+      const books = worksResponse.data.entries.map((work: OpenLibraryWork) => {
+        const description =
+          typeof work.description === "string"
+            ? work.description
+            : work.description?.value || null;
+
+        return {
+          title: work.title || "Unknown Title",
+          author: authorsResponse.data.docs[0].name || "Unknown Author",
+          workKey: work.key,
+          coverId: work.covers?.[0] || null,
+          cover: work.covers?.[0]
+            ? `https://covers.openlibrary.org/b/id/${work.covers[0]}-M.jpg`
+            : null,
+          firstPublishYear: work.first_publish_year || null,
+          url: `https://openlibrary.org${work.key}`,
+          description: description,
+        };
+      });
 
       res.status(200).json({
         author: authorsResponse.data.docs[0].name,
@@ -897,7 +971,7 @@ export const searchOpenLibrary = async (
       }
 
       // Format the books data
-      const books = response.data.docs.map((book: any) => ({
+      const books = response.data.docs.map((book: OpenLibrarySearchResult) => ({
         title: book.title || "Unknown Title",
         author: book.author_name
           ? book.author_name.join(", ")
@@ -921,9 +995,11 @@ export const searchOpenLibrary = async (
         limit: books.length,
       });
     }
-  } catch (error: any) {
-    console.error("Error searching Open Library:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error searching Open Library:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -931,12 +1007,17 @@ export const searchOpenLibrary = async (
  * Add a book to a user's collection
  */
 export const addToUserCollection = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
     const { bookId } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
 
     if (!bookId) {
       res.status(400).json({ message: "Book ID is required" });
@@ -958,9 +1039,11 @@ export const addToUserCollection = async (
     res.status(201).json({
       message: "Book added to your collection successfully",
     });
-  } catch (error: any) {
-    console.error("Error adding book to collection:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error adding book to collection:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -968,12 +1051,17 @@ export const addToUserCollection = async (
  * Remove a book from a user's collection
  */
 export const removeFromUserCollection = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
     const { bookId } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
 
     const db = await connectDatabase();
 
@@ -997,9 +1085,11 @@ export const removeFromUserCollection = async (
     res.status(200).json({
       message: "Book removed from your collection successfully",
     });
-  } catch (error: any) {
-    console.error("Error removing book from collection:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error removing book from collection:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -1007,11 +1097,16 @@ export const removeFromUserCollection = async (
  * Get a user's book collection
  */
 export const getUserCollection = async (
-  req: Request,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
 
     const db = await connectDatabase();
 
@@ -1044,9 +1139,11 @@ export const getUserCollection = async (
     }
 
     res.status(200).json({ books });
-  } catch (error: any) {
-    console.error("Error fetching user collection:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching user collection:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
   }
 };
 
@@ -1054,7 +1151,7 @@ export const getUserCollection = async (
  * Helper function to add a book to a user's collection
  */
 async function addBookToUserCollection(
-  db: any,
+  db: Database,
   userId: number,
   bookId: number
 ): Promise<void> {
