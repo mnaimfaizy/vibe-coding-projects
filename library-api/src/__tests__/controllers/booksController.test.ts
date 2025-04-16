@@ -431,6 +431,110 @@ describe("Books Controller", () => {
         message: "Book not found with this ISBN",
       });
     });
+
+    it("should return 400 if no ISBN is provided", async () => {
+      req.body = {}; // Missing ISBN
+
+      await createBookByIsbn(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "ISBN is required" });
+    });
+
+    it("should return 429 if rate limit is exceeded", async () => {
+      req.body = { isbn: "1234567890" };
+
+      // Simulate hitting the rate limit by filling the timestamps array
+      // @ts-ignore - accessing private variable for testing
+      global.requestTimestamps = Array(5).fill(Date.now());
+
+      await createBookByIsbn(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Rate limit exceeded. Please try again later.",
+        retryAfter: expect.any(Number),
+      });
+    });
+
+    it("should return book from database if it already exists", async () => {
+      req.body = { isbn: "1234567890", addToCollection: true };
+      req.user = { id: 1 };
+
+      const existingBook = {
+        id: 1,
+        title: "Existing Book",
+        isbn: "1234567890",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingBook);
+      mockDb.all = jest.fn().mockResolvedValue([{ id: 1, name: "Author" }]);
+
+      await createBookByIsbn(req as UserRequest, res as Response);
+
+      expect(mockDb.run).not.toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO books")
+      );
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Book already exists",
+          book: expect.objectContaining({
+            id: 1,
+            title: "Existing Book",
+          }),
+        })
+      );
+    });
+
+    it("should handle API error when fetching book data", async () => {
+      req.body = { isbn: "1234567890" };
+
+      // Mock existing book check (no existing book)
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      // Mock API error
+      (axios.get as jest.Mock).mockRejectedValue(new Error("API error"));
+
+      await createBookByIsbn(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: expect.stringContaining("Error fetching book data"),
+        error: expect.any(String),
+      });
+    });
+
+    it("should handle database error when creating a book", async () => {
+      req.body = { isbn: "1234567890" };
+
+      // Mock existing book check (no existing book)
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      // Mock successful API call
+      const mockBookData = {
+        data: {
+          "ISBN:1234567890": {
+            title: "Test Book",
+            authors: [{ name: "Test Author" }],
+            publish_date: "2020",
+          },
+        },
+      };
+      (axios.get as jest.Mock).mockResolvedValue(mockBookData);
+
+      // Mock database error during transaction
+      mockDb.run = jest
+        .fn()
+        .mockResolvedValueOnce({}) // BEGIN TRANSACTION
+        .mockRejectedValueOnce(new Error("Database error")); // INSERT fails
+
+      await createBookByIsbn(req as UserRequest, res as Response);
+
+      // Should rollback the transaction on error
+      expect(mockDb.run).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
   });
 
   describe("updateBook", () => {
@@ -546,6 +650,275 @@ describe("Books Controller", () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         message: "Book with this ISBN already exists",
+      });
+    });
+
+    it("should update a book successfully with author string", async () => {
+      const bookId = "1";
+      req.params = { id: bookId };
+      req.body = {
+        title: "Updated Book Title",
+        isbn: "9876543210",
+        publishYear: 2023,
+        author: "Updated Author",
+        cover: "http://example.com/updated-cover.jpg",
+        description: "Updated description",
+      };
+
+      const existingBook = {
+        id: 1,
+        title: "Original Title",
+        isbn: "1234567890",
+        author: "Original Author",
+      };
+
+      const updatedBook = {
+        id: 1,
+        title: "Updated Book Title",
+        isbn: "9876543210",
+        publishYear: 2023,
+        author: "Updated Author",
+        cover: "http://example.com/updated-cover.jpg",
+        description: "Updated description",
+        authors: [{ name: "Updated Author", is_primary: 1 }],
+      };
+
+      mockDb.get = jest.fn().mockImplementation((query, params) => {
+        if (query.includes("SELECT * FROM books WHERE id = ?")) {
+          return Promise.resolve(existingBook);
+        } else if (query.includes("books WHERE isbn = ? AND id != ?")) {
+          return Promise.resolve(null); // No conflict with ISBN
+        } else if (
+          query.includes("SELECT id FROM authors WHERE LOWER(name) = LOWER(?)")
+        ) {
+          return Promise.resolve(null); // Author doesn't exist yet
+        } else if (query.includes("SELECT * FROM books WHERE id = ?")) {
+          return Promise.resolve(updatedBook);
+        }
+        return Promise.resolve(null);
+      });
+
+      mockDb.all = jest
+        .fn()
+        .mockResolvedValueOnce([{ name: "Updated Author", is_primary: 1 }]);
+
+      mockDb.run = jest.fn().mockImplementation((query) => {
+        if (query.includes("INSERT INTO authors")) {
+          return Promise.resolve({ lastID: 5 });
+        }
+        return Promise.resolve({});
+      });
+
+      await updateBook(req as Request, res as Response);
+
+      expect(mockDb.get).toHaveBeenCalledWith(
+        "SELECT * FROM books WHERE id = ?",
+        [bookId]
+      );
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        expect.stringContaining("UPDATE books"),
+        expect.arrayContaining([
+          "Updated Book Title",
+          "9876543210",
+          2023,
+          "Updated Author",
+          "http://example.com/updated-cover.jpg",
+          "Updated description",
+          bookId,
+        ])
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Book updated successfully",
+        book: expect.objectContaining({
+          id: 1,
+          title: "Updated Book Title",
+          isbn: "9876543210",
+        }),
+      });
+    });
+
+    it("should update a book successfully with authors array", async () => {
+      const bookId = "1";
+      req.params = { id: bookId };
+      req.body = {
+        title: "Updated Book Title",
+        isbn: "9876543210",
+        publishYear: 2023,
+        authors: [
+          { name: "Main Author", is_primary: true },
+          { name: "Co-Author", is_primary: false },
+        ],
+        cover: "http://example.com/updated-cover.jpg",
+        description: "Updated description",
+      };
+
+      const existingBook = {
+        id: 1,
+        title: "Original Title",
+        isbn: "1234567890",
+        author: "Original Author",
+      };
+
+      const updatedBook = {
+        id: 1,
+        title: "Updated Book Title",
+        isbn: "9876543210",
+        publishYear: 2023,
+        cover: "http://example.com/updated-cover.jpg",
+        description: "Updated description",
+      };
+
+      const bookAuthors = [
+        { id: 10, name: "Main Author", is_primary: 1 },
+        { id: 11, name: "Co-Author", is_primary: 0 },
+      ];
+
+      mockDb.get = jest.fn().mockImplementation((query, params) => {
+        if (query.includes("SELECT * FROM books WHERE id = ?")) {
+          return Promise.resolve(existingBook);
+        } else if (query.includes("books WHERE isbn = ? AND id != ?")) {
+          return Promise.resolve(null); // No conflict with ISBN
+        } else if (
+          query.includes("SELECT id FROM authors WHERE LOWER(name) = LOWER(?)")
+        ) {
+          if (params[0].toLowerCase() === "main author") {
+            return Promise.resolve({ id: 10 }); // Existing author
+          } else {
+            return Promise.resolve(null); // New author
+          }
+        }
+        return Promise.resolve(null);
+      });
+
+      mockDb.all = jest.fn().mockResolvedValueOnce(bookAuthors);
+
+      mockDb.run = jest.fn().mockImplementation((query) => {
+        if (query.includes("INSERT INTO authors")) {
+          return Promise.resolve({ lastID: 11 });
+        }
+        return Promise.resolve({});
+      });
+
+      await updateBook(req as Request, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        expect.stringContaining("UPDATE books"),
+        expect.arrayContaining([
+          "Updated Book Title",
+          "9876543210",
+          2023,
+          null, // author field is null when using authors array
+          "http://example.com/updated-cover.jpg",
+          "Updated description",
+          bookId,
+        ])
+      );
+
+      // Should delete existing author relationships first
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "DELETE FROM author_books WHERE book_id = ?",
+        ["1"]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Book updated successfully",
+        book: expect.objectContaining({
+          id: 1,
+          title: "Updated Book Title",
+          authors: expect.arrayContaining([
+            expect.objectContaining({ name: "Main Author", is_primary: 1 }),
+            expect.objectContaining({ name: "Co-Author", is_primary: 0 }),
+          ]),
+        }),
+      });
+    });
+
+    it("should return 404 if book not found", async () => {
+      req.params = { id: "999" };
+      req.body = { title: "Updated Title" };
+
+      mockDb.get = jest.fn().mockResolvedValue(null); // Book not found
+      mockDb.run = jest.fn().mockResolvedValue({});
+
+      await updateBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Book not found" });
+    });
+
+    it("should return 400 if ISBN already exists for another book", async () => {
+      const bookId = "1";
+      req.params = { id: bookId };
+      req.body = {
+        title: "Updated Title",
+        isbn: "9876543210", // Conflicting ISBN
+      };
+
+      const existingBook = {
+        id: 1,
+        title: "Original Title",
+        isbn: "1234567890",
+      };
+
+      const conflictingBook = {
+        id: 2,
+        title: "Another Book",
+        isbn: "9876543210", // Same as requested ISBN
+      };
+
+      mockDb.get = jest.fn().mockImplementation((query, params) => {
+        if (query.includes("SELECT * FROM books WHERE id = ?")) {
+          return Promise.resolve(existingBook);
+        } else if (
+          query.includes("SELECT * FROM books WHERE isbn = ? AND id != ?")
+        ) {
+          return Promise.resolve(conflictingBook); // ISBN conflict
+        }
+        return Promise.resolve(null);
+      });
+
+      await updateBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Book with this ISBN already exists",
+      });
+    });
+
+    it("should handle database transaction errors", async () => {
+      const bookId = "1";
+      req.params = { id: bookId };
+      req.body = { title: "Updated Title" };
+
+      const existingBook = {
+        id: 1,
+        title: "Original Title",
+        isbn: "1234567890",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingBook);
+
+      const mockError = new Error("Database error");
+      mockDb.run = jest.fn().mockImplementation((query) => {
+        if (query === "BEGIN TRANSACTION") {
+          return Promise.resolve({});
+        } else if (query.includes("UPDATE books")) {
+          return Promise.reject(mockError);
+        }
+        return Promise.resolve({});
+      });
+
+      await updateBook(req as Request, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
       });
     });
   });
@@ -781,6 +1154,48 @@ describe("Books Controller", () => {
       // We just check if any response is returned with the correct structure
       expect(res.json).toHaveBeenCalled();
     });
+
+    it("should handle empty results for title search", async () => {
+      req.query = {
+        query: "nonexistent book title",
+        type: "title",
+      };
+
+      const mockResponse = {
+        data: {
+          docs: [],
+          numFound: 0,
+        },
+      };
+
+      // Mock the API response
+      (axios.get as jest.Mock).mockResolvedValue(mockResponse);
+
+      await searchOpenLibrary(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "No books found matching the query",
+      });
+    });
+
+    it("should handle rate limiting for OpenLibrary searches", async () => {
+      req.query = {
+        query: "test",
+        type: "title",
+      };
+
+      // Simulate hitting the rate limit
+      global.requestTimestamps = Array(5).fill(Date.now());
+
+      await searchOpenLibrary(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Rate limit exceeded. Please try again later.",
+        retryAfter: expect.any(Number),
+      });
+    });
   });
 
   describe("addToUserCollection", () => {
@@ -965,6 +1380,40 @@ describe("Books Controller", () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: "Authentication required",
+      });
+    });
+
+    it("should return empty array if user has no books", async () => {
+      req.user = { id: 1 };
+
+      mockDb.all = jest.fn().mockResolvedValue([]);
+
+      await getUserCollection(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ books: [] });
+    });
+
+    it("should return 401 if user is not authenticated", async () => {
+      req.user = undefined;
+
+      await getUserCollection(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+    });
+
+    it("should handle database error when getting user collection", async () => {
+      req.user = { id: 1 };
+
+      mockDb.all = jest.fn().mockRejectedValue(new Error("Database error"));
+
+      await getUserCollection(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: expect.stringContaining("Database error"),
       });
     });
   });

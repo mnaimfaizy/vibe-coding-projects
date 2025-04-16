@@ -3,7 +3,10 @@ import { Database } from "sqlite";
 import {
   createReview,
   deleteReview,
+  getAllReviews,
   getBookReviews,
+  getReviewById,
+  getReviewsByBookId,
   updateReview,
 } from "../../controllers/reviewsController";
 import { connectDatabase } from "../../db/database";
@@ -747,6 +750,513 @@ describe("Reviews Controller", () => {
       await deleteReview(req as UserRequest, res as Response);
 
       expect(mockDb.run).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("getAllReviews", () => {
+    it("should get all reviews with pagination", async () => {
+      req.query = { page: "1", limit: "10" };
+
+      const mockReviews = [
+        {
+          id: 1,
+          book_id: 1,
+          user_id: 1,
+          username: "User1",
+          rating: 5,
+          comment: "Great book!",
+          createdAt: "2023-01-01T12:00:00Z",
+        },
+        {
+          id: 2,
+          book_id: 2,
+          user_id: 2,
+          username: "User2",
+          rating: 4,
+          comment: "Good read",
+          createdAt: "2023-01-02T12:00:00Z",
+        },
+      ];
+
+      const mockCount = [{ total: 2 }];
+
+      mockDb.all = jest
+        .fn()
+        .mockResolvedValueOnce(mockReviews)
+        .mockResolvedValueOnce(mockCount);
+
+      await getAllReviews(req as Request, res as Response);
+
+      expect(mockDb.all).toHaveBeenCalledWith(
+        expect.stringContaining("SELECT r.*, b.title as book_title"),
+        [10, 0]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        reviews: mockReviews,
+        pagination: {
+          total: 2,
+          page: 1,
+          limit: 10,
+          pages: 1,
+        },
+      });
+    });
+
+    it("should handle missing pagination parameters", async () => {
+      req.query = {};
+
+      const mockReviews = [{ id: 1, comment: "Review 1" }];
+      const mockCount = [{ total: 1 }];
+
+      mockDb.all = jest
+        .fn()
+        .mockResolvedValueOnce(mockReviews)
+        .mockResolvedValueOnce(mockCount);
+
+      await getAllReviews(req as Request, res as Response);
+
+      // Should use default pagination values (limit: 10, page: 1)
+      expect(mockDb.all).toHaveBeenCalledWith(expect.any(String), [10, 0]);
+    });
+
+    it("should handle database errors", async () => {
+      req.query = { page: "1", limit: "10" };
+
+      const mockError = new Error("Database error");
+      mockDb.all = jest.fn().mockRejectedValue(mockError);
+
+      await getAllReviews(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("getReviewById", () => {
+    it("should get a review by ID", async () => {
+      const reviewId = "1";
+      req.params = { id: reviewId };
+
+      const mockReview = {
+        id: 1,
+        book_id: 1,
+        book_title: "Test Book",
+        user_id: 1,
+        username: "User1",
+        rating: 5,
+        comment: "Great book!",
+        createdAt: "2023-01-01T12:00:00Z",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(mockReview);
+
+      await getReviewById(req as Request, res as Response);
+
+      expect(mockDb.get).toHaveBeenCalledWith(
+        expect.stringContaining("SELECT r.*, b.title as book_title"),
+        [reviewId]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ review: mockReview });
+    });
+
+    it("should return 404 if review not found", async () => {
+      req.params = { id: "999" };
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      await getReviewById(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Review not found" });
+    });
+
+    it("should handle database errors", async () => {
+      req.params = { id: "1" };
+
+      const mockError = new Error("Database error");
+      mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await getReviewById(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("getReviewsByBookId", () => {
+    it("should get all reviews for a book", async () => {
+      const bookId = "1";
+      req.params = { bookId };
+
+      const mockReviews = [
+        {
+          id: 1,
+          username: "User1",
+          rating: 5,
+          comment: "Great book!",
+          createdAt: "2023-01-01T12:00:00Z",
+        },
+        {
+          id: 2,
+          username: "User2",
+          rating: 4,
+          comment: "Good read",
+          createdAt: "2023-01-02T12:00:00Z",
+        },
+      ];
+
+      mockDb.all = jest.fn().mockResolvedValue(mockReviews);
+
+      await getReviewsByBookId(req as Request, res as Response);
+
+      expect(mockDb.all).toHaveBeenCalledWith(
+        expect.stringContaining("WHERE r.book_id = ?"),
+        [bookId]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ reviews: mockReviews });
+    });
+
+    it("should handle empty reviews array", async () => {
+      req.params = { bookId: "999" };
+      mockDb.all = jest.fn().mockResolvedValue([]);
+
+      await getReviewsByBookId(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ reviews: [] });
+    });
+
+    it("should handle database errors", async () => {
+      req.params = { bookId: "1" };
+
+      const mockError = new Error("Database error");
+      mockDb.all = jest.fn().mockRejectedValue(mockError);
+
+      await getReviewsByBookId(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("updateReview", () => {
+    it("should update a review successfully", async () => {
+      const reviewId = "1";
+      req.params = { id: reviewId };
+      req.body = {
+        rating: 4,
+        comment: "Updated comment",
+      };
+      req.user = { id: 1 };
+
+      const existingReview = {
+        id: 1,
+        user_id: 1,
+        book_id: 2,
+        rating: 5,
+        comment: "Original comment",
+        username: "User1",
+      };
+
+      const updatedReview = {
+        ...existingReview,
+        rating: 4,
+        comment: "Updated comment",
+      };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(existingReview) // First call to get existing review
+        .mockResolvedValueOnce(updatedReview); // Second call to get updated review
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(mockDb.get).toHaveBeenCalledWith(
+        "SELECT * FROM reviews WHERE id = ?",
+        [reviewId]
+      );
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "UPDATE reviews SET rating = ?, comment = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?",
+        [4, "Updated comment", reviewId]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Review updated successfully",
+        review: updatedReview,
+      });
+    });
+
+    it("should return 401 if user is not authenticated", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 4, comment: "Updated" };
+      req.user = undefined; // Unauthenticated
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Authentication required",
+      });
+    });
+
+    it("should return 404 if review not found", async () => {
+      req.params = { id: "999" };
+      req.body = { rating: 4, comment: "Updated" };
+      req.user = { id: 1 };
+
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Review not found",
+      });
+    });
+
+    it("should return 403 if user doesn't own the review and is not admin", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 4, comment: "Updated" };
+      req.user = { id: 2 }; // Different user ID
+
+      const existingReview = {
+        id: 1,
+        user_id: 1, // Original user ID
+        rating: 5,
+        comment: "Original comment",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Not authorized to update this review",
+      });
+    });
+
+    it("should allow admin to update any review", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 4, comment: "Admin update" };
+      req.user = { id: 999, isAdmin: true }; // Admin user
+
+      const existingReview = {
+        id: 1,
+        user_id: 1, // Different user ID
+        book_id: 2,
+        rating: 5,
+        comment: "Original comment",
+        username: "User1",
+      };
+
+      const updatedReview = {
+        ...existingReview,
+        rating: 4,
+        comment: "Admin update",
+      };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(existingReview)
+        .mockResolvedValueOnce(updatedReview);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it("should return 400 if rating is invalid", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 6, comment: "Updated" }; // Invalid rating (> 5)
+      req.user = { id: 1 };
+
+      const existingReview = {
+        id: 1,
+        user_id: 1,
+        rating: 5,
+        comment: "Original comment",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Rating must be between 1 and 5",
+      });
+    });
+
+    it("should return 400 if comment is empty", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 4, comment: "" }; // Empty comment
+      req.user = { id: 1 };
+
+      const existingReview = {
+        id: 1,
+        user_id: 1,
+        rating: 5,
+        comment: "Original comment",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Review comment is required",
+      });
+    });
+
+    it("should handle database errors", async () => {
+      req.params = { id: "1" };
+      req.body = { rating: 4, comment: "Updated" };
+      req.user = { id: 1 };
+
+      const mockError = new Error("Database error");
+      mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await updateReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("deleteReview", () => {
+    it("should delete a review successfully", async () => {
+      const reviewId = "1";
+      req.params = { id: reviewId };
+      req.user = { id: 1 };
+
+      const existingReview = {
+        id: 1,
+        user_id: 1, // Same as requesting user
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+      mockDb.run = jest.fn().mockResolvedValue({});
+
+      await deleteReview(req as UserRequest, res as Response);
+
+      expect(mockDb.get).toHaveBeenCalledWith(
+        "SELECT * FROM reviews WHERE id = ?",
+        [reviewId]
+      );
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "DELETE FROM reviews WHERE id = ?",
+        [reviewId]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Review deleted successfully",
+      });
+    });
+
+    it("should return 401 if user is not authenticated", async () => {
+      req.params = { id: "1" };
+      req.user = undefined; // Unauthenticated
+
+      await deleteReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Authentication required",
+      });
+    });
+
+    it("should return 404 if review not found", async () => {
+      req.params = { id: "999" };
+      req.user = { id: 1 };
+
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      await deleteReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Review not found",
+      });
+    });
+
+    it("should return 403 if user doesn't own the review and is not admin", async () => {
+      req.params = { id: "1" };
+      req.user = { id: 2 }; // Different user ID
+
+      const existingReview = {
+        id: 1,
+        user_id: 1, // Different from requesting user
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+
+      await deleteReview(req as UserRequest, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Not authorized to delete this review",
+      });
+    });
+
+    it("should allow admin to delete any review", async () => {
+      req.params = { id: "1" };
+      req.user = { id: 999, isAdmin: true }; // Admin user
+
+      const existingReview = {
+        id: 1,
+        user_id: 1, // Different from admin user
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(existingReview);
+      mockDb.run = jest.fn().mockResolvedValue({});
+
+      await deleteReview(req as UserRequest, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "DELETE FROM reviews WHERE id = ?",
+        [1]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it("should handle database errors", async () => {
+      req.params = { id: "1" };
+      req.user = { id: 1 };
+
+      const mockError = new Error("Database error");
+      mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await deleteReview(req as UserRequest, res as Response);
+
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         message: "Server error",

@@ -9,7 +9,10 @@ import {
   getAuthorById,
   getAuthorByName,
   getAuthorInfo,
+  linkAuthorToBook,
   removeBookFromAuthor,
+  searchOpenLibraryAuthor,
+  unlinkAuthorFromBook,
   updateAuthor,
 } from "../../controllers/authorsController";
 import { connectDatabase } from "../../db/database";
@@ -810,6 +813,286 @@ describe("Authors Controller", () => {
       expect(res.json).toHaveBeenCalledWith({
         message: "Rate limit exceeded. Please try again later.",
         retryAfter: 60,
+      });
+    });
+  });
+
+  describe("searchOpenLibraryAuthor", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (axios.get as jest.Mock).mockReset();
+
+      // Reset the rate limiting state
+      if (typeof global === "object" && global) {
+        (global as any).requestTimestamps = [];
+      }
+    });
+
+    it("should return author data from OpenLibrary", async () => {
+      req.query = { name: "J.K. Rowling" };
+
+      const mockAuthorData = {
+        data: {
+          docs: [
+            {
+              name: "J.K. Rowling",
+              key: "/authors/OL23919A",
+              birth_date: "1965-07-31",
+              top_work: "Harry Potter and the Philosopher's Stone",
+              work_count: 123,
+              _version_: 1234567890,
+            },
+          ],
+          numFound: 1,
+        },
+      };
+
+      // Mock axios response for author data
+      (axios.get as jest.Mock).mockResolvedValue(mockAuthorData);
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining("openlibrary.org/search/authors.json"),
+        expect.any(Object)
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          author: expect.objectContaining({
+            name: "J.K. Rowling",
+            birth_date: "1965-07-31",
+          }),
+        })
+      );
+    });
+
+    it("should return 400 if name query parameter is missing", async () => {
+      req.query = {}; // No name parameter
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author name is required",
+      });
+    });
+
+    it("should return 429 if rate limit is exceeded", async () => {
+      req.query = { name: "J.K. Rowling" };
+
+      // Simulate hitting the rate limit
+      if (typeof global === "object" && global) {
+        (global as any).requestTimestamps = Array(5).fill(Date.now());
+      }
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Rate limit exceeded. Please try again later.",
+        retryAfter: expect.any(Number),
+      });
+    });
+
+    it("should return 404 if author not found", async () => {
+      req.query = { name: "NonexistentAuthor123456" };
+
+      const emptyResponse = {
+        data: {
+          docs: [],
+          numFound: 0,
+        },
+      };
+
+      // Mock axios response with no results
+      (axios.get as jest.Mock).mockResolvedValue(emptyResponse);
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Author not found" });
+    });
+
+    it("should handle API errors", async () => {
+      req.query = { name: "J.K. Rowling" };
+
+      // Mock API error
+      (axios.get as jest.Mock).mockRejectedValue(new Error("API error"));
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: expect.stringContaining("API error"),
+      });
+    });
+  });
+
+  describe("linkAuthorToBook", () => {
+    it("should link an author to a book successfully", async () => {
+      req.body = { authorId: 1, bookId: 2 };
+
+      const mockAuthor = { id: 1, name: "Test Author" };
+      const mockBook = { id: 2, title: "Test Book" };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(mockAuthor) // Author exists
+        .mockResolvedValueOnce(mockBook) // Book exists
+        .mockResolvedValueOnce(null); // Association doesn't exist yet
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+        [1, 2, 0]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author linked to book successfully",
+      });
+    });
+
+    it("should update existing association if it already exists", async () => {
+      req.body = { authorId: 1, bookId: 2, isPrimary: true };
+
+      const mockAuthor = { id: 1, name: "Test Author" };
+      const mockBook = { id: 2, title: "Test Book" };
+      const mockAssociation = { author_id: 1, book_id: 2, is_primary: 0 };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(mockAuthor) // Author exists
+        .mockResolvedValueOnce(mockBook) // Book exists
+        .mockResolvedValueOnce(mockAssociation); // Association already exists
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "UPDATE author_books SET is_primary = ? WHERE author_id = ? AND book_id = ?",
+        [1, 1, 2]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author-book relationship updated successfully",
+      });
+    });
+
+    it("should return 400 if authorId or bookId is missing", async () => {
+      req.body = { authorId: 1 }; // Missing bookId
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author ID and Book ID are required",
+      });
+    });
+
+    it("should return 404 if author not found", async () => {
+      req.body = { authorId: 999, bookId: 2 };
+
+      mockDb.get = jest.fn().mockResolvedValueOnce(null); // Author doesn't exist
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Author not found" });
+    });
+
+    it("should return 404 if book not found", async () => {
+      req.body = { authorId: 1, bookId: 999 };
+
+      const mockAuthor = { id: 1, name: "Test Author" };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(mockAuthor) // Author exists
+        .mockResolvedValueOnce(null); // Book doesn't exist
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Book not found" });
+    });
+
+    it("should handle database error", async () => {
+      req.body = { authorId: 1, bookId: 2 };
+
+      const mockError = new Error("Database error");
+      mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
+      });
+    });
+  });
+
+  describe("unlinkAuthorFromBook", () => {
+    it("should unlink an author from a book successfully", async () => {
+      req.params = { authorId: "1", bookId: "2" };
+
+      const mockAssociation = { author_id: 1, book_id: 2 };
+      mockDb.get = jest.fn().mockResolvedValue(mockAssociation);
+
+      await unlinkAuthorFromBook(req as Request, res as Response);
+
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "DELETE FROM author_books WHERE author_id = ? AND book_id = ?",
+        [1, 2]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author unlinked from book successfully",
+      });
+    });
+
+    it("should return 400 if authorId or bookId parameter is missing", async () => {
+      req.params = { authorId: "1" }; // Missing bookId
+
+      await unlinkAuthorFromBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author ID and Book ID are required",
+      });
+    });
+
+    it("should return 404 if association not found", async () => {
+      req.params = { authorId: "1", bookId: "2" };
+
+      mockDb.get = jest.fn().mockResolvedValue(null);
+
+      await unlinkAuthorFromBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author-book association not found",
+      });
+    });
+
+    it("should handle database error", async () => {
+      req.params = { authorId: "1", bookId: "2" };
+
+      const mockError = new Error("Database error");
+      mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await unlinkAuthorFromBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Database error",
       });
     });
   });

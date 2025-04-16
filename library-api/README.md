@@ -2,7 +2,7 @@
 
 A RESTful API for managing a library system, built with Node.js, Express, TypeScript, and SQLite.
 
-[![Test Coverage: 82.79%](https://img.shields.io/badge/Coverage-82.79%25-brightgreen.svg)](coverage/lcov-report/index.html)
+[![Test Coverage: 52.38%](https://img.shields.io/badge/Coverage-52.38%25-yellow.svg)](coverage/lcov-report/index.html)
 
 ## Features
 
@@ -34,23 +34,37 @@ A RESTful API for managing a library system, built with Node.js, Express, TypeSc
 
 ## Test Coverage
 
-Current test coverage (as of April 15, 2025):
+Current test coverage (as of April 16, 2025):
 
-- Statements: 82.79%
-- Branches: 64.99%
-- Functions: 93.28%
-- Lines: 82.25%
+- Statements: 52.38%
+- Branches: 25.74%
+- Functions: 52.98%
+- Lines: 50.61%
 
-The project has significantly improved test coverage with 227 passing tests across all components.
+The project has 183 passing tests with varying coverage levels across components.
 
 ### Coverage by Component
 
-- Config: 91.66%
-- Controllers: 84.83%
-- Database and Middleware: 100%
+- Config: 100%
+- Controllers:
+  - authController: 85.44%
+  - authorsController: 9.03%
+  - booksController: 4.98%
+  - reviewsController: 3.67%
+  - admin/userController: 97%
+- Database: 100%
+- Middleware: 100%
 - Models: 100%
-- Routes: 62.90%
+- Routes: 100%
 - Utils: 100%
+
+### Areas for Improvement
+
+The main areas needing increased test coverage are:
+
+- authorsController.ts
+- booksController.ts
+- reviewsController.ts
 
 ## Getting Started
 
