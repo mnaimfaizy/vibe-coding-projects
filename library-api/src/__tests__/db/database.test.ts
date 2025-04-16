@@ -1,3 +1,6 @@
+import path from "path";
+import sqlite from "sqlite";
+import sqlite3 from "sqlite3";
 import { connectDatabase } from "../../db/database";
 import { UserRole } from "../../models/User";
 
@@ -25,8 +28,9 @@ describe("Database Module", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    require("path").join.mockReturnValue(":memory:");
-    require("sqlite").open.mockResolvedValue(mockDb);
+    // Use imported modules instead of require()
+    (path.join as jest.Mock).mockReturnValue(":memory:");
+    (sqlite.open as jest.Mock).mockResolvedValue(mockDb);
   });
 
   describe("connectDatabase", () => {
@@ -47,9 +51,9 @@ describe("Database Module", () => {
 
       const db = await connectDatabase();
 
-      expect(require("sqlite").open).toHaveBeenCalledWith({
+      expect(sqlite.open).toHaveBeenCalledWith({
         filename: ":memory:",
-        driver: require("sqlite3").Database,
+        driver: sqlite3.Database,
       });
 
       expect(mockDb.exec).toHaveBeenCalledTimes(1);
@@ -174,7 +178,7 @@ describe("Database Module", () => {
       const mockError = new Error("Connection failed");
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-      require("sqlite").open.mockRejectedValue(mockError);
+      (sqlite.open as jest.Mock).mockRejectedValue(mockError);
 
       await expect(connectDatabase()).rejects.toThrow("Connection failed");
 

@@ -1,3 +1,4 @@
+import axios from "axios"; // Import axios properly at the top
 import { NextFunction, Request, Response } from "express";
 import request from "supertest";
 import { app } from "../../index";
@@ -253,11 +254,9 @@ describe("Book API Integration Tests", () => {
 
   describe("GET /api/books/search/open-library", () => {
     it("should search OpenLibrary and return results", async () => {
-      // Import axios directly to mock it properly
-      const axios = require("axios");
-
+      // Use the already imported axios instance
       // Mock the axios response for title search
-      axios.get.mockResolvedValueOnce({
+      (axios.get as jest.Mock).mockResolvedValueOnce({
         data: {
           docs: [
             {

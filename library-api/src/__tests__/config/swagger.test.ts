@@ -28,10 +28,12 @@ interface SwaggerSpec {
         bearerFormat: string;
       };
     };
-    [key: string]: any;
+    // Replace 'any' with more specific types
+    [key: string]: Record<string, unknown>;
   };
   paths: {
-    [path: string]: any;
+    // Replace 'any' with more specific types
+    [path: string]: Record<string, unknown>;
   };
   tags: Array<{
     name: string;

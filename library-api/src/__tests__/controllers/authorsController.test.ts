@@ -24,6 +24,11 @@ jest.mock("axios");
 // Import axios for mocking
 import axios from "axios";
 
+// Add global declaration for requestTimestamps
+declare global {
+  var requestTimestamps: number[];
+}
+
 describe("Authors Controller", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
@@ -801,7 +806,7 @@ describe("Authors Controller", () => {
 
       // Reset the rate limiting state
       if (typeof global === "object" && global) {
-        (global as any).requestTimestamps = [];
+        global.requestTimestamps = []; // Use proper global typing
       }
 
       // Reset rate limiter explicitly
@@ -912,7 +917,7 @@ describe("Authors Controller", () => {
 
       // Explicitly ensure rate limit is not hit for this specific test
       if (typeof global === "object" && global) {
-        (global as any).requestTimestamps = [];
+        global.requestTimestamps = []; // Use proper global typing without any cast
       }
 
       const mockError = new Error("API error");
@@ -932,10 +937,8 @@ describe("Authors Controller", () => {
     });
 
     it("should handle rate limiting", async () => {
-      // This test seems complex and might depend heavily on the exact implementation
+      // This test depends on the exact implementation
       // of the rate limiter and how state persists across calls within the test.
-      // Consider simplifying or ensuring the rate limiter state is managed correctly
-      // if this test continues to be problematic.
 
       // Mock axios responses for the initial calls
       const mockAuthorResponse = {
@@ -960,7 +963,6 @@ describe("Authors Controller", () => {
 
         await getAuthorInfo(req as Request, res as Response);
         // Reset mocks used within the loop if necessary, depending on getAuthorInfo logic
-        // jest.clearAllMocks(); // Be careful with clearing mocks inside the loop
       }
 
       // This 6th call should now be rate limited
@@ -1213,7 +1215,7 @@ describe("Authors Controller", () => {
 
       // Reset the rate limiting state
       if (typeof global === "object" && global) {
-        (global as any).requestTimestamps = [];
+        global.requestTimestamps = []; // Use proper global typing
       }
     });
 
@@ -1292,7 +1294,7 @@ describe("Authors Controller", () => {
 
       // Ensure rate limit is not hit
       if (typeof global === "object" && global) {
-        (global as any).requestTimestamps = [];
+        global.requestTimestamps = []; // Use proper global typing
       }
 
       // Mock API error

@@ -146,18 +146,26 @@ describe("Helper functions", () => {
 
   describe("calculateExpiryTime", () => {
     it("should calculate expiry time based on config", () => {
+      // Mock the Date constructor
       const mockDate = new Date("2023-01-01T12:00:00Z");
-      jest.spyOn(global, "Date").mockImplementation(() => mockDate as any);
+      const originalDate = global.Date;
+      global.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
 
-      const expectedExpiry = new Date("2023-01-01T13:00:00Z"); // 1 hour later based on mock config
+      // Mock the setTime method
       mockDate.setTime = jest.fn();
-      mockDate.getTime = jest.fn().mockReturnValue(mockDate.valueOf());
+      mockDate.getTime = jest.fn().mockReturnValue(1672578000000); // Fixed timestamp for 2023-01-01T12:00:00Z
 
-      calculateExpiryTime();
+      // Call the function we're testing
+      const result = calculateExpiryTime();
 
+      // Verify expectations
       expect(mockDate.setTime).toHaveBeenCalledWith(
-        mockDate.valueOf() + config.resetPassword.expiryTime
+        mockDate.getTime() + config.resetPassword.expiryTime
       );
+      expect(result).toBe(mockDate);
+
+      // Restore original Date constructor
+      global.Date = originalDate;
     });
   });
 

@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { config } from "../../config";
 
@@ -44,13 +45,34 @@ import {
   updateReview,
 } from "../../controllers/reviewsController";
 
+// Define interfaces for request and response to replace 'any'
+interface MockRequest {
+  params: Record<string, string>;
+  query: Record<string, string>;
+  body: Record<string, unknown>;
+  user?: {
+    id: number;
+    email?: string;
+    username: string;
+    role: string;
+  } | null;
+  headers: Record<string, string>;
+}
+
+interface MockResponse {
+  status: jest.Mock;
+  json: jest.Mock;
+  send: jest.Mock;
+  end: jest.Mock;
+}
+
 describe("Review API Integration Tests", () => {
-  let authToken: string;
-  let adminToken: string;
+  // Remove unused token variables - the tokens are not referenced directly in tests
+  // We're still creating them in the beforeAll for documentation purposes
 
   // These are the mock request and response objects we'll use
-  let mockReq: any;
-  let mockRes: any;
+  let mockReq: MockRequest;
+  let mockRes: MockResponse;
 
   beforeAll(() => {
     // Create a valid user token for authentication
@@ -67,8 +89,10 @@ describe("Review API Integration Tests", () => {
       role: "admin",
     };
 
-    authToken = jwt.sign({ user }, config.jwtSecret, { expiresIn: "1h" });
-    adminToken = jwt.sign({ user: admin }, config.jwtSecret, {
+    // Create tokens for documentation/context purposes
+    // but don't assign them to variables since they're not used directly
+    jwt.sign({ user }, config.jwtSecret, { expiresIn: "1h" });
+    jwt.sign({ user: admin }, config.jwtSecret, {
       expiresIn: "1h",
     });
 
@@ -147,8 +171,11 @@ describe("Review API Integration Tests", () => {
         return res.json(reviews);
       });
 
-      // Call the controller function
-      await getBookReviews(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getBookReviews(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.json).toHaveBeenCalledWith(mockReviews);
@@ -176,8 +203,11 @@ describe("Review API Integration Tests", () => {
         return res.json(reviews);
       });
 
-      // Call the controller function
-      await getBookReviews(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getBookReviews(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -201,7 +231,7 @@ describe("Review API Integration Tests", () => {
       // Set up request
       mockReq.params.bookId = "1";
       mockReq.body = reviewData;
-      mockReq.user = { id: 1, username: "testuser" };
+      mockReq.user = { id: 1, username: "testuser", role: "user" };
 
       // Mock database responses
       (mockDb.get as jest.Mock).mockResolvedValue({ id: 1 }); // Book exists
@@ -256,8 +286,11 @@ describe("Review API Integration Tests", () => {
         return res.status(201).json(newReview);
       });
 
-      // Call the controller function
-      await createReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await createReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(201);
@@ -339,8 +372,11 @@ describe("Review API Integration Tests", () => {
         return res.status(201).json(newReview);
       });
 
-      // Call the controller function
-      await createReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await createReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(201);
@@ -382,8 +418,11 @@ describe("Review API Integration Tests", () => {
         return res.status(201).json({});
       });
 
-      // Call the controller function
-      await createReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await createReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -424,8 +463,11 @@ describe("Review API Integration Tests", () => {
         return res.status(201).json({});
       });
 
-      // Call the controller function
-      await createReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await createReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -455,12 +497,9 @@ describe("Review API Integration Tests", () => {
         updatedAt: "2023-01-01T12:00:00Z",
       };
 
-      const updatedReview = {
-        ...existingReview,
-        rating: 5,
-        comment: "Updated comment",
-        updatedAt: new Date().toISOString(),
-      };
+      // The updatedReview is used in the controller implementation
+      // We'll keep track of it by capturing it in a let variable to avoid the linting error
+      let resultReview;
 
       // Set up request
       mockReq.params.reviewId = "1";
@@ -502,18 +541,21 @@ describe("Review API Integration Tests", () => {
         );
 
         // Return the updated review
-        const updatedReview = {
+        resultReview = {
           ...review,
           rating,
           comment,
           updatedAt: new Date().toISOString(),
         };
 
-        return res.json(updatedReview);
+        return res.json(resultReview);
       });
 
-      // Call the controller function
-      await updateReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await updateReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.json).toHaveBeenCalledWith(
@@ -575,8 +617,11 @@ describe("Review API Integration Tests", () => {
         return res.json({});
       });
 
-      // Call the controller function
-      await updateReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await updateReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(403);
@@ -604,12 +649,9 @@ describe("Review API Integration Tests", () => {
         updatedAt: "2023-01-01T12:00:00Z",
       };
 
-      const updatedReview = {
-        ...existingReview,
-        rating: 5,
-        comment: "Admin edited",
-        updatedAt: new Date().toISOString(),
-      };
+      // The updatedReview is used in the controller implementation
+      // Capture it to avoid the linting error
+      let resultReview;
 
       // Set up request with admin user
       mockReq.params.reviewId = "1";
@@ -651,18 +693,21 @@ describe("Review API Integration Tests", () => {
         );
 
         // Return the updated review
-        const updatedReview = {
+        resultReview = {
           ...review,
           rating,
           comment,
           updatedAt: new Date().toISOString(),
         };
 
-        return res.json(updatedReview);
+        return res.json(resultReview);
       });
 
-      // Call the controller function
-      await updateReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await updateReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response - admin should be able to update the review
       expect(mockRes.json).toHaveBeenCalledWith(
@@ -703,8 +748,11 @@ describe("Review API Integration Tests", () => {
         return res.json({});
       });
 
-      // Call the controller function
-      await updateReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await updateReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -764,8 +812,11 @@ describe("Review API Integration Tests", () => {
         return res.status(204).end();
       });
 
-      // Call the controller function
-      await deleteReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await deleteReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(204);
@@ -823,8 +874,11 @@ describe("Review API Integration Tests", () => {
         return res.status(204).end();
       });
 
-      // Call the controller function
-      await deleteReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await deleteReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response - admin should be able to delete the review
       expect(mockRes.status).toHaveBeenCalledWith(204);
@@ -881,8 +935,11 @@ describe("Review API Integration Tests", () => {
         return res.status(204).end();
       });
 
-      // Call the controller function
-      await deleteReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await deleteReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(403);
@@ -920,8 +977,11 @@ describe("Review API Integration Tests", () => {
         return res.json({});
       });
 
-      // Call the controller function
-      await deleteReview(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await deleteReview(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -972,8 +1032,11 @@ describe("Review API Integration Tests", () => {
         return res.json({ review });
       });
 
-      // Call the controller function
-      await getReviewById(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getReviewById(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -1008,8 +1071,11 @@ describe("Review API Integration Tests", () => {
         return res.json({ review });
       });
 
-      // Call the controller function
-      await getReviewById(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getReviewById(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -1077,8 +1143,11 @@ describe("Review API Integration Tests", () => {
         });
       });
 
-      // Call the controller function
-      await getAllReviews(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getAllReviews(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -1107,8 +1176,11 @@ describe("Review API Integration Tests", () => {
         return res.json({});
       });
 
-      // Call the controller function
-      await getAllReviews(mockReq, mockRes);
+      // Call the controller function with proper type casting
+      await getAllReviews(
+        mockReq as unknown as Request,
+        mockRes as unknown as Response
+      );
 
       // Verify the response
       expect(mockRes.status).toHaveBeenCalledWith(403);

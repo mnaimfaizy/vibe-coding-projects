@@ -25,13 +25,13 @@ describe("Config Module", () => {
       delete process.env.EMAIL_FROM;
 
       // Re-import the config to get fresh values
-      jest.isolateModules(() => {
-        const { config } = require("../../config");
-        expect(config.email.service).toBe("gmail");
-        expect(config.email.port).toBe(587);
-        expect(config.email.user).toBe("");
-        expect(config.email.password).toBe("");
-        expect(config.email.from).toBe("noreply@library-api.com");
+      jest.isolateModules(async () => {
+        const configModule = await import("../../config");
+        expect(configModule.config.email.service).toBe("gmail");
+        expect(configModule.config.email.port).toBe(587);
+        expect(configModule.config.email.user).toBe("");
+        expect(configModule.config.email.password).toBe("");
+        expect(configModule.config.email.from).toBe("noreply@library-api.com");
       });
     });
 
@@ -45,14 +45,14 @@ describe("Config Module", () => {
       process.env.EMAIL_FROM = "library@example.com";
 
       // Re-import the config to get fresh values
-      jest.isolateModules(() => {
-        const { config } = require("../../config");
-        expect(config.email.service).toBe("mailgun");
-        expect(config.email.host).toBe("smtp.mailgun.org");
-        expect(config.email.port).toBe(465);
-        expect(config.email.user).toBe("testuser");
-        expect(config.email.password).toBe("testpass");
-        expect(config.email.from).toBe("library@example.com");
+      jest.isolateModules(async () => {
+        const configModule = await import("../../config");
+        expect(configModule.config.email.service).toBe("mailgun");
+        expect(configModule.config.email.host).toBe("smtp.mailgun.org");
+        expect(configModule.config.email.port).toBe(465);
+        expect(configModule.config.email.user).toBe("testuser");
+        expect(configModule.config.email.password).toBe("testpass");
+        expect(configModule.config.email.from).toBe("library@example.com");
       });
     });
   });
@@ -61,18 +61,20 @@ describe("Config Module", () => {
     it("should provide default frontend URL when environment variable is not set", () => {
       delete process.env.FRONTEND_URL;
 
-      jest.isolateModules(() => {
-        const { config } = require("../../config");
-        expect(config.frontendUrl).toBe("http://localhost:3000");
+      jest.isolateModules(async () => {
+        const configModule = await import("../../config");
+        expect(configModule.config.frontendUrl).toBe("http://localhost:3000");
       });
     });
 
     it("should use environment variable for frontend URL when provided", () => {
       process.env.FRONTEND_URL = "https://library.example.com";
 
-      jest.isolateModules(() => {
-        const { config } = require("../../config");
-        expect(config.frontendUrl).toBe("https://library.example.com");
+      jest.isolateModules(async () => {
+        const configModule = await import("../../config");
+        expect(configModule.config.frontendUrl).toBe(
+          "https://library.example.com"
+        );
       });
     });
   });

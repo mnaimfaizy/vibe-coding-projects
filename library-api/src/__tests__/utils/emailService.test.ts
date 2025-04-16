@@ -2,6 +2,21 @@ import nodemailer from "nodemailer";
 import config from "../../config/config";
 import { EmailService } from "../../utils/emailService";
 
+// Define interfaces for properly typing the config and other objects
+interface EmailConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  from: string;
+  service?: string;
+}
+
+interface Config {
+  email: EmailConfig;
+  frontendUrl: string;
+}
+
 // Mock dependencies
 jest.mock("nodemailer");
 jest.mock("../../config/config", () => ({
@@ -43,7 +58,8 @@ describe("EmailService", () => {
     it("should create a transport without auth when credentials are missing", () => {
       // Temporarily override config to test this scenario
       const originalUser = config.email.user;
-      (config.email as any).user = "";
+      const typedConfig = config as Config;
+      typedConfig.email.user = "";
 
       new EmailService();
 
@@ -54,7 +70,7 @@ describe("EmailService", () => {
       });
 
       // Restore the original config
-      (config.email as any).user = originalUser;
+      typedConfig.email.user = originalUser;
     });
   });
 
