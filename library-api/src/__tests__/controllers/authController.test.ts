@@ -261,6 +261,99 @@ describe("Auth Controller", () => {
         error: "Database error",
       });
     });
+
+    it("should handle failed registration when lastID is missing", async () => {
+      req.body = {
+        name: "Test User",
+        email: "test@example.com",
+        password: "Password123!",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(null); // No existing user
+
+      const mockRunFn = jest
+        .fn()
+        .mockResolvedValueOnce({}) // Begin transaction
+        .mockResolvedValueOnce({}) // Insert user but no lastID returned
+        .mockResolvedValueOnce({}); // Rollback transaction
+
+      mockDb.run = mockRunFn as jest.MockedFunction<
+        NonNullable<typeof mockDb.run>
+      >;
+
+      await register(req as Request, res as Response);
+
+      expect(mockRunFn).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Failed to register user",
+      });
+    });
+
+    it("should handle unique constraint violation errors explicitly", async () => {
+      req.body = {
+        name: "Test User",
+        email: "existing@example.com",
+        password: "Password123!",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(null); // No existing user found in initial check
+
+      const uniqueConstraintError = new Error(
+        "UNIQUE constraint failed: users.email"
+      );
+      uniqueConstraintError.message = "UNIQUE constraint failed: users.email";
+
+      const mockRunFn = jest
+        .fn()
+        .mockResolvedValueOnce({}) // Begin transaction
+        .mockRejectedValueOnce(uniqueConstraintError) // Unique constraint error
+        .mockResolvedValueOnce({}); // Rollback transaction
+
+      mockDb.run = mockRunFn as jest.MockedFunction<
+        NonNullable<typeof mockDb.run>
+      >;
+
+      await register(req as Request, res as Response);
+
+      expect(mockRunFn).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "User with this email already exists",
+      });
+    });
+
+    // Add a special test case for ROLLBACK failure
+    it("should handle ROLLBACK failures in the catch block", async () => {
+      // We'll use register function as an example
+      req.body = {
+        name: "Test User",
+        email: "test@example.com",
+        password: "Password123!",
+      };
+
+      const dbError = new Error("Database error");
+      const rollbackError = new Error("ROLLBACK failed");
+
+      mockDb.get = jest.fn().mockRejectedValue(dbError);
+      mockDb.run = jest.fn().mockRejectedValue(rollbackError);
+
+      const consoleErrorSpy = jest.spyOn(console, "error");
+
+      await register(req as Request, res as Response);
+
+      // Check that console.error was called at least once
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      // Verify the first call contains the error message
+      expect(
+        consoleErrorSpy.mock.calls.some((call) =>
+          call.join(" ").includes("Registration error")
+        )
+      ).toBeTruthy();
+      expect(res.status).toHaveBeenCalledWith(500);
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe("login", () => {
@@ -401,6 +494,36 @@ describe("Auth Controller", () => {
         message: "Server error",
         error: "Database error",
       });
+    });
+
+    it("should handle database close errors", async () => {
+      req.body = {
+        email: "test@example.com",
+        password: "Password123!",
+      };
+
+      const mockUser = {
+        id: 1,
+        email: "test@example.com",
+        password: "hashed-password",
+        email_verified: true,
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(mockUser);
+      mockDb.close = jest.fn().mockRejectedValue(new Error("Close error"));
+      (helpers.comparePassword as jest.Mock).mockResolvedValue(true);
+
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+
+      await login(req as Request, res as Response);
+
+      expect(mockDb.close).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error closing database:",
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -582,6 +705,33 @@ describe("Auth Controller", () => {
         message: "Email is already verified",
       });
     });
+
+    it("should handle email service errors during resend verification", async () => {
+      const email = "unverified@example.com";
+      const mockUser = {
+        id: 1,
+        email,
+        email_verified: false,
+      };
+
+      req.body = { email };
+
+      mockDb.get = jest.fn().mockResolvedValue(mockUser);
+      mockDb.run = jest.fn().mockResolvedValue({});
+
+      const emailError = new Error("Email sending failed");
+      (emailService.sendVerificationEmail as jest.Mock).mockRejectedValue(
+        emailError
+      );
+
+      await resendVerification(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Email sending failed",
+      });
+    });
   });
 
   describe("changePassword", () => {
@@ -689,6 +839,43 @@ describe("Auth Controller", () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: "Current password is incorrect",
+      });
+    });
+
+    it("should handle database errors during update operations in changePassword", async () => {
+      const userId = 1;
+
+      req.body = {
+        currentPassword: "CurrentPass123!",
+        newPassword: "NewPass456!",
+      };
+      req.user = { id: userId };
+
+      const mockUser = {
+        id: userId,
+        password: "current-hashed-password",
+      };
+
+      mockDb.get = jest.fn().mockResolvedValue(mockUser);
+
+      const updateError = new Error("Update failed");
+      const mockRunFn = jest
+        .fn()
+        .mockResolvedValueOnce({}) // Begin transaction
+        .mockRejectedValueOnce(updateError) // Error during update
+        .mockResolvedValueOnce({}); // Successful ROLLBACK
+
+      mockDb.run = mockRunFn;
+
+      (helpers.comparePassword as jest.Mock).mockResolvedValue(true);
+
+      await changePassword(req as Request, res as Response);
+
+      expect(mockRunFn).toHaveBeenCalledWith("ROLLBACK");
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Server error",
+        error: "Update failed",
       });
     });
   });

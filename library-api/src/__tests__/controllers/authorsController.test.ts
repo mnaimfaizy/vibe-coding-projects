@@ -803,6 +803,9 @@ describe("Authors Controller", () => {
       if (typeof global === "object" && global) {
         (global as any).requestTimestamps = [];
       }
+
+      // Reset rate limiter explicitly
+      resetRateLimiter();
     });
 
     it("should get author info from Open Library API", async () => {
@@ -977,6 +980,227 @@ describe("Authors Controller", () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           message: "Rate limit exceeded. Please try again later.",
+        })
+      );
+    });
+
+    // New test cases for increased branch coverage
+
+    it("should handle author with string description", async () => {
+      req.query = { authorName: "Author with string description" };
+
+      const mockAuthorResponse = {
+        data: {
+          docs: [
+            {
+              name: "Author with string description",
+              key: "/authors/OL123456A",
+              birth_date: "1980-01-01",
+              top_work: "Famous Book",
+              work_count: 50,
+              photos: [9876],
+            },
+          ],
+        },
+      };
+
+      const mockWorksResponse = {
+        data: {
+          entries: [
+            {
+              title: "Test Work",
+              key: "/works/OL82563W",
+              first_publish_year: 1997,
+              covers: [9876],
+              description: "This is a plain string description", // String description
+            },
+          ],
+        },
+      };
+
+      (axios.get as jest.Mock)
+        .mockResolvedValueOnce(mockAuthorResponse)
+        .mockResolvedValueOnce(mockWorksResponse);
+
+      await getAuthorInfo(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          works: expect.arrayContaining([
+            expect.objectContaining({
+              title: "Test Work",
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("should handle author with object description", async () => {
+      req.query = { authorName: "Author with object description" };
+
+      const mockAuthorResponse = {
+        data: {
+          docs: [
+            {
+              name: "Author with object description",
+              key: "/authors/OL123456A",
+              birth_date: "1980-01-01",
+              work_count: 50,
+              photos: [9876],
+            },
+          ],
+        },
+      };
+
+      const mockWorksResponse = {
+        data: {
+          entries: [
+            {
+              title: "Test Work",
+              key: "/works/OL82563W",
+              first_publish_year: 1997,
+              covers: [9876],
+              description: {
+                value: "This is a description value from an object",
+              },
+            },
+          ],
+        },
+      };
+
+      (axios.get as jest.Mock)
+        .mockResolvedValueOnce(mockAuthorResponse)
+        .mockResolvedValueOnce(mockWorksResponse);
+
+      await getAuthorInfo(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          works: expect.arrayContaining([
+            expect.objectContaining({
+              title: "Test Work",
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("should handle missing author key", async () => {
+      req.query = { authorName: "Author without key" };
+
+      const mockAuthorResponse = {
+        data: {
+          docs: [
+            {
+              name: "Author without key",
+              // No key provided
+              birth_date: "1980-01-01",
+              work_count: 50,
+              photos: [9876],
+            },
+          ],
+        },
+      };
+
+      (axios.get as jest.Mock).mockResolvedValueOnce(mockAuthorResponse);
+
+      await getAuthorInfo(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          author: expect.objectContaining({
+            name: "Author without key",
+            key: undefined, // Verify the key is undefined
+          }),
+          works: [], // Expect empty works array when no key is provided
+        })
+      );
+    });
+
+    it("should handle empty works response", async () => {
+      req.query = { authorName: "Author with no works" };
+
+      const mockAuthorResponse = {
+        data: {
+          docs: [
+            {
+              name: "Author with no works",
+              key: "/authors/OL123456A",
+              birth_date: "1980-01-01",
+              work_count: 0,
+            },
+          ],
+        },
+      };
+
+      const mockWorksResponse = {
+        data: {
+          // No entries property
+        },
+      };
+
+      (axios.get as jest.Mock)
+        .mockResolvedValueOnce(mockAuthorResponse)
+        .mockResolvedValueOnce(mockWorksResponse);
+
+      await getAuthorInfo(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          author: expect.objectContaining({
+            name: "Author with no works",
+          }),
+          works: [], // Should be an empty array
+        })
+      );
+    });
+
+    it("should handle works with no covers", async () => {
+      req.query = { authorName: "Author with works without covers" };
+
+      const mockAuthorResponse = {
+        data: {
+          docs: [
+            {
+              name: "Author with works without covers",
+              key: "/authors/OL123456A",
+            },
+          ],
+        },
+      };
+
+      const mockWorksResponse = {
+        data: {
+          entries: [
+            {
+              title: "Work Without Cover",
+              key: "/works/OL82563W",
+              // No covers property
+            },
+          ],
+        },
+      };
+
+      (axios.get as jest.Mock)
+        .mockResolvedValueOnce(mockAuthorResponse)
+        .mockResolvedValueOnce(mockWorksResponse);
+
+      await getAuthorInfo(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          works: expect.arrayContaining([
+            expect.objectContaining({
+              title: "Work Without Cover",
+              coverId: null,
+              cover: null,
+            }),
+          ]),
         })
       );
     });
@@ -1167,6 +1391,40 @@ describe("Authors Controller", () => {
         }),
       });
     });
+
+    it("should handle author with no photos", async () => {
+      req.query = { name: "Author without photos" };
+
+      const mockAuthorData = {
+        data: {
+          docs: [
+            {
+              name: "Author without photos",
+              key: "/authors/OL123456A",
+              birth_date: "1980-01-01",
+              top_work: "Famous Book",
+              work_count: 50,
+              // No photos array
+            },
+          ],
+          numFound: 1,
+        },
+      };
+
+      // Mock axios response for author data
+      (axios.get as jest.Mock).mockResolvedValue(mockAuthorData);
+
+      await searchOpenLibraryAuthor(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        author: expect.objectContaining({
+          name: "Author without photos",
+          photos: [], // Should default to empty array
+          photo_url: null, // Should be null when no photos
+        }),
+      });
+    });
   });
 
   describe("linkAuthorToBook", () => {
@@ -1273,6 +1531,52 @@ describe("Authors Controller", () => {
         error: "Database error",
       });
     });
+
+    it("should set isPrimary correctly when explicitly set to true", async () => {
+      req.body = { authorId: 1, bookId: 2, isPrimary: true };
+
+      const mockAuthor = { id: 1, name: "Test Author" };
+      const mockBook = { id: 2, title: "Test Book" };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(mockAuthor) // Author exists
+        .mockResolvedValueOnce(mockBook) // Book exists
+        .mockResolvedValueOnce(null); // Association doesn't exist yet
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      // Verify isPrimary is set to 1 (true)
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+        [1, 2, 1]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it("should set isPrimary correctly when explicitly set to false", async () => {
+      req.body = { authorId: 1, bookId: 2, isPrimary: false };
+
+      const mockAuthor = { id: 1, name: "Test Author" };
+      const mockBook = { id: 2, title: "Test Book" };
+
+      mockDb.get = jest
+        .fn()
+        .mockResolvedValueOnce(mockAuthor) // Author exists
+        .mockResolvedValueOnce(mockBook) // Book exists
+        .mockResolvedValueOnce(null); // Association doesn't exist yet
+
+      await linkAuthorToBook(req as Request, res as Response);
+
+      // Verify isPrimary is set to 0 (false)
+      expect(mockDb.run).toHaveBeenCalledWith(
+        "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+        [1, 2, 0]
+      );
+
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
   });
 
   describe("unlinkAuthorFromBook", () => {
@@ -1335,6 +1639,49 @@ describe("Authors Controller", () => {
         message: "Server error",
         error: "Database error",
       });
+    });
+
+    it("should return 400 if both parameters are missing", async () => {
+      req.params = {}; // Both parameters missing
+
+      await unlinkAuthorFromBook(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Author ID and Book ID are required",
+      });
+    });
+  });
+
+  describe("resetRateLimiter", () => {
+    it("should reset the rate limiter state", async () => {
+      // First, simulate several requests to fill the rate limiter
+      const mockAuthorResponse = {
+        data: { docs: [{ name: "Test Author", key: "/authors/OL1" }] },
+      };
+
+      (axios.get as jest.Mock).mockResolvedValue(mockAuthorResponse);
+
+      // Make several requests to fill the rate limit
+      for (let i = 0; i < 5; i++) {
+        req.query = { authorName: `Test Author ${i}` };
+        await getAuthorInfo(req as Request, res as Response);
+      }
+
+      // Try to make one more - should be rate limited
+      req.query = { authorName: "Rate Limited Author" };
+      await getAuthorInfo(req as Request, res as Response);
+      expect(res.status).toHaveBeenLastCalledWith(429);
+
+      // Reset status mock
+      (res.status as jest.Mock).mockClear();
+
+      // Now reset the rate limiter
+      resetRateLimiter();
+
+      // Should be able to make another request now
+      await getAuthorInfo(req as Request, res as Response);
+      expect(res.status).toHaveBeenLastCalledWith(200);
     });
   });
 });

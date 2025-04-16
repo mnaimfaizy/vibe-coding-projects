@@ -1,14 +1,18 @@
 import axios from "axios";
 import { Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { Database } from "sqlite";
 import { connectDatabase } from "../db/database";
+import { User } from "../models/User";
 
 // Define interface for Request with user property
 interface UserRequest extends Request {
-  user?: {
-    id: number;
-    isAdmin?: boolean;
-  };
+  user?:
+    | {
+        id: number;
+        isAdmin?: boolean;
+      }
+    | JwtPayload;
 }
 
 // OpenLibrary API interfaces
@@ -56,25 +60,32 @@ const rateLimitWindow = 60 * 1000; // 1 minute window
 const maxRequests = 5; // Max 5 requests per minute to be respectful
 let requestTimestamps: number[] = [];
 
+// For unit testing, make it easier to mock
+export const rateLimiter = {
+  isLimited: (): boolean => {
+    const now = Date.now();
+    // Clean up old timestamps
+    requestTimestamps = requestTimestamps.filter(
+      (timestamp) => now - timestamp < rateLimitWindow
+    );
+
+    // Check if we've reached the rate limit
+    if (requestTimestamps.length >= maxRequests) {
+      return true;
+    }
+
+    // Log this request
+    requestTimestamps.push(now);
+    return false;
+  },
+};
+
 /**
  * Simple rate limiter function
  * @returns Whether the request is allowed or not
  */
-function isRateLimited(): boolean {
-  const now = Date.now();
-  // Clean up old timestamps
-  requestTimestamps = requestTimestamps.filter(
-    (timestamp) => now - timestamp < rateLimitWindow
-  );
-
-  // Check if we've reached the rate limit
-  if (requestTimestamps.length >= maxRequests) {
-    return true;
-  }
-
-  // Log this request
-  requestTimestamps.push(now);
-  return false;
+export function isRateLimited(): boolean {
+  return rateLimiter.isLimited();
 }
 
 // User agent for OpenLibrary API requests
@@ -86,6 +97,32 @@ const commonHeaders = {
   "User-Agent": USER_AGENT,
   Accept: "application/json",
 };
+
+/**
+ * Get a user's ID safely from the request object
+ * @param req The user request object
+ * @returns The user ID or undefined if not available
+ */
+function getUserId(req: UserRequest): number | undefined {
+  if (!req.user) return undefined;
+
+  // Handle our custom UserRequest type
+  if ("id" in req.user && typeof req.user.id === "number") {
+    return req.user.id;
+  }
+
+  // For tests that might use a simple object with id
+  if (req.user && typeof (req.user as User).id === "number") {
+    return (req.user as User).id;
+  }
+
+  // Try to get id from JwtPayload if it exists
+  if ("sub" in req.user && req.user.sub) {
+    return parseInt(req.user.sub.toString(), 10);
+  }
+
+  return undefined;
+}
 
 /**
  * Get all books with their authors
@@ -373,7 +410,7 @@ export const createBookByIsbn = async (
 ): Promise<void> => {
   try {
     const { isbn, addToCollection } = req.body;
-    const userId = req.user?.id;
+    const userId = getUserId(req);
 
     if (!isbn) {
       res.status(400).json({ message: "ISBN is required" });
@@ -415,139 +452,151 @@ export const createBookByIsbn = async (
         existingBook.authors = bookAuthors;
 
         res.status(200).json({
-          message: "Book already exists and was added to your collection",
+          message: "Book already exists",
           book: existingBook,
         });
       } else {
-        res.status(400).json({
-          message: "Book with this ISBN already exists in the catalog",
+        res.status(200).json({
+          message: "Book already exists",
+          book: existingBook,
         });
       }
       return;
     }
-
-    // Fetch book details from Open Library API
-    const response = await axios.get(
-      `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`,
-      {
-        headers: commonHeaders,
-      }
-    );
-
-    const bookKey = `ISBN:${isbn}`;
-    if (!response.data[bookKey]) {
-      res.status(404).json({ message: "Book not found with this ISBN" });
-      return;
-    }
-
-    const bookData = response.data[bookKey];
-
-    // Extract relevant data
-    const title = bookData.title || "Unknown Title";
-    const publishYear = bookData.publish_date
-      ? parseInt(bookData.publish_date.slice(-4))
-      : null;
-    const cover = bookData.cover?.medium || null;
-    const description =
-      bookData.description?.value || bookData.description || null;
-
-    // Extract authors data
-    const authors = bookData.authors
-      ? bookData.authors.map((author: OpenLibraryAuthor) => ({
-          name: author.name,
-          url: author.url,
-        }))
-      : [{ name: "Unknown Author" }];
-
-    // Convert authors to string for backward compatibility
-    const authorString = authors
-      .map((a: { name: string }) => a.name)
-      .join(", ");
-
-    // Start a transaction
-    await db.run("BEGIN TRANSACTION");
 
     try {
-      // Create book in database
-      const result = await db.run(
-        `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [title, isbn, publishYear, authorString, cover, description]
+      // Fetch book details from Open Library API
+      const response = await axios.get(
+        `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`,
+        {
+          headers: commonHeaders,
+        }
       );
 
-      const bookId = result.lastID;
+      const bookKey = `ISBN:${isbn}`;
+      if (!response.data[bookKey]) {
+        res.status(404).json({ message: "Book not found with this ISBN" });
+        return;
+      }
 
-      // Process authors
-      if (authors && authors.length > 0) {
-        for (let i = 0; i < authors.length; i++) {
-          const authorName = authors[i].name;
+      const bookData = response.data[bookKey];
 
-          // Check if author already exists
-          let authorId;
-          const existingAuthor = await db.get(
-            "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
-            [authorName]
-          );
+      // Extract relevant data
+      const title = bookData.title || "Unknown Title";
+      const publishYear = bookData.publish_date
+        ? parseInt(bookData.publish_date.slice(-4))
+        : null;
+      const cover = bookData.cover?.medium || null;
+      const description =
+        bookData.description?.value || bookData.description || null;
 
-          if (existingAuthor) {
-            authorId = existingAuthor.id;
-          } else {
-            // Create new author
-            const authorResult = await db.run(
-              "INSERT INTO authors (name) VALUES (?)",
+      // Extract authors data
+      const authors = bookData.authors
+        ? bookData.authors.map((author: OpenLibraryAuthor) => ({
+            name: author.name,
+            url: author.url,
+          }))
+        : [{ name: "Unknown Author" }];
+
+      // Convert authors to string for backward compatibility
+      const authorString = authors
+        .map((a: { name: string }) => a.name)
+        .join(", ");
+
+      // Start a transaction
+      await db.run("BEGIN TRANSACTION");
+
+      try {
+        // Create book in database
+        const result = await db.run(
+          `INSERT INTO books (title, isbn, publishYear, author, cover, description) 
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [title, isbn, publishYear, authorString, cover, description]
+        );
+
+        const bookId = result.lastID;
+
+        // Process authors
+        if (authors && authors.length > 0) {
+          for (let i = 0; i < authors.length; i++) {
+            const authorName = authors[i].name;
+
+            // Check if author already exists
+            let authorId;
+            const existingAuthor = await db.get(
+              "SELECT id FROM authors WHERE LOWER(name) = LOWER(?)",
               [authorName]
             );
-            authorId = authorResult.lastID;
+
+            if (existingAuthor) {
+              authorId = existingAuthor.id;
+            } else {
+              // Create new author
+              const authorResult = await db.run(
+                "INSERT INTO authors (name) VALUES (?)",
+                [authorName]
+              );
+              authorId = authorResult.lastID;
+            }
+
+            // Create author-book relationship
+            await db.run(
+              "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
+              [authorId, bookId, i === 0 ? 1 : 0] // First author is primary
+            );
           }
-
-          // Create author-book relationship
-          await db.run(
-            "INSERT INTO author_books (author_id, book_id, is_primary) VALUES (?, ?, ?)",
-            [authorId, bookId, i === 0 ? 1 : 0] // First author is primary
-          );
         }
+
+        // Commit transaction
+        await db.run("COMMIT");
+
+        // Get the complete book with authors
+        const newBook = await db.get("SELECT * FROM books WHERE id = ?", [
+          bookId,
+        ]);
+        const bookAuthors = await db.all(
+          `
+          SELECT a.*, ab.is_primary 
+          FROM authors a
+          JOIN author_books ab ON a.id = ab.author_id
+          WHERE ab.book_id = ?
+          ORDER BY ab.is_primary DESC, a.name
+        `,
+          [bookId]
+        );
+
+        newBook.authors = bookAuthors;
+
+        // Add to user collection if requested
+        if (addToCollection && userId && bookId) {
+          await addBookToUserCollection(db, userId, bookId);
+          res.status(201).json({
+            message:
+              "Book created successfully from ISBN and added to your collection",
+            book: newBook,
+          });
+        } else {
+          res.status(201).json({
+            message: "Book created successfully from ISBN",
+            book: newBook,
+          });
+        }
+      } catch (error) {
+        // Rollback transaction on error
+        await db.run("ROLLBACK");
+        throw error;
       }
-
-      // Commit transaction
-      await db.run("COMMIT");
-
-      // Get the complete book with authors
-      const newBook = await db.get("SELECT * FROM books WHERE id = ?", [
-        bookId,
-      ]);
-      const bookAuthors = await db.all(
-        `
-        SELECT a.*, ab.is_primary 
-        FROM authors a
-        JOIN author_books ab ON a.id = ab.author_id
-        WHERE ab.book_id = ?
-        ORDER BY ab.is_primary DESC, a.name
-      `,
-        [bookId]
-      );
-
-      newBook.authors = bookAuthors;
-
-      // Add to user collection if requested
-      if (addToCollection && userId && bookId) {
-        await addBookToUserCollection(db, userId, bookId);
-        res.status(201).json({
-          message:
-            "Book created successfully from ISBN and added to your collection",
-          book: newBook,
-        });
-      } else {
-        res.status(201).json({
-          message: "Book created successfully from ISBN",
-          book: newBook,
-        });
-      }
-    } catch (error) {
-      // Rollback transaction on error
-      await db.run("ROLLBACK");
-      throw error;
+    } catch (error: unknown) {
+      // If an axios error occurred while fetching book data
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching book data:", errorMessage);
+      res.status(500).json({
+        message: "Error fetching book data from Open Library",
+        error: errorMessage,
+      });
     }
-  } catch (error: Error | unknown) {
+  } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error("Error creating book by ISBN:", errorMessage);
@@ -1013,7 +1062,7 @@ export const addToUserCollection = async (
 ): Promise<void> => {
   try {
     const { bookId } = req.body;
-    const userId = req.user?.id;
+    const userId = getUserId(req);
 
     if (!userId) {
       res.status(401).json({ message: "Authentication required" });
@@ -1057,7 +1106,7 @@ export const removeFromUserCollection = async (
 ): Promise<void> => {
   try {
     const { bookId } = req.params;
-    const userId = req.user?.id;
+    const userId = getUserId(req);
 
     if (!userId) {
       res.status(401).json({ message: "Authentication required" });
@@ -1102,7 +1151,7 @@ export const getUserCollection = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = getUserId(req);
 
     if (!userId) {
       res.status(401).json({ message: "Authentication required" });

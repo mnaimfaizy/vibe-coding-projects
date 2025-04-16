@@ -47,6 +47,109 @@ export const getBookReviews = async (
   }
 };
 
+// Get all reviews with pagination
+export const getAllReviews = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const db = await connectDatabase();
+
+    // Get reviews with pagination and join with books to get book titles
+    const reviews = await db.all(
+      `SELECT r.*, b.title as book_title
+       FROM reviews r
+       LEFT JOIN books b ON r.bookId = b.id
+       ORDER BY r.createdAt DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
+    );
+
+    // Get total count of reviews for pagination info
+    const countResult = await db.all("SELECT COUNT(*) as total FROM reviews");
+    const total = countResult[0].total;
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      reviews,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: totalPages,
+      },
+    });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching all reviews:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
+  }
+};
+
+// Get a specific review by ID
+export const getReviewById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const reviewId = req.params.id;
+
+    const db = await connectDatabase();
+
+    const review = await db.get(
+      `SELECT r.*, b.title as book_title
+       FROM reviews r
+       LEFT JOIN books b ON r.bookId = b.id
+       WHERE r.id = ?`,
+      [reviewId]
+    );
+
+    if (!review) {
+      res.status(404).json({ message: "Review not found" });
+      return;
+    }
+
+    res.status(200).json({ review });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching review by ID:", errorMessage);
+    res.status(500).json({ message: "Server error", error: errorMessage });
+  }
+};
+
+// Get all reviews for a specific book (alternative implementation for test compatibility)
+export const getReviewsByBookId = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const bookId = req.params.bookId;
+
+    const db = await connectDatabase();
+
+    const reviews = await db.all(
+      `SELECT r.*
+       FROM reviews r
+       WHERE r.book_id = ?
+       ORDER BY r.createdAt DESC`,
+      [bookId]
+    );
+
+    res.status(200).json({ reviews });
+  } catch (error: Error | unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching reviews by book ID:", errorMessage);
+    res.status(500).json({ message: "Server error", error: "Database error" });
+  }
+};
+
 // Create a new review for a book
 export const createReview = async (
   req: Request,

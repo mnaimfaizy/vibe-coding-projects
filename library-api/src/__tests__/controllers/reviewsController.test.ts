@@ -3,7 +3,10 @@ import { Database } from "sqlite";
 import {
   createReview,
   deleteReview,
+  getAllReviews,
   getBookReviews,
+  getReviewById,
+  getReviewsByBookId,
   updateReview,
 } from "../../controllers/reviewsController";
 import { connectDatabase } from "../../db/database";
@@ -791,6 +794,8 @@ describe("Reviews Controller", () => {
         .mockResolvedValueOnce(mockReviews)
         .mockResolvedValueOnce(mockCount);
 
+      await getAllReviews(req as Request, res as Response);
+
       expect(mockDb.all).toHaveBeenCalledWith(
         expect.stringContaining("SELECT r.*, b.title as book_title"),
         [10, 0]
@@ -819,6 +824,8 @@ describe("Reviews Controller", () => {
         .mockResolvedValueOnce(mockReviews)
         .mockResolvedValueOnce(mockCount);
 
+      await getAllReviews(req as Request, res as Response);
+
       // Should use default pagination values (limit: 10, page: 1)
       expect(mockDb.all).toHaveBeenCalledWith(expect.any(String), [10, 0]);
     });
@@ -828,6 +835,8 @@ describe("Reviews Controller", () => {
 
       const mockError = new Error("Database error");
       mockDb.all = jest.fn().mockRejectedValue(mockError);
+
+      await getAllReviews(req as Request, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
@@ -855,6 +864,8 @@ describe("Reviews Controller", () => {
 
       mockDb.get = jest.fn().mockResolvedValue(mockReview);
 
+      await getReviewById(req as Request, res as Response);
+
       expect(mockDb.get).toHaveBeenCalledWith(
         expect.stringContaining("SELECT r.*, b.title as book_title"),
         [reviewId]
@@ -868,6 +879,8 @@ describe("Reviews Controller", () => {
       req.params = { id: "999" };
       mockDb.get = jest.fn().mockResolvedValue(null);
 
+      await getReviewById(req as Request, res as Response);
+
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: "Review not found" });
     });
@@ -877,6 +890,8 @@ describe("Reviews Controller", () => {
 
       const mockError = new Error("Database error");
       mockDb.get = jest.fn().mockRejectedValue(mockError);
+
+      await getReviewById(req as Request, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
@@ -910,6 +925,8 @@ describe("Reviews Controller", () => {
 
       mockDb.all = jest.fn().mockResolvedValue(mockReviews);
 
+      await getReviewsByBookId(req as Request, res as Response);
+
       expect(mockDb.all).toHaveBeenCalledWith(
         expect.stringContaining("WHERE r.book_id = ?"),
         [bookId]
@@ -923,6 +940,8 @@ describe("Reviews Controller", () => {
       req.params = { bookId: "999" };
       mockDb.all = jest.fn().mockResolvedValue([]);
 
+      await getReviewsByBookId(req as Request, res as Response);
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ reviews: [] });
     });
@@ -932,6 +951,8 @@ describe("Reviews Controller", () => {
 
       const mockError = new Error("Database error");
       mockDb.all = jest.fn().mockRejectedValue(mockError);
+
+      await getReviewsByBookId(req as Request, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
