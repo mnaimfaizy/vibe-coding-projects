@@ -136,10 +136,10 @@ describe("Book Routes", () => {
     });
   });
 
-  describe("GET /api/books/search/openlibrary", () => {
+  describe("GET /api/books/search/open-library", () => {
     it("should route to searchOpenLibrary controller", async () => {
       const response = await request(app)
-        .get("/api/books/search/openlibrary?query=test&type=title")
+        .get("/api/books/search/open-library?query=test&type=title")
         .send();
 
       expect(response.status).toBe(200);

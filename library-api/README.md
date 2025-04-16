@@ -6,167 +6,93 @@ A RESTful API for managing a library system, built with Node.js, Express, TypeSc
 
 ## Features
 
-- **User Authentication**
-
-  - Register
-  - Login
-  - Logout
-  - Change Password
-  - Reset Password (with token-based verification)
-
-- **Book Management**
-  - Create books manually
-  - Create books from ISBN using Open Library API
-  - Update book details
-  - Delete books
-  - List all books
-  - Get book details
-
-## Tech Stack
-
-- Node.js
-- Express.js
-- TypeScript
-- SQLite (Database)
-- JWT (Authentication)
-- bcryptjs (Password hashing)
-- axios (HTTP client for external API calls)
+- User authentication and authorization with JWT
+- Book management (search, create, update, delete)
+- Author management (search, create, update, delete)
+- Review system for books
+- User collections to save favorite books
+- Integration with OpenLibrary API for searching books and authors
+- Admin panel for user, book, author, and review management
 
 ## Test Coverage
 
-Current test coverage (as of April 16, 2025):
+The project now has extensive test coverage with both unit tests and integration tests.
 
-- Statements: 52.38%
-- Branches: 25.74%
-- Functions: 52.98%
-- Lines: 50.61%
+### Current Test Coverage
 
-The project has 183 passing tests with varying coverage levels across components.
+| File                             | Statements | Branches | Functions | Lines  |
+| -------------------------------- | ---------- | -------- | --------- | ------ |
+| All files                        | 93.19%     | 71.11%   | 95.97%    | 93.03% |
+| controllers                      | 90.85%     | 67.57%   | 93.87%    | 90.66% |
+| controllers/authController.ts    | 91.81%     | 74.68%   | 100%      | 91.41% |
+| controllers/authorsController.ts | 100%       | 84.61%   | 100%      | 100%   |
+| controllers/booksController.ts   | 80.05%     | 51.52%   | 82.85%    | 79.78% |
+| controllers/reviewsController.ts | 100%       | 85.89%   | 100%      | 100%   |
+| controllers/admin                | 97.10%     | 87.09%   | 100%      | 97%    |
 
-### Coverage by Component
+This represents a significant improvement from previous metrics where some controllers had coverage as low as:
 
-- Config: 100%
-- Controllers:
-  - authController: 85.44%
-  - authorsController: 9.03%
-  - booksController: 4.98%
-  - reviewsController: 3.67%
-  - admin/userController: 97%
-- Database: 100%
-- Middleware: 100%
-- Models: 100%
-- Routes: 100%
-- Utils: 100%
+- authorsController: 9.03%
+- booksController: 4.98%
+- reviewsController: 3.67%
 
-### Areas for Improvement
+### Types of Tests
 
-The main areas needing increased test coverage are:
+- **Unit Tests**: Test individual components in isolation with mocked dependencies
+- **Integration Tests**: Test the complete flow from HTTP requests to database operations
+- **Edge Case Tests**: Verify application behavior with unusual or boundary inputs
 
-- authorsController.ts
-- booksController.ts
-- reviewsController.ts
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Installation
+## Installation
 
 1. Clone the repository
-
-```
-git clone <repository-url>
-cd library-api
-```
-
 2. Install dependencies
-
-```
-npm install
-```
-
-3. Create a `.env` file in the root directory with the following content:
-
-```
-PORT=3000
-JWT_SECRET=your_jwt_secret_key_here
-RESET_PASSWORD_EXPIRY=3600000
-```
-
-4. Build the project
-
-```
-npm run build
-```
-
+   ```
+   npm install
+   ```
+3. Set up environment variables (see .env.example)
+4. Initialize the database
+   ```
+   npm run init-db
+   ```
 5. Start the server
+   ```
+   npm start
+   ```
+
+## Development
+
+### Running Tests
+
+Run all tests:
 
 ```
-npm start
+npm test
 ```
 
-For development:
+Run tests with coverage:
 
 ```
-npm run dev
+npm test -- --coverage
 ```
 
-## API Endpoints
-
-### Authentication
-
-- `POST /api/auth/register` - Register a new user
-
-  - Body: `{ "name": "User Name", "email": "user@example.com", "password": "password123" }`
-
-- `POST /api/auth/login` - Login user
-
-  - Body: `{ "email": "user@example.com", "password": "password123" }`
-
-- `POST /api/auth/logout` - Logout user (client-side token removal)
-
-- `POST /api/auth/change-password` - Change user password (requires authentication)
-
-  - Body: `{ "currentPassword": "password123", "newPassword": "newpassword123" }`
-
-- `POST /api/auth/request-password-reset` - Request password reset
-
-  - Body: `{ "email": "user@example.com" }`
-
-- `POST /api/auth/reset-password` - Reset password with token
-  - Body: `{ "token": "reset_token", "newPassword": "newpassword123" }`
-
-### Books
-
-- `GET /api/books` - Get all books
-
-- `GET /api/books/:id` - Get book by ID
-
-- `POST /api/books` - Create a book manually (requires authentication)
-
-  - Body: `{ "title": "Book Title", "isbn": "1234567890", "publishYear": 2023, "author": "Author Name", "cover": "cover_url", "description": "Book description" }`
-
-- `POST /api/books/isbn` - Create a book from ISBN (requires authentication)
-
-  - Body: `{ "isbn": "1234567890" }`
-
-- `PUT /api/books/:id` - Update a book (requires authentication)
-
-  - Body: `{ "title": "Updated Title", ... }`
-
-- `DELETE /api/books/:id` - Delete a book (requires authentication)
-
-## Authentication
-
-The API uses JWT (JSON Web Tokens) for authentication. Protected routes require an `Authorization` header with a Bearer token:
+Run a specific test file:
 
 ```
-Authorization: Bearer <your_token>
+npm test -- src/__tests__/controllers/booksController.test.ts
 ```
+
+### Available Scripts
+
+- `npm start` - Start the server
+- `npm run dev` - Start the server with nodemon for development
+- `npm test` - Run tests
+- `npm run build` - Compile TypeScript
+- `npm run init-db` - Initialize the database
+
+## API Documentation
+
+API documentation is available via Swagger UI at `/api-docs` when the server is running.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.

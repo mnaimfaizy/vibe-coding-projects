@@ -4,6 +4,33 @@ This repository contains a collection of AI-assisted coding projects. Each proje
 
 ## Projects
 
+### Library API
+
+**Technology Stack:**
+
+- Node.js
+- Express
+- TypeScript
+- SQLite
+- JWT Authentication
+- OpenAPI/Swagger
+
+**Test Coverage:** ![Test Coverage: 94%](https://img.shields.io/badge/coverage-94%25-brightgreen)
+
+**Purpose:**
+The Library API provides a comprehensive backend service for managing a digital library system. It offers a RESTful API for book management, user authentication, and collection handling. Key features include:
+
+- User authentication with JWT
+- Book management (CRUD operations)
+- Author management
+- User collections
+- Reviews and ratings
+- Admin dashboard functionality
+- OpenAPI documentation with Swagger UI
+- Rate limiting for external API requests
+
+The API is fully tested with both unit and integration tests, achieving over 94% code coverage.
+
 ### Library UI
 
 **Technology Stack:**

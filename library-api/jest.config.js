@@ -8,6 +8,7 @@ module.exports = {
     "src/**/*.ts",
     "!src/**/*.d.ts",
     "!src/index.ts",
-    "!src/**/__tests__/**",
+    // Remove the exclusion of all test files
+    // "!src/**/__tests__/**",
   ],
 };

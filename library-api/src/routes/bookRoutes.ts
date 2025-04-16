@@ -12,7 +12,7 @@ import {
   searchOpenLibrary,
   updateBook,
 } from "../controllers/booksController";
-import { authenticate } from "../middleware/auth";
+import { authenticate, isAdmin } from "../middleware/auth";
 
 const router: Router = express.Router();
 
@@ -78,6 +78,8 @@ const router: Router = express.Router();
  *   description: The books managing API
  */
 
+// ---------- Static routes - these should be defined BEFORE dynamic routes like /:id ----------
+
 /**
  * @swagger
  * /api/books:
@@ -117,93 +119,6 @@ const router: Router = express.Router();
  *         description: Server error
  */
 router.get("/", getAllBooks as express.RequestHandler);
-
-/**
- * @swagger
- * /api/books/search/openlibrary:
- *   get:
- *     summary: Search for books in OpenLibrary
- *     tags: [Books]
- *     parameters:
- *       - in: query
- *         name: query
- *         required: true
- *         schema:
- *           type: string
- *         description: Search query
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Maximum number of results
- *     responses:
- *       200:
- *         description: Search results from OpenLibrary
- *       400:
- *         description: Invalid request
- *       500:
- *         description: Server error
- */
-router.get("/search/openlibrary", searchOpenLibrary as express.RequestHandler);
-
-/**
- * @swagger
- * /api/books/search:
- *   get:
- *     summary: Search for books by query
- *     tags: [Books]
- *     parameters:
- *       - in: query
- *         name: q
- *         required: true
- *         schema:
- *           type: string
- *         description: Search query
- *     responses:
- *       200:
- *         description: Search results
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 books:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Book'
- *       400:
- *         description: Invalid request
- *       500:
- *         description: Server error
- */
-router.get("/search", searchBooks as express.RequestHandler);
-
-/**
- * @swagger
- * /api/books/{id}:
- *   get:
- *     summary: Get a book by id
- *     tags: [Books]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The book id
- *     responses:
- *       200:
- *         description: The book description by id
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Book'
- *       404:
- *         description: The book was not found
- *       500:
- *         description: Server error
- */
-router.get("/:id", getBookById as express.RequestHandler);
 
 /**
  * @swagger
@@ -291,6 +206,211 @@ router.post("/isbn", authenticate, createBookByIsbn as express.RequestHandler);
 
 /**
  * @swagger
+ * /api/books/search/open-library:
+ *   get:
+ *     summary: Search for books in OpenLibrary
+ *     tags: [Books]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of results
+ *     responses:
+ *       200:
+ *         description: Search results from OpenLibrary
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
+router.get("/search/open-library", searchOpenLibrary as express.RequestHandler);
+
+/**
+ * @swagger
+ * /api/books/search:
+ *   get:
+ *     summary: Search for books by query
+ *     tags: [Books]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *     responses:
+ *       200:
+ *         description: Search results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 books:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
+router.get("/search", searchBooks as express.RequestHandler);
+
+/**
+ * @swagger
+ * /api/books/collection:
+ *   get:
+ *     summary: Get the current user's book collection
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: The user's book collection
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Book'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  "/collection",
+  authenticate,
+  getUserCollection as express.RequestHandler
+);
+
+/**
+ * @swagger
+ * /api/books/collection:
+ *   post:
+ *     summary: Add a book to user's collection
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookId
+ *             properties:
+ *               bookId:
+ *                 type: integer
+ *                 description: ID of the book to add to collection
+ *     responses:
+ *       201:
+ *         description: Book added to collection successfully
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Book not found
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  "/collection",
+  authenticate,
+  addToUserCollection as express.RequestHandler
+);
+
+/**
+ * @swagger
+ * /api/books/collection/{bookId}:
+ *   delete:
+ *     summary: Remove a book from user's collection
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The book id to remove
+ *     responses:
+ *       200:
+ *         description: Book removed from collection successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Book not found in collection
+ *       500:
+ *         description: Server error
+ */
+router.delete(
+  "/collection/:bookId",
+  authenticate,
+  removeFromUserCollection as express.RequestHandler
+);
+
+// Keep the existing user/collection routes for backward compatibility
+router.get(
+  "/user/collection",
+  authenticate,
+  getUserCollection as express.RequestHandler
+);
+
+router.post(
+  "/user/collection",
+  authenticate,
+  addToUserCollection as express.RequestHandler
+);
+
+router.delete(
+  "/user/collection/:bookId",
+  authenticate,
+  removeFromUserCollection as express.RequestHandler
+);
+
+// ---------- Dynamic routes - these should be defined AFTER static routes ----------
+
+/**
+ * @swagger
+ * /api/books/{id}:
+ *   get:
+ *     summary: Get a book by id
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The book id
+ *     responses:
+ *       200:
+ *         description: The book description by id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Book'
+ *       404:
+ *         description: The book was not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id", getBookById as express.RequestHandler);
+
+/**
+ * @swagger
  * /api/books/{id}:
  *   put:
  *     summary: Update a book by id
@@ -368,103 +488,11 @@ router.put("/:id", authenticate, updateBook as express.RequestHandler);
  *       500:
  *         description: Server error
  */
-router.delete("/:id", authenticate, deleteBook as express.RequestHandler);
-
-/**
- * @swagger
- * /api/books/user/collection:
- *   get:
- *     summary: Get the current user's book collection
- *     tags: [Books]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: The user's book collection
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Book'
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
-router.get(
-  "/user/collection",
-  authenticate,
-  getUserCollection as express.RequestHandler
-);
-
-/**
- * @swagger
- * /api/books/user/collection:
- *   post:
- *     summary: Add a book to user's collection
- *     tags: [Books]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - bookId
- *             properties:
- *               bookId:
- *                 type: integer
- *                 description: ID of the book to add to collection
- *     responses:
- *       201:
- *         description: Book added to collection successfully
- *       400:
- *         description: Invalid request
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Book not found
- *       500:
- *         description: Server error
- */
-router.post(
-  "/user/collection",
-  authenticate,
-  addToUserCollection as express.RequestHandler
-);
-
-/**
- * @swagger
- * /api/books/user/collection/{bookId}:
- *   delete:
- *     summary: Remove a book from user's collection
- *     tags: [Books]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: bookId
- *         schema:
- *           type: integer
- *         required: true
- *         description: The book id to remove
- *     responses:
- *       200:
- *         description: Book removed from collection successfully
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Book not found in collection
- *       500:
- *         description: Server error
- */
 router.delete(
-  "/user/collection/:bookId",
+  "/:id",
   authenticate,
-  removeFromUserCollection as express.RequestHandler
+  isAdmin,
+  deleteBook as express.RequestHandler
 );
 
 export default router;

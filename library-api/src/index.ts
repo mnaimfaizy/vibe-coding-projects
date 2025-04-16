@@ -1,6 +1,9 @@
+import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
+import path from "path";
 import swaggerUi from "swagger-ui-express";
 import config from "./config/config";
 import swaggerSpec from "./config/swagger";
@@ -14,23 +17,35 @@ import reviewRoutes from "./routes/reviewRoutes";
 // Load environment variables
 dotenv.config();
 
+// Connect to database
+connectDatabase().catch((err) => {
+  console.error("Failed to connect to database:", err);
+  process.exit(1);
+});
+
 // Initialize express app
-const app = express();
+export const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
+
+// Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to all routes
+app.use(apiLimiter);
 
 // Request logger middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
   console.log(`${req.method} ${req.path}`);
   next();
-});
-
-// Connect to database
-connectDatabase().catch((err) => {
-  console.error("Failed to connect to database:", err);
-  process.exit(1);
 });
 
 // Swagger documentation
@@ -46,6 +61,9 @@ app.use("/api/books", bookRoutes);
 app.use("/api/authors", authorRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api/admin", adminRoutes); // Mount admin routes
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Root route
 app.get("/", (_req: Request, res: Response) => {
@@ -65,9 +83,13 @@ app.use((err: Error, _req: Request, res: Response) => {
 
 // Start the server
 const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(
-    `Swagger documentation available at http://localhost:${PORT}/api-docs`
-  );
-});
+
+// Don't start the server if we're running tests (it will be handled by supertest)
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(
+      `Swagger documentation available at http://localhost:${PORT}/api-docs`
+    );
+  });
+}
