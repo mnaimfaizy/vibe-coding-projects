@@ -64,8 +64,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Check code style with ESLint
-        run: npx eslint . --ext .js,.ts
+      - name: Lint code
+        run: npm run lint
 
   test:
     needs: install-dependencies
@@ -92,7 +92,7 @@ jobs:
             ${{ runner.os }}-node-modules-
 
       - name: Run tests
-        run: npx jest
+        run: npm run test
 
   build:
     needs: [lint, test]
