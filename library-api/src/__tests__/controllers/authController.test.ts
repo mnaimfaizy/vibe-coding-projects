@@ -118,24 +118,15 @@ describe("Auth Controller", () => {
       // Mock database responses
       mockDb.get = jest.fn().mockResolvedValue(null); // No existing user
 
-      // Use explicit parameters in the mock to ensure they match exactly what we expect
-      const mockParams = [
-        "Test User",
-        "test@example.com",
-        mockHashedPassword,
-        false,
-        mockVerificationToken,
-        expect.any(String), // Token expiry date
-        UserRole.USER,
-      ];
-
       const mockRunFn = jest
         .fn()
         .mockResolvedValueOnce({}) // Begin transaction
         .mockResolvedValueOnce({ lastID: 1 }) // Insert user with our expected params
         .mockResolvedValueOnce({}); // Commit transaction
 
-      mockDb.run = mockRunFn as any;
+      mockDb.run = mockRunFn as jest.MockedFunction<
+        NonNullable<typeof mockDb.run>
+      >;
 
       await register(req as Request, res as Response);
 
@@ -521,7 +512,9 @@ describe("Auth Controller", () => {
         .mockResolvedValueOnce({}) // Update user
         .mockResolvedValueOnce({}); // Commit transaction
 
-      mockDb.run = mockRunFn as any;
+      mockDb.run = mockRunFn as jest.MockedFunction<
+        NonNullable<typeof mockDb.run>
+      >;
 
       (emailService.sendVerificationEmail as jest.Mock).mockResolvedValue(true);
 

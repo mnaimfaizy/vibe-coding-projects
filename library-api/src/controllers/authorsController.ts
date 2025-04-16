@@ -17,6 +17,13 @@ const maxRequests = 5; // Max 5 requests per minute to be respectful
 let requestTimestamps: number[] = [];
 
 /**
+ * Reset rate limiter state - for testing purposes
+ */
+export function resetRateLimiter(): void {
+  requestTimestamps = [];
+}
+
+/**
  * Simple rate limiter function
  * @returns Whether the request is allowed or not
  */
@@ -533,13 +540,13 @@ export const searchOpenLibraryAuthor = async (
     }
 
     // Apply rate limiting - Comment out for tests to pass
-    // if (isRateLimited()) {
-    //   res.status(429).json({
-    //     message: "Rate limit exceeded. Please try again later.",
-    //     retryAfter: Math.ceil(rateLimitWindow / 1000),
-    //   });
-    //   return;
-    // }
+    if (isRateLimited()) {
+      res.status(429).json({
+        message: "Rate limit exceeded. Please try again later.",
+        retryAfter: Math.ceil(rateLimitWindow / 1000),
+      });
+      return;
+    }
 
     // Search for author by name on Open Library
     const searchUrl = `https://openlibrary.org/search/authors.json?q=${encodeURIComponent(
