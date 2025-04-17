@@ -1,0 +1,26 @@
+# Build outputs
+dist/
+build/
+.expo/
+web-build/
+
+# Dependencies
+node_modules/
+ios/Pods/
+
+# Misc
+coverage/
+.env*
+*.log
+package-lock.json
+yarn.lock
+
+# iOS
+ios/build/
+*.xcworkspace
+*.xcodeproj
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
