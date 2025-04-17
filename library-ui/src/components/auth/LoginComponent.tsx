@@ -2,10 +2,8 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,10 +67,20 @@ export function LoginComponent() {
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <Card className="w-[350px]">
           <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
+            <div
+              className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+              data-slot="card-header"
+            >
+              <h1 className="font-semibold text-2xl" data-slot="card-title">
+                Login
+              </h1>
+              <div
+                className="text-muted-foreground text-sm"
+                data-slot="card-description"
+              >
+                Enter your credentials to access your account
+              </div>
+            </div>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <CardContent>

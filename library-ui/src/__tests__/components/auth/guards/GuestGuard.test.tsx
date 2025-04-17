@@ -1,65 +1,70 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-// Mock dependencies with factory functions
-vi.mock("react-router-dom", () => {
-  const mockNavigate = vi.fn();
-  return {
-    useNavigate: () => mockNavigate,
-    __esModule: true,
-  };
-});
-
-vi.mock("../../../../store/hooks", () => {
-  const useAppSelector = vi.fn();
-  return {
-    useAppSelector,
-    __esModule: true,
-  };
-});
-
-// Import the component after mocks are set up
 import { GuestGuard } from "../../../../components/auth/guards/GuestGuard";
-
-// Import the mocks to use in tests
-import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../../../store/hooks";
 
-describe("GuestGuard Component", () => {
+// Mock dependencies
+vi.mock("../../../../store/hooks", () => ({
+  useAppSelector: vi.fn(),
+}));
+
+// Mock navigate function
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+describe("GuestGuard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders children when user is not authenticated", () => {
+  it("should render children when user is not authenticated", () => {
     // Mock unauthenticated state
-    vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: false } })
-    );
+    vi.mocked(useAppSelector).mockReturnValue({
+      isAuthenticated: false,
+    });
 
     render(
-      <GuestGuard>
-        <div data-testid="guest-content">Guest Content</div>
-      </GuestGuard>
+      <MemoryRouter>
+        <GuestGuard>
+          <div data-testid="guest-content">Guest Content</div>
+        </GuestGuard>
+      </MemoryRouter>
     );
 
+    // Check that children are rendered
     expect(screen.getByTestId("guest-content")).toBeInTheDocument();
-    expect(vi.mocked(useNavigate)()).not.toHaveBeenCalled();
+    expect(screen.getByText("Guest Content")).toBeInTheDocument();
+
+    // Verify no navigation occurred
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("redirects to books page when user is authenticated", () => {
+  it("should redirect to books page when user is authenticated", () => {
     // Mock authenticated state
-    vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: true } })
-    );
+    vi.mocked(useAppSelector).mockReturnValue({
+      isAuthenticated: true,
+    });
 
     render(
-      <GuestGuard>
-        <div data-testid="guest-content">Guest Content</div>
-      </GuestGuard>
+      <MemoryRouter>
+        <GuestGuard>
+          <div data-testid="guest-content">Guest Content</div>
+        </GuestGuard>
+      </MemoryRouter>
     );
 
-    // Children are still rendered in this case, but user is redirected
+    // Check that children are still rendered (GuestGuard doesn't prevent rendering)
     expect(screen.getByTestId("guest-content")).toBeInTheDocument();
-    expect(vi.mocked(useNavigate)()).toHaveBeenCalledWith("/books");
+    expect(screen.getByText("Guest Content")).toBeInTheDocument();
+
+    // Verify navigation to books page
+    expect(mockNavigate).toHaveBeenCalledWith("/books");
   });
 });

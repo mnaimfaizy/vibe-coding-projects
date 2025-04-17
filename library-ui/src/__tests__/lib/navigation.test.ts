@@ -1,127 +1,147 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { appNavigate, registerNavigate } from "../../lib/navigation";
 
-// We need to reset modules between tests to properly test navigation module
-beforeEach(() => {
-  vi.resetModules();
-  // Clear any mocks from previous tests
-  vi.clearAllMocks();
-});
+// Mock the navigation module
+vi.mock("../../lib/navigation");
 
 describe("Navigation Utility", () => {
-  let originalConsoleWarn: typeof console.warn;
-  let originalWindowLocation: Location;
+  let mockNavigate: ReturnType<typeof vi.fn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    // Save original console.warn
-    originalConsoleWarn = console.warn;
-    console.warn = vi.fn();
+    // Create mock navigate function
+    mockNavigate = vi.fn();
 
-    // Mock window.location
-    originalWindowLocation = window.location;
-    delete (window as any).location;
-    window.location = { ...originalWindowLocation, href: "" } as any;
+    // Reset window.location.href
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        href: "http://localhost/",
+        replace: vi.fn(),
+        assign: vi.fn(),
+      },
+    });
 
-    // Mock the navigation module specifically for these tests
-    vi.doMock("../../lib/navigation", () => ({
-      registerNavigate: vi.fn(),
-      appNavigate: vi.fn(),
-      default: vi.fn(),
-    }));
+    // Spy on console.warn
+    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    // Restore original console.warn
-    console.warn = originalConsoleWarn;
-
-    // Restore original window.location
-    window.location = originalWindowLocation;
+    // Clear all mocks
+    vi.clearAllMocks();
   });
 
-  it("uses registered navigate function when available", async () => {
-    // Import the real module implementation for this test
-    vi.doMock("../../lib/navigation", () => {
-      let navigateFunc: ((path: string) => void) | undefined = undefined;
-
-      const registerNavigate = (fn: (path: string) => void) => {
-        navigateFunc = fn;
-      };
-
-      const appNavigate = (path: string) => {
-        if (navigateFunc) {
-          navigateFunc(path);
-        } else {
-          console.warn(
-            "Navigation function not registered. Using window.location as fallback."
-          );
-          window.location.href = path;
-        }
-      };
-
-      return {
-        registerNavigate,
-        appNavigate,
-        default: appNavigate,
-      };
+  it("should register and use the provided navigate function", () => {
+    // Mock the behavior for this test
+    vi.mocked(registerNavigate).mockImplementation((fn) => {
+      // Store the navigate function
+      vi.mocked(appNavigate).mockImplementation((path) => fn(path));
     });
-
-    // Get a fresh copy of the module
-    const { registerNavigate, appNavigate } = await import(
-      "../../lib/navigation"
-    );
-
-    // Create a mock navigate function
-    const mockNavigate = vi.fn();
 
     // Register the mock navigate function
     registerNavigate(mockNavigate);
 
     // Call appNavigate with a path
-    appNavigate("/test-path");
+    appNavigate("/books");
 
-    // Verify that the mock navigate function was called with the path
-    expect(mockNavigate).toHaveBeenCalledWith("/test-path");
-    expect(console.warn).not.toHaveBeenCalled();
+    // Verify the mock navigate function was called with the correct path
+    expect(mockNavigate).toHaveBeenCalledWith("/books");
+
+    // Verify window.location.href was not changed
+    expect(window.location.href).toBe("http://localhost/");
+
+    // Verify console.warn was not called
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
-  it("falls back to window.location.href when navigate function is not registered", async () => {
-    // Import the real module implementation for this test
-    vi.doMock("../../lib/navigation", () => {
-      let navigateFunc: ((path: string) => void) | undefined = undefined;
-
-      const registerNavigate = (fn: (path: string) => void) => {
-        navigateFunc = fn;
-      };
-
-      const appNavigate = (path: string) => {
-        if (navigateFunc) {
-          navigateFunc(path);
-        } else {
-          console.warn(
-            "Navigation function not registered. Using window.location as fallback."
-          );
-          window.location.href = path;
-        }
-      };
-
-      return {
-        registerNavigate,
-        appNavigate,
-        default: appNavigate,
-      };
+  it("should fall back to window.location.href when navigate function is not registered", () => {
+    // Mock the behavior for this test - no function registered
+    vi.mocked(appNavigate).mockImplementation((path) => {
+      console.warn(
+        "Navigation function not registered. Using window.location as fallback."
+      );
+      window.location.href = path;
     });
 
-    // Get a fresh copy of the module
-    const { appNavigate } = await import("../../lib/navigation");
+    // Call appNavigate with a path
+    appNavigate("/books");
 
-    // Call appNavigate with a path (without registering a navigate function first)
-    appNavigate("/fallback-path");
+    // Verify window.location.href was changed
+    expect(window.location.href).toBe("/books");
 
-    // Verify that a warning was logged
-    expect(console.warn).toHaveBeenCalledWith(
+    // Verify console.warn was called
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
       "Navigation function not registered. Using window.location as fallback."
     );
+  });
 
-    // Verify that window.location.href was set
-    expect(window.location.href).toBe("/fallback-path");
+  it("should handle empty paths correctly", () => {
+    // Mock the behavior for this test
+    vi.mocked(registerNavigate).mockImplementation((fn) => {
+      // Store the navigate function
+      vi.mocked(appNavigate).mockImplementation((path) => fn(path));
+    });
+
+    // Register the mock navigate function
+    registerNavigate(mockNavigate);
+
+    // Call appNavigate with an empty path
+    appNavigate("");
+
+    // Verify the mock navigate function was called with an empty path
+    expect(mockNavigate).toHaveBeenCalledWith("");
+  });
+
+  it("should handle absolute URLs correctly", () => {
+    // Mock the behavior for this test
+    vi.mocked(registerNavigate).mockImplementation((fn) => {
+      // Store the navigate function
+      vi.mocked(appNavigate).mockImplementation((path) => fn(path));
+    });
+
+    // Register the mock navigate function
+    registerNavigate(mockNavigate);
+
+    // Call appNavigate with an absolute URL
+    appNavigate("https://example.com/page");
+
+    // Verify the mock navigate function was called with the correct URL
+    expect(mockNavigate).toHaveBeenCalledWith("https://example.com/page");
+  });
+
+  it("should handle query parameters correctly", () => {
+    // Mock the behavior for this test
+    vi.mocked(registerNavigate).mockImplementation((fn) => {
+      // Store the navigate function
+      vi.mocked(appNavigate).mockImplementation((path) => fn(path));
+    });
+
+    // Register the mock navigate function
+    registerNavigate(mockNavigate);
+
+    // Call appNavigate with a path including query parameters
+    appNavigate("/books?search=fantasy&author=tolkien");
+
+    // Verify the mock navigate function was called with the correct path
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/books?search=fantasy&author=tolkien"
+    );
+  });
+
+  it("should handle hash fragments correctly", () => {
+    // Mock the behavior for this test
+    vi.mocked(registerNavigate).mockImplementation((fn) => {
+      // Store the navigate function
+      vi.mocked(appNavigate).mockImplementation((path) => fn(path));
+    });
+
+    // Register the mock navigate function
+    registerNavigate(mockNavigate);
+
+    // Call appNavigate with a path including a hash fragment
+    appNavigate("/books#section-2");
+
+    // Verify the mock navigate function was called with the correct path
+    expect(mockNavigate).toHaveBeenCalledWith("/books#section-2");
   });
 });

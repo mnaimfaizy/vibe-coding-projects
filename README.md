@@ -42,7 +42,7 @@ The API is fully tested with both unit and integration tests, achieving over 94%
 - Shadcn/UI Component Library
 - Vitest for testing
 
-**Test Coverage:** ![Test Coverage: 76%](https://img.shields.io/badge/coverage-76%25-brightgreen)
+**Test Coverage:** ![Test Coverage: 46.64%](https://img.shields.io/badge/coverage-46.64%25-yellow)
 
 **Purpose:**
 The Library UI is a modern frontend application for managing a digital library system. It provides a comprehensive interface for browsing, searching, and managing books, authors, and user collections. Key features include:
@@ -54,7 +54,7 @@ The Library UI is a modern frontend application for managing a digital library s
 - Admin dashboard for managing books, authors, and users
 - Responsive design that works on desktop and mobile devices
 
-The application is built with modern React patterns including hooks, context API, and component composition to create a maintainable and extensible codebase.
+The application is built with modern React patterns including hooks, context API, and component composition to create a maintainable and extensible codebase. The test suite includes 222 passing tests covering unit tests, component tests, and integration tests for key user flows. Service files are particularly well covered (96-100%), while UI components have varying degrees of coverage. Core components like authentication, user collection management, and book details have excellent coverage.
 
 ### React Survey App
 

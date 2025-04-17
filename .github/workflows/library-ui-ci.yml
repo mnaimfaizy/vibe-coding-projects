@@ -11,9 +11,9 @@ on:
       - "library-ui/**"
 
 jobs:
-  build-and-test:
+  install-dependencies:
+    name: Install Dependencies
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: library-ui
@@ -23,7 +23,8 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -35,20 +36,97 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      # Cache node_modules for use by other jobs
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: library-ui/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+  lint:
+    name: Lint Code
+    needs: install-dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: library-ui
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Restore cached node_modules
+      - name: Restore node_modules cache
+        uses: actions/cache@v3
+        with:
+          path: library-ui/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+
+      - name: Run linting
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+  test:
+    name: Run Tests
+    needs: install-dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: library-ui
 
-      - name: Setup Vitest
-        run: |
-          npm install vitest --no-save
-          npm install @testing-library/react @testing-library/jest-dom --no-save
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Restore cached node_modules
+      - name: Restore node_modules cache
+        uses: actions/cache@v3
+        with:
+          path: library-ui/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
 
       - name: Run tests
-        run: |
-          echo '/// <reference types="vitest" />' > vitest.config.ts
-          echo 'import { defineConfig } from "vite";' >> vitest.config.ts
-          echo 'export default defineConfig({ test: { environment: "jsdom" } });' >> vitest.config.ts
-          npx vitest run
+        run: npm test
+
+      # Generate and upload test coverage reports
+      - name: Generate test coverage
+        run: npm test -- --coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: library-ui/coverage
+          retention-days: 7
+
+  build:
+    name: Build Application
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: library-ui
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Restore cached node_modules
+      - name: Restore node_modules cache
+        uses: actions/cache@v3
+        with:
+          path: library-ui/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+
+      - name: Build application
+        run: npm run build
+
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: library-ui/dist
+          retention-days: 3

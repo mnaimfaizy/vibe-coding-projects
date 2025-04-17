@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { z } from "zod";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { resetAuthError, signupUser } from "../../store/slices/authSlice";
+import { Button } from "../ui/Button";
 import {
   Card,
   CardContent,
@@ -12,26 +15,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { signupUser, resetAuthError } from "@/store/slices/authSlice";
+} from "../ui/Card";
+import { Input } from "../ui/Input";
 import { GuestGuard } from "./guards/GuestGuard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle } from "lucide-react";
 
-// Define validation schema using zod
+// Define validation schema
 const signupSchema = z
   .object({
-    name: z.string().min(1, "Full name is required"),
-    email: z.string().email("Please enter a valid email address"),
+    name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+    email: z.string().email({ message: "Please enter a valid email address" }),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters long")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .min(8, { message: "Password must be at least 8 characters" }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -39,22 +34,20 @@ const signupSchema = z
     path: ["confirmPassword"],
   });
 
-// Infer the TypeScript type from the schema
-type SignupFormValues = z.infer<typeof signupSchema>;
+type SignupFormData = z.infer<typeof signupSchema>;
 
-export function SignUpComponent() {
-  const navigate = useNavigate();
+export const SignUpComponent = () => {
   const dispatch = useAppDispatch();
-  const { isLoading, error, verificationRequired } = useAppSelector(
+  const { isLoading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth
   );
-  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormValues>({
+  } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       name: "",
@@ -64,156 +57,163 @@ export function SignUpComponent() {
     },
   });
 
-  // Reset auth errors when component unmounts
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      await dispatch(
+        signupUser({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        })
+      ).unwrap();
+
+      setSuccessMessage(
+        "Account created successfully! Redirecting to login..."
+      );
+      toast.success("Account created successfully!");
+
+      // Redirect after a short delay
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+    } catch (err) {
+      // Error is handled by the redux slice and displayed below
+      toast.error("Registration failed. Please try again.");
+    }
+  };
+
+  // Use useEffect instead of useState for cleanup
   useEffect(() => {
     return () => {
       dispatch(resetAuthError());
     };
   }, [dispatch]);
 
-  // Redirect to login page after successful registration
-  useEffect(() => {
-    if (verificationRequired) {
-      setRegistrationComplete(true);
-      const timer = setTimeout(() => {
-        navigate("/login");
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [verificationRequired]);
-
-  const onSubmit = async (data: SignupFormValues) => {
-    const { name, email, password } = data;
-
-    dispatch(
-      signupUser({
-        name,
-        email,
-        password,
-      })
-    )
-      .unwrap()
-      .catch(() => {
-        // Error handling is done in the slice
-      });
-  };
-
   return (
     <GuestGuard>
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <Card className="w-[400px]">
           <CardHeader>
-            <CardTitle className="text-2xl">Sign Up</CardTitle>
-            <CardDescription>
-              Create your account to access the library
-            </CardDescription>
+            <div
+              className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+              data-slot="card-header"
+            >
+              <CardTitle role="heading" aria-level={1}>
+                Sign Up
+              </CardTitle>
+              <CardDescription>
+                Create your account to access the library
+              </CardDescription>
+            </div>
           </CardHeader>
-          {registrationComplete ? (
+          <form
+            className="space-y-4"
+            onSubmit={handleSubmit(onSubmit)}
+            role="form"
+            aria-label="signup form"
+          >
             <CardContent>
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-600">
-                  Account created successfully! Please check your email for
-                  verification instructions. Redirecting to login...
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <CardContent>
-                {error && (
-                  <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {error}
-                  </div>
-                )}
-                <div className="grid w-full items-center gap-4">
-                  <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="John Doe"
-                      {...register("name")}
-                      aria-invalid={errors.name ? "true" : "false"}
-                    />
-                    {errors.name && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      placeholder="your.email@example.com"
-                      type="email"
-                      {...register("email")}
-                      aria-invalid={errors.email ? "true" : "false"}
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      placeholder="••••••••"
-                      type="password"
-                      {...register("password")}
-                      aria-invalid={errors.password ? "true" : "false"}
-                    />
-                    {errors.password && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.password.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      placeholder="••••••••"
-                      type="password"
-                      {...register("confirmPassword")}
-                      aria-invalid={errors.confirmPassword ? "true" : "false"}
-                    />
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.confirmPassword.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Button className="w-full" type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    "Create Account"
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <label htmlFor="name">Full Name</label>
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    {...register("name")}
+                    aria-invalid={errors.name ? "true" : "false"}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-red-500" role="alert">
+                      {errors.name.message}
+                    </p>
                   )}
-                </Button>
-                <div className="mt-4 text-sm text-center">
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-blue-600 hover:underline">
-                    Login
-                  </Link>
                 </div>
-              </CardFooter>
-            </form>
-          )}
+                <div className="flex flex-col space-y-1.5">
+                  <label htmlFor="email">Email</label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    {...register("email")}
+                    aria-invalid={errors.email ? "true" : "false"}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-red-500" role="alert">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <label htmlFor="password">Password</label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    {...register("password")}
+                    aria-invalid={errors.password ? "true" : "false"}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-red-500" role="alert">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    {...register("confirmPassword")}
+                    aria-invalid={errors.confirmPassword ? "true" : "false"}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-red-500" role="alert">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              {error && (
+                <div
+                  className="mb-4 p-2 bg-red-100 text-red-700 rounded-md w-full text-center"
+                  role="alert"
+                  data-testid="error-message"
+                >
+                  {error}
+                </div>
+              )}
+              {successMessage && (
+                <div
+                  className="mb-4 p-2 bg-green-100 text-green-700 rounded-md w-full text-center"
+                  role="alert"
+                  data-testid="success-message"
+                >
+                  {successMessage}
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+              <div className="mt-4 text-sm text-center">
+                Already have an account?{" "}
+                <Link to="/login" className="text-blue-600 hover:underline">
+                  Login
+                </Link>
+              </div>
+            </CardFooter>
+          </form>
         </Card>
       </div>
     </GuestGuard>
   );
-}
+};

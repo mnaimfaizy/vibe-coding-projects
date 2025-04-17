@@ -9,6 +9,44 @@ vi.mock("@/lib/navigation", () => ({
   registerNavigate: vi.fn(),
 }));
 
+// Mock axios to prevent actual network requests
+vi.mock("axios", () => {
+  return {
+    default: {
+      create: vi.fn(() => ({
+        interceptors: {
+          request: { use: vi.fn(), eject: vi.fn() },
+          response: { use: vi.fn(), eject: vi.fn() },
+        },
+        get: vi.fn().mockResolvedValue({ data: {} }),
+        post: vi.fn().mockResolvedValue({ data: {} }),
+        put: vi.fn().mockResolvedValue({ data: {} }),
+        delete: vi.fn().mockResolvedValue({ data: {} }),
+      })),
+      interceptors: {
+        request: { use: vi.fn(), eject: vi.fn() },
+        response: { use: vi.fn(), eject: vi.fn() },
+      },
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      post: vi.fn().mockResolvedValue({ data: {} }),
+      put: vi.fn().mockResolvedValue({ data: {} }),
+      delete: vi.fn().mockResolvedValue({ data: {} }),
+    },
+  };
+});
+
+// Mock Redux auth slice
+vi.mock("@/store/slices/authSlice", async () => {
+  const actual = await vi.importActual("@/store/slices/authSlice");
+  return {
+    ...actual,
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+    default: actual.default || vi.fn(),
+  };
+});
+
 // Mock for ResizeObserver which is not available in test environment
 class MockResizeObserver {
   observe() {}
@@ -32,4 +70,16 @@ Object.defineProperty(window, "matchMedia", {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+// Fix for navigation tests
+Object.defineProperty(window, "location", {
+  writable: true,
+  value: {
+    href: "http://localhost/",
+    assign: vi.fn(),
+    replace: vi.fn(),
+    pathname: "/",
+    origin: "http://localhost",
+  },
 });

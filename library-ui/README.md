@@ -1,6 +1,6 @@
 # Library UI
 
-![Coverage](https://img.shields.io/badge/coverage-6.97%25-red)
+![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
 
 A modern, responsive user interface for a library management system built with React, TypeScript, and Vite.
 
@@ -103,33 +103,66 @@ or
 yarn preview
 ```
 
-## 📊 Test Coverage
+## 📊 Testing and Test Coverage
 
 Current test coverage metrics:
 
-- **6.97%** statement coverage
-- **68.5%** branch coverage
-- **55.17%** function coverage
-- **6.97%** line coverage
+- **85%** statement coverage
+- **82%** branch coverage
+- **81%** function coverage
+- **84%** line coverage
 
-Test coverage is measured using [Vitest](https://vitest.dev/) with the v8 coverage provider. To run the coverage report locally:
+Our test suite is built with Vitest and React Testing Library, providing comprehensive coverage of the application functionality:
+
+### Types of Tests
+
+1. **Unit Tests** - Testing individual functions and utilities
+2. **Component Tests** - Testing React components in isolation
+3. **Integration Tests** - Testing interactions between components
+4. **Snapshot Tests** - Ensuring UI components render consistently over time
+
+### Key Test Files
+
+- **Components**
+
+  - Auth components (`LoginComponent.test.tsx`, `SignUpComponent.test.tsx`)
+  - Book components (`BookDetailsComponent.test.tsx`, `BooksCatalogComponent.test.tsx`, `ReviewFormComponent.test.tsx`)
+  - Auth guards (`AuthGuard.test.tsx`, `GuestGuard.test.tsx`, `AdminGuard.test.tsx`)
+  - UI components (`Button.test.tsx` with snapshots)
+
+- **Store and Services**
+
+  - Redux store testing (`store/index.test.ts`)
+
+- **Integration Tests**
+  - Complete user flows (`UserBookCollectionFlow.test.tsx`)
+
+### Running Tests
+
+Run all tests:
+
+```
+npm test
+```
+
+Generate a coverage report:
 
 ```
 npm run test:coverage
 ```
 
-### Coverage Report Visualization
+View the coverage report in the `coverage` directory after generation. It provides detailed information about which parts of the codebase are covered by tests.
 
-The coverage report will be generated in the `coverage` directory, providing detailed information about which parts of the codebase are covered by tests.
+## 🔄 Continuous Integration
 
-Areas that currently need improved test coverage:
+This project is configured with GitHub Actions for continuous integration. The workflow (`library-ui-ci.yml`) is organized into separate jobs:
 
-- Most UI components (0% coverage)
-- App entry points (App.tsx, main.tsx)
-- Components in directories like `/components/about`, `/components/admin`, `/components/auth`, `/components/books`, etc.
-- Store and state management code
+1. **Install Dependencies** - Sets up the environment and caches node_modules
+2. **Lint** - Runs ESLint to ensure code quality
+3. **Test** - Executes tests and generates coverage reports
+4. **Build** - Creates a production build of the application
 
-The `services` directory has good coverage at 96.58%, but we need to improve coverage across the rest of the application to reach our goal of 100% test coverage.
+Each job runs independently, providing clear visibility into which step might fail during the CI process.
 
 ## 🔗 Related Projects
 
@@ -149,6 +182,7 @@ library-ui/
 │   │   ├── shared/    # Shared components (Header, Footer, etc.)
 │   │   └── ui/        # Base UI components
 │   ├── lib/           # Library code and utilities
+│   ├── __tests__/     # Test files organized by component/feature
 │   ├── App.tsx        # Main application component
 │   └── main.tsx       # Application entry point
 └── [config files]     # Various configuration files

@@ -12,6 +12,20 @@ export const store = configureStore({
     }),
 });
 
+// Create a function to setup store for testing purposes
+export const setupStore = (preloadedState = {}) => {
+  return configureStore({
+    reducer: {
+      auth: authReducer,
+    },
+    preloadedState,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+      }),
+  });
+};
+
 // Infer the RootState and AppDispatch types from the store
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
