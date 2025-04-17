@@ -1,10 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import {
+  Button,
+  Card,
+  HelperText,
+  Surface,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { isValidEmail } from '../../utils/validation';
-import { Button } from '../ui/Button';
 import { FormInput } from '../ui/FormInput';
 
 export const VerifyEmailForm: React.FC = () => {
@@ -17,8 +23,7 @@ export const VerifyEmailForm: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
   
   const { verifyEmail, resendVerification } = useAuth();
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
 
   // If we have a token in the URL, try to verify it
   React.useEffect(() => {
@@ -63,19 +68,24 @@ export const VerifyEmailForm: React.FC = () => {
   if (verificationSuccess) {
     return (
       <View style={styles.container}>
-        <View style={styles.successContainer}>
-          <Text style={[styles.successTitle, { color: textColor }]}>
-            Email Verified!
-          </Text>
-          <Text style={[styles.successMessage, { color: textColor }]}>
-            Your email has been successfully verified. You can now log in to your account.
-          </Text>
-        </View>
+        <Card style={styles.successContainer}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.successTitle}>
+              Email Verified!
+            </Text>
+            <Text variant="bodyMedium" style={styles.successMessage}>
+              Your email has been successfully verified. You can now log in to your account.
+            </Text>
+          </Card.Content>
+        </Card>
         
         <Button
-          title="Go to Login"
+          mode="contained"
           onPress={() => router.replace('/login')}
-        />
+          style={styles.button}
+        >
+          Go to Login
+        </Button>
       </View>
     );
   }
@@ -83,19 +93,24 @@ export const VerifyEmailForm: React.FC = () => {
   if (resendSuccess) {
     return (
       <View style={styles.container}>
-        <View style={styles.successContainer}>
-          <Text style={[styles.successTitle, { color: textColor }]}>
-            Verification Email Sent
-          </Text>
-          <Text style={[styles.successMessage, { color: textColor }]}>
-            We've sent a new verification email to {email}. Please check your inbox and follow the instructions.
-          </Text>
-        </View>
+        <Card style={styles.successContainer}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.successTitle}>
+              Verification Email Sent
+            </Text>
+            <Text variant="bodyMedium" style={styles.successMessage}>
+              We've sent a new verification email to {email}. Please check your inbox and follow the instructions.
+            </Text>
+          </Card.Content>
+        </Card>
         
         <Button
-          title="Back to Login"
+          mode="contained"
           onPress={() => router.replace('/login')}
-        />
+          style={styles.button}
+        >
+          Back to Login
+        </Button>
       </View>
     );
   }
@@ -103,19 +118,23 @@ export const VerifyEmailForm: React.FC = () => {
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!error} style={styles.errorText}>
+            {error}
+          </HelperText>
+        </Surface>
       )}
       
-      <View style={styles.messageContainer}>
-        <Text style={[styles.messageTitle, { color: textColor }]}>
-          Verify Your Email
-        </Text>
-        <Text style={[styles.messageText, { color: textColor }]}>
-          Please check your email inbox for a verification link. If you haven't received the email, you can request a new one below.
-        </Text>
-      </View>
+      <Card style={styles.messageContainer}>
+        <Card.Content>
+          <Text variant="titleLarge" style={styles.messageTitle}>
+            Verify Your Email
+          </Text>
+          <Text variant="bodyMedium" style={styles.messageText}>
+            Please check your email inbox for a verification link. If you haven't received the email, you can request a new one below.
+          </Text>
+        </Card.Content>
+      </Card>
       
       <FormInput
         label="Email"
@@ -124,25 +143,26 @@ export const VerifyEmailForm: React.FC = () => {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        icon="mail-outline"
+        icon="email"
       />
       
       <Button
-        title="Resend Verification Email"
+        mode="contained"
         onPress={handleResendVerification}
         loading={resending}
         disabled={resending || verifying}
         style={styles.button}
-      />
-      
-      <TouchableOpacity
-        onPress={() => router.replace('/login')}
-        style={styles.backToLoginContainer}
       >
-        <Text style={[styles.backToLoginText, { color: tint }]}>
-          Back to Login
-        </Text>
-      </TouchableOpacity>
+        Resend Verification Email
+      </Button>
+      
+      <Button
+        mode="text"
+        onPress={() => router.replace('/login')}
+        style={styles.backToLoginButton}
+      >
+        Back to Login
+      </Button>
     </View>
   );
 };
@@ -158,43 +178,36 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#ff0000',
     fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   messageContainer: {
     marginBottom: 24,
   },
   messageTitle: {
-    fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
   },
   messageText: {
-    fontSize: 16,
     lineHeight: 24,
   },
   button: {
     marginTop: 16,
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
   },
-  backToLoginContainer: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  backToLoginText: {
-    fontSize: 16,
-    fontWeight: '500',
+  backToLoginButton: {
+    marginTop: 16,
   },
   successContainer: {
     marginBottom: 24,
   },
   successTitle: {
-    fontSize: 20,
     fontWeight: '600',
     marginBottom: 8,
   },
   successMessage: {
-    fontSize: 16,
     lineHeight: 24,
   },
 });

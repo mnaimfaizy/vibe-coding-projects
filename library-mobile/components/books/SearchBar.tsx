@@ -1,7 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useRef, useState } from 'react';
-import { Animated, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { useThemeColor } from '../../hooks/useThemeColor';
+import { Animated, Keyboard, StyleSheet, View } from 'react-native';
+import {
+    IconButton,
+    Searchbar,
+    useTheme
+} from 'react-native-paper';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -22,12 +25,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   
   const animatedWidth = useRef(new Animated.Value(1)).current;
-  
-  const backgroundColor = useThemeColor({ light: '#f2f2f7', dark: '#1c1c1e' }, 'searchBackground');
-  const textColor = useThemeColor({}, 'text');
-  const placeholderColor = useThemeColor({ light: '#8e8e93', dark: '#636366' }, 'placeholderText');
-  const tint = useThemeColor({}, 'tint');
-  const iconColor = useThemeColor({ light: '#8e8e93', dark: '#636366' }, 'tabIconDefault');
+  const { colors } = useTheme();
   
   const handleFocus = () => {
     setIsFocused(true);
@@ -52,6 +50,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     Keyboard.dismiss();
   };
   
+  const handleChangeText = (text: string) => {
+    setSearchQuery(text);
+    // For a real-time search experience
+    onSearch(text);
+  }
+  
   const clearSearch = () => {
     setSearchQuery('');
     onSearch('');
@@ -61,55 +65,43 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <View style={styles.container}>
       <Animated.View style={[
         styles.searchContainer, 
-        { backgroundColor, width: animatedWidth.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['85%', '100%']
-        }) }
+        { 
+          width: animatedWidth.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['85%', '100%']
+          })
+        }
       ]}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="search" size={20} color={iconColor} />
-        </View>
-        
-        <TextInput
-          style={[styles.input, { color: textColor }]}
+        <Searchbar
           placeholder={placeholder}
-          placeholderTextColor={placeholderColor}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleChangeText}
           onSubmitEditing={handleSearch}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
+          value={searchQuery}
+          style={styles.searchbar}
+          inputStyle={styles.searchInput}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          icon="magnify"
+          clearIcon="close-circle"
+          onClearIconPress={clearSearch}
+          mode="bar"
+          showDivider={false}
+          traileringIcon={showFilters ? "filter-outline" : undefined}
+          traileringIconAccessibilityLabel="Filter"
+          onTraileringIconPress={onFilterPress}
         />
-        
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={18} color={iconColor} />
-          </TouchableOpacity>
-        )}
-        
-        {showFilters && (
-          <TouchableOpacity 
-            onPress={onFilterPress} 
-            style={styles.filterButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="options-outline" size={20} color={tint} />
-          </TouchableOpacity>
-        )}
       </Animated.View>
       
       {isFocused && (
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <IconButton
+          icon="keyboard-backspace"
+          size={24}
           onPress={() => {
             Keyboard.dismiss();
             handleBlur();
           }}
-        >
-          <Ionicons name="chevron-back" size={24} color={tint} />
-        </TouchableOpacity>
+          style={styles.cancelButton}
+        />
       )}
     </View>
   );
@@ -123,34 +115,20 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   searchContainer: {
-    height: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 48,
+  },
+  searchbar: {
+    elevation: 0,
+    backgroundColor: 'transparent',
     borderRadius: 10,
-    paddingHorizontal: 8,
+    height: 48,
   },
-  iconContainer: {
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-  },
-  input: {
-    flex: 1,
-    height: '100%',
+  searchInput: {
     fontSize: 16,
-    paddingVertical: 8,
-  },
-  clearButton: {
-    padding: 6,
-  },
-  filterButton: {
-    padding: 8,
-    marginLeft: 4,
-    borderRadius: 8,
+    paddingVertical: 0,
+    minHeight: 48,
   },
   cancelButton: {
-    marginLeft: 8,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginLeft: 4,
   }
 });

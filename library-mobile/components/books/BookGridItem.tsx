@@ -1,13 +1,19 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Card,
+    Chip,
+    IconButton,
+    Surface,
+    Text,
+    useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types/Book';
 import { getToken } from '../../utils/storage';
-import { ThemedText } from '../ThemedText';
 
 interface BookGridItemProps {
   book: Book;
@@ -18,7 +24,6 @@ interface BookGridItemProps {
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2; // 2 items per row with spacing
-const ITEM_HEIGHT = ITEM_WIDTH * 1.5; // Golden ratio-ish
 
 export const BookGridItem: React.FC<BookGridItemProps> = ({ 
   book, 
@@ -29,15 +34,12 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
   const [isInCollection, setIsInCollection] = useState<boolean>(inCollection);
   const [loading, setLoading] = useState<boolean>(false);
   const { isAuthenticated } = useAuth();
+  const { colors } = useTheme();
   
   // Keep local state in sync with props
   useEffect(() => {
     setIsInCollection(inCollection);
   }, [inCollection]);
-  
-  const backgroundColor = useThemeColor({ light: '#fff', dark: '#1c1c1e' }, 'cardBackground');
-  const tint = useThemeColor({}, 'tint');
-  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
 
   const authorText = book.authors && book.authors.length > 0
     ? book.authors[0].name // Just show the primary author in grid view
@@ -85,53 +87,60 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
   };
 
   return (
-    <TouchableOpacity 
-      style={[styles.container, { backgroundColor, borderColor }]}
+    <Card 
+      style={styles.container} 
       onPress={() => onPress && onPress(book)}
-      activeOpacity={0.7}
+      mode="elevated"
     >
       <View style={styles.imageContainer}>
         <Image source={imageSource} style={styles.cover} />
         
         {book.publishYear && (
-          <View style={[styles.yearBadge, { backgroundColor }]}>
-            <ThemedText style={styles.yearText}>{book.publishYear}</ThemedText>
-          </View>
+          <Surface style={styles.yearBadge} elevation={2}>
+            <Text style={styles.yearText}>{book.publishYear}</Text>
+          </Surface>
         )}
         
         {isAuthenticated && (
-          <TouchableOpacity 
-            style={[
-              styles.favoriteButton,
-              { backgroundColor: isInCollection ? tint : 'rgba(0,0,0,0.5)' }
-            ]}
-            onPress={handleCollectionToggle}
-            disabled={loading}
-          >
+          <View style={styles.favoriteButtonContainer}>
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Ionicons 
-                name={isInCollection ? 'bookmark' : 'bookmark-outline'} 
-                size={16} 
-                color="#fff" 
+              <IconButton
+                icon={isInCollection ? 'bookmark' : 'bookmark-outline'}
+                size={18}
+                onPress={handleCollectionToggle}
+                style={[
+                  styles.favoriteButton, 
+                  { backgroundColor: isInCollection ? colors.primary : 'rgba(0,0,0,0.5)' }
+                ]}
+                iconColor="#fff"
               />
             )}
-          </TouchableOpacity>
+          </View>
         )}
       </View>
       
-      <View style={styles.contentContainer}>
-        <ThemedText style={styles.title} numberOfLines={2}>{book.title}</ThemedText>
-        <ThemedText style={styles.author} numberOfLines={1}>{authorText}</ThemedText>
+      <Card.Content style={styles.contentContainer}>
+        <Text variant="titleSmall" numberOfLines={2} style={styles.title}>
+          {book.title}
+        </Text>
+        <Text variant="bodySmall" numberOfLines={1} style={styles.author}>
+          {authorText}
+        </Text>
         
         {book.genre && (
-          <ThemedText style={[styles.genre, { color: tint }]} numberOfLines={1}>
+          <Chip 
+            mode="flat" 
+            style={styles.genre} 
+            textStyle={styles.genreText}
+            compact
+          >
             {book.genre}
-          </ThemedText>
+          </Chip>
         )}
-      </View>
-    </TouchableOpacity>
+      </Card.Content>
+    </Card>
   );
 };
 
@@ -139,14 +148,7 @@ const styles = StyleSheet.create({
   container: {
     width: ITEM_WIDTH,
     marginBottom: 16,
-    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
   },
   imageContainer: {
     width: '100%',
@@ -165,41 +167,36 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
   },
   yearText: {
     fontSize: 12,
     fontWeight: '600',
   },
   contentContainer: {
-    padding: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   title: {
-    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   author: {
-    fontSize: 12,
     opacity: 0.8,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   genre: {
-    fontSize: 11,
-    fontWeight: '500',
+    alignSelf: 'flex-start',
+    height: 22,
   },
-  favoriteButton: {
+  genreText: {
+    fontSize: 10,
+  },
+  favoriteButtonContainer: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  favoriteButton: {
+    margin: 0,
   }
 });

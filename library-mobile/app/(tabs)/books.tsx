@@ -1,24 +1,30 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   FlatList,
   Platform,
   RefreshControl,
   StyleSheet,
-  TouchableOpacity,
   View
 } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+import {
+  ActivityIndicator,
+  Banner,
+  Button,
+  Chip,
+  IconButton,
+  Searchbar,
+  Surface,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { BookCard } from '../../components/books/BookCard';
 import { BookDetailsModal } from '../../components/books/BookDetailsModal';
 import { BookGridItem } from '../../components/books/BookGridItem';
 import { FilterModal, FilterOptions } from '../../components/books/FilterModal';
-import { SearchBar } from '../../components/books/SearchBar';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { bookService } from '../../services/bookService';
@@ -48,7 +54,7 @@ export default function BooksScreen() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
   
   // Check auth token at startup
   useEffect(() => {
@@ -298,43 +304,78 @@ export default function BooksScreen() {
           opacity: headerOpacity 
         }
       ]}>
-        <ThemedText style={styles.welcomeTitle}>Explore Books</ThemedText>
-        <ThemedText style={styles.welcomeSubtitle}>
+        <Text variant="headlineLarge" style={styles.welcomeTitle}>Explore Books</Text>
+        <Text variant="bodyLarge" style={styles.welcomeSubtitle}>
           Find your next favorite read
-        </ThemedText>
+        </Text>
       </Animated.View>
       
       <View style={styles.searchAndFilterContainer}>
-        <SearchBar 
-          onSearch={handleSearch} 
-          onFilterPress={handleFilterPress}
-          initialValue={searchQuery}
-        />
-        
-        <TouchableOpacity 
-          style={styles.displayModeButton}
-          onPress={toggleDisplayMode}
-        >
-          <Ionicons
-            name={isListMode ? 'grid-outline' : 'list-outline'}
-            size={22}
-            color={tint}
+        <View style={styles.searchbarContainer}>
+          <Searchbar
+            placeholder="Search books"
+            onChangeText={handleSearch}
+            value={searchQuery}
+            style={styles.searchbar}
+            mode="bar"
           />
-        </TouchableOpacity>
+        </View>
+        
+        <View style={styles.actionsContainer}>
+          <IconButton
+            icon="filter-variant"
+            size={24}
+            onPress={handleFilterPress}
+          />
+          <IconButton
+            icon={isListMode ? 'view-grid-outline' : 'view-list-outline'}
+            size={24}
+            onPress={toggleDisplayMode}
+          />
+        </View>
       </View>
       
       {Object.keys(filters).length > 0 && (
-        <View style={styles.activeFiltersContainer}>
-          <ThemedText style={styles.activeFiltersText}>
-            Filters active
-          </ThemedText>
-          <TouchableOpacity 
+        <Surface style={styles.filtersChipsContainer} elevation={0}>
+          <View style={styles.filterChipRow}>
+            {filters.genre && (
+              <Chip 
+                icon="book" 
+                onClose={() => setFilters({...filters, genre: undefined})}
+                style={styles.filterChip}
+              >
+                {filters.genre}
+              </Chip>
+            )}
+            
+            {filters.year && (
+              <Chip 
+                icon="calendar" 
+                onClose={() => setFilters({...filters, year: undefined})}
+                style={styles.filterChip}
+              >
+                {filters.year < 2000 ? 'Before 2000' : `From ${filters.year}`}
+              </Chip>
+            )}
+            
+            {(filters.sortBy && filters.sortOrder) && (
+              <Chip 
+                icon="sort" 
+                style={styles.filterChip}
+              >
+                {`Sort: ${filters.sortBy} (${filters.sortOrder === 'asc' ? '↑' : '↓'})`}
+              </Chip>
+            )}
+          </View>
+          
+          <Button 
+            mode="text" 
             onPress={() => setFilters({})}
-            style={styles.clearFiltersButton}
+            style={styles.clearButton}
           >
-            <ThemedText style={{ color: tint }}>Clear</ThemedText>
-          </TouchableOpacity>
-        </View>
+            Clear All
+          </Button>
+        </Surface>
       )}
     </>
   );
@@ -343,43 +384,50 @@ export default function BooksScreen() {
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={tint} />
-          <ThemedText style={styles.emptyText}>Loading books...</ThemedText>
+          <ActivityIndicator size="large" />
+          <Text variant="bodyLarge" style={styles.emptyText}>Loading books...</Text>
         </View>
       );
     }
     
     if (error) {
       return (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={tint} />
-          <ThemedText style={styles.emptyText}>{error}</ThemedText>
-          <TouchableOpacity 
-            style={[styles.retryButton, { backgroundColor: tint }]}
-            onPress={fetchBooks}
-          >
-            <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
-          </TouchableOpacity>
-        </View>
+        <Banner
+          visible={true}
+          icon="alert-circle-outline"
+          actions={[
+            {
+              label: 'Try Again',
+              onPress: fetchBooks,
+            },
+          ]}
+        >
+          {error}
+        </Banner>
       );
     }
     
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="book-outline" size={64} color={tint} style={{ opacity: 0.5 }} />
-        <ThemedText style={styles.emptyText}>
+        <IconButton
+          icon="book-off-outline"
+          size={64}
+          iconColor={colors.onSurfaceDisabled}
+        />
+        <Text variant="bodyLarge" style={styles.emptyText}>
           {searchQuery 
             ? `No books found matching "${searchQuery}"`
             : 'No books available'
           }
-        </ThemedText>
+        </Text>
         {searchQuery && (
-          <TouchableOpacity 
-            style={[styles.retryButton, { backgroundColor: tint }]}
+          <Button
+            mode="contained-tonal"
             onPress={() => setSearchQuery('')}
+            style={styles.emptyStateButton}
           >
-            <ThemedText style={styles.retryButtonText}>Clear Search</ThemedText>
-          </TouchableOpacity>
+            Clear Search
+          </Button>
         )}
       </View>
     );
@@ -403,8 +451,8 @@ export default function BooksScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[tint]}
-            tintColor={tint}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         onScroll={handleScroll}
@@ -449,37 +497,46 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   welcomeTitle: {
-    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   welcomeSubtitle: {
-    fontSize: 16,
     opacity: 0.7,
   },
   searchAndFilterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  displayModeButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+  searchbarContainer: {
+    flex: 1,
+    marginRight: 8,
   },
-  activeFiltersContainer: {
+  searchbar: {
+    elevation: 0,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+  },
+  filtersChipsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 8,
   },
-  activeFiltersText: {
-    fontSize: 14,
+  filterChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    flex: 1,
   },
-  clearFiltersButton: {
-    padding: 8,
+  filterChip: {
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -487,20 +544,11 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
     opacity: 0.7,
     marginTop: 16,
     textAlign: 'center',
   },
-  retryButton: {
+  emptyStateButton: {
     marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   }
 });

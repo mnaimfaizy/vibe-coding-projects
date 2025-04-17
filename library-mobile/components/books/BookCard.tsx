@@ -1,13 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Card,
+  IconButton,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types/Book';
 import { getToken } from '../../utils/storage';
-import { ThemedText } from '../ThemedText';
 
 interface BookCardProps {
   book: Book;
@@ -25,17 +29,13 @@ export const BookCard: React.FC<BookCardProps> = ({
   const [isInCollection, setIsInCollection] = useState<boolean>(inCollection);
   const [loading, setLoading] = useState<boolean>(false);
   const { isAuthenticated } = useAuth();
+  const { colors } = useTheme();
   
   // Keep local state in sync with props
   useEffect(() => {
     setIsInCollection(inCollection);
   }, [inCollection]);
   
-  const backgroundColor = useThemeColor({ light: '#fff', dark: '#1c1c1e' }, 'cardBackground');
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
-  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
-
   const authorText = book.authors && book.authors.length > 0
     ? book.authors.map(a => a.name).join(', ')
     : book.author || 'Unknown Author';
@@ -82,63 +82,61 @@ export const BookCard: React.FC<BookCardProps> = ({
   };
 
   return (
-    <TouchableOpacity 
-      style={[styles.container, { backgroundColor, borderColor }]}
-      onPress={() => onPress && onPress(book)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.contentWrapper}>
+    <Card style={styles.card} onPress={() => onPress && onPress(book)}>
+      <Card.Content style={styles.contentWrapper}>
         <View style={styles.imageContainer}>
           <Image source={imageSource} style={styles.cover} />
         </View>
         
         <View style={styles.contentContainer}>
-          <ThemedText style={styles.title} numberOfLines={1}>{book.title}</ThemedText>
-          <ThemedText style={styles.author} numberOfLines={1}>{authorText}{year}</ThemedText>
-        </View>
-      </View>
-      
-      {isAuthenticated && (
-        <TouchableOpacity 
-          style={styles.bookmarkButton}
-          onPress={handleCollectionToggle}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={tint} />
-          ) : (
-            <Ionicons 
-              name={isInCollection ? 'bookmark' : 'bookmark-outline'} 
-              size={20} 
-              color={tint} 
-            />
+          <Text variant="titleMedium" numberOfLines={1} style={styles.title}>
+            {book.title}
+          </Text>
+          <Text variant="bodyMedium" numberOfLines={1} style={styles.author}>
+            {authorText}{year}
+          </Text>
+          {book.genre && (
+            <View style={styles.genreContainer}>
+              <Text variant="labelSmall" style={styles.genre}>
+                {book.genre}
+              </Text>
+            </View>
           )}
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
+        </View>
+        
+        {isAuthenticated && (
+          <View style={styles.bookmarkContainer}>
+            {loading ? (
+              <ActivityIndicator size="small" animating={true} />
+            ) : (
+              <IconButton
+                icon={isInCollection ? 'bookmark' : 'bookmark-outline'}
+                size={20}
+                onPress={handleCollectionToggle}
+                style={styles.bookmarkButton}
+              />
+            )}
+          </View>
+        )}
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
+  card: {
     marginVertical: 6,
     marginHorizontal: 2,
-    padding: 16,
-    shadowColor: '#CCC',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 4,
-    position: 'relative',
   },
   contentWrapper: {
     flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   imageContainer: {
     width: 60,
     height: 80,
-    borderRadius: 8,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   cover: {
@@ -152,21 +150,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
   author: {
-    fontSize: 14,
+    opacity: 0.6,
+    marginBottom: 4,
+  },
+  genreContainer: {
+    alignSelf: 'flex-start',
+  },
+  genre: {
     opacity: 0.6,
   },
-  bookmarkButton: {
+  bookmarkContainer: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 0,
+    right: 0,
+  },
+  bookmarkButton: {
+    margin: 0,
   }
 });

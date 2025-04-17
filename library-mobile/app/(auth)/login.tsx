@@ -1,13 +1,14 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+import { Image, ScrollView, StyleSheet } from 'react-native';
+import { Surface, Text, useTheme } from 'react-native-paper';
 import { LoginForm } from '../../components/auth/LoginForm';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, 'background');
+  const { colors } = useTheme();
   
   return (
     <>
@@ -23,25 +24,25 @@ export default function LoginScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoContainer}>
+        <Surface style={styles.logoContainer} elevation={0}>
           <Image 
             source={require('../../assets/images/icon.png')} 
             style={styles.logo} 
             resizeMode="contain" 
           />
-          <ThemedText style={styles.appName}>Library App</ThemedText>
-        </View>
+          <Text variant="headlineMedium" style={styles.appName}>Library App</Text>
+        </Surface>
         
-        <View style={styles.welcomeContainer}>
-          <ThemedText style={styles.welcomeText}>Welcome back!</ThemedText>
-          <ThemedText style={styles.subtitleText}>
+        <Surface style={styles.welcomeContainer} elevation={0}>
+          <Text variant="headlineLarge" style={styles.welcomeText}>Welcome back!</Text>
+          <Text variant="bodyLarge" style={styles.subtitleText}>
             Sign in to continue to your account
-          </ThemedText>
-        </View>
+          </Text>
+        </Surface>
         
-        <View style={styles.formContainer}>
+        <Surface style={styles.formContainer} elevation={1}>
           <LoginForm />
-        </View>
+        </Surface>
       </ScrollView>
     </>
   );
@@ -61,6 +62,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
+    backgroundColor: 'transparent',
   },
   logo: {
     width: 100,
@@ -68,25 +70,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   appName: {
-    fontSize: 22,
     fontWeight: 'bold',
   },
   welcomeContainer: {
     alignItems: 'center',
     marginBottom: 30,
+    backgroundColor: 'transparent',
   },
   welcomeText: {
-    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitleText: {
-    fontSize: 16,
     textAlign: 'center',
     opacity: 0.7,
   },
   formContainer: {
     width: '100%',
     maxWidth: 400,
+    padding: 24,
+    borderRadius: 12,
   },
 });

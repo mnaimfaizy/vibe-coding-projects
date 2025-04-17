@@ -1,15 +1,22 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import {
+    Avatar,
+    Button,
+    Divider,
+    IconButton,
+    List,
+    Surface,
+    Text,
+    useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
   
   const handleLogout = () => {
     Alert.alert(
@@ -33,122 +40,116 @@ export default function ProfileScreen() {
   
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.profileHeader}>
-        <View style={styles.profileImageContainer}>
-          <View style={[styles.profileImage, { backgroundColor: tint }]}>
-            <ThemedText style={styles.profileInitial}>
-              {user?.name?.charAt(0) || 'U'}
-            </ThemedText>
-          </View>
-          <TouchableOpacity style={styles.editImageButton}>
-            <Ionicons name="camera" size={16} color="#fff" />
-          </TouchableOpacity>
+      <Surface style={styles.profileHeader} elevation={0}>
+        <View style={styles.avatarContainer}>
+          <Avatar.Text 
+            size={100} 
+            label={(user?.name?.charAt(0) || 'U').toUpperCase()}
+          />
+          <IconButton
+            icon="camera"
+            mode="contained"
+            size={20}
+            style={styles.editAvatarButton}
+          />
         </View>
         
-        <ThemedText style={styles.profileName}>
+        <Text variant="headlineSmall" style={styles.profileName}>
           {user?.name || 'User'}
-        </ThemedText>
-        <ThemedText style={styles.profileEmail}>
+        </Text>
+        <Text variant="bodyLarge" style={styles.profileEmail}>
           {user?.email || 'email@example.com'}
-        </ThemedText>
-      </View>
+        </Text>
+      </Surface>
       
-      <View style={styles.sectionContainer}>
-        <ThemedText style={styles.sectionTitle}>Account</ThemedText>
+      <Surface style={styles.sectionContainer} elevation={0}>
+        <Text variant="titleMedium" style={styles.sectionTitle}>Account</Text>
         
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="person-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Edit Profile</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
+        <List.Item
+          title="Edit Profile"
+          left={props => <List.Icon {...props} icon="account-edit" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
         
-        <TouchableOpacity 
-          style={styles.menuItem} 
+        <List.Item
+          title="Change Password"
+          left={props => <List.Icon {...props} icon="lock" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
           onPress={handleChangePassword}
+        />
+      </Surface>
+      
+      <Divider />
+      
+      <Surface style={styles.sectionContainer} elevation={0}>
+        <Text variant="titleMedium" style={styles.sectionTitle}>Library Activity</Text>
+        
+        <List.Item
+          title="Borrowed Books"
+          description="0 books"
+          left={props => <List.Icon {...props} icon="book" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
+        
+        <List.Item
+          title="Reading History"
+          left={props => <List.Icon {...props} icon="history" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
+        
+        <List.Item
+          title="Wishlist"
+          left={props => <List.Icon {...props} icon="bookmark" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
+      </Surface>
+      
+      <Divider />
+      
+      <Surface style={styles.sectionContainer} elevation={0}>
+        <Text variant="titleMedium" style={styles.sectionTitle}>Preferences</Text>
+        
+        <List.Item
+          title="Notifications"
+          left={props => <List.Icon {...props} icon="bell" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
+        
+        <List.Item
+          title="App Appearance"
+          left={props => <List.Icon {...props} icon="theme-light-dark" />}
+          right={props => <List.Icon {...props} icon="chevron-right" />}
+          style={styles.listItem}
+          onPress={() => {}}
+        />
+      </Surface>
+      
+      <View style={styles.actionsContainer}>
+        <Button
+          mode="contained-tonal"
+          icon="logout"
+          buttonColor="rgba(255, 59, 48, 0.1)"
+          textColor="#ff3b30"
+          style={styles.logoutButton}
+          onPress={handleLogout}
         >
-          <View style={styles.menuIcon}>
-            <Ionicons name="lock-closed-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Change Password</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.sectionContainer}>
-        <ThemedText style={styles.sectionTitle}>Library Activity</ThemedText>
+          Logout
+        </Button>
         
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="book-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Borrowed Books</ThemedText>
-            <ThemedText style={styles.menuSubtext}>0 books</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="time-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Reading History</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="bookmarks-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Wishlist</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.sectionContainer}>
-        <ThemedText style={styles.sectionTitle}>Preferences</ThemedText>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="notifications-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>Notifications</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIcon}>
-            <Ionicons name="moon-outline" size={22} color={tint} />
-          </View>
-          <View style={styles.menuTextContainer}>
-            <ThemedText style={styles.menuText}>App Appearance</ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.logoutButton} 
-        onPress={handleLogout}
-      >
-        <Ionicons name="log-out-outline" size={22} color="#ff3b30" />
-        <ThemedText style={styles.logoutText}>Logout</ThemedText>
-      </TouchableOpacity>
-      
-      <View style={styles.versionContainer}>
-        <ThemedText style={styles.versionText}>Version 1.0.0</ThemedText>
+        <Text variant="bodySmall" style={styles.versionText}>
+          Version 1.0.0
+        </Text>
       </View>
     </ScrollView>
   );
@@ -161,103 +162,47 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     paddingVertical: 30,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
   },
-  profileImageContainer: {
+  avatarContainer: {
     position: 'relative',
     marginBottom: 15,
   },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileInitial: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  editImageButton: {
+  editAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#777',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
+    margin: 0,
   },
   profileName: {
-    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 5,
   },
   profileEmail: {
-    fontSize: 16,
     opacity: 0.7,
   },
   sectionContainer: {
-    paddingHorizontal: 15,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
-    paddingHorizontal: 15,
+    marginLeft: 16,
+    marginBottom: 8,
+    fontWeight: '500',
   },
-  menuItem: {
-    flexDirection: 'row',
+  listItem: {
+    paddingVertical: 8,
+  },
+  actionsContainer: {
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    backgroundColor: 'rgba(150, 150, 150, 0.1)',
-    marginBottom: 10,
-  },
-  menuIcon: {
-    width: 40,
-    alignItems: 'center',
-  },
-  menuTextContainer: {
-    flex: 1,
-    paddingLeft: 5,
-  },
-  menuText: {
-    fontSize: 16,
-  },
-  menuSubtext: {
-    fontSize: 12,
-    marginTop: 2,
-    opacity: 0.6,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
   },
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    marginHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ff3b30',
-    marginLeft: 10,
-  },
-  versionContainer: {
-    alignItems: 'center',
-    marginVertical: 30,
+    width: '100%',
+    marginBottom: 32,
   },
   versionText: {
-    fontSize: 14,
     opacity: 0.5,
-  },
+  }
 });

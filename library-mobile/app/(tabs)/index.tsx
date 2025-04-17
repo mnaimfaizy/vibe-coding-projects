@@ -1,50 +1,109 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+import {
+    Avatar,
+    Card,
+    Divider,
+    IconButton,
+    List,
+    Button as PaperButton,
+    Paragraph,
+    Surface,
+    Text,
+    Title,
+    useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
+  const { colors } = useTheme();
   
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.welcomeContainer}>
-        <ThemedText style={styles.title}>
-          Welcome, {user?.name || 'Reader'}!
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Discover our library collection and manage your borrowed books.
-        </ThemedText>
-      </View>
+      <Surface style={styles.header} elevation={1}>
+        <Avatar.Text 
+          size={64} 
+          label={(user?.name?.[0] || 'R').toUpperCase()} 
+          style={styles.avatar}
+        />
+        <View style={styles.headerTextContainer}>
+          <Text variant="headlineMedium" style={styles.title}>
+            Welcome, {user?.name || 'Reader'}!
+          </Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Discover our library collection and manage your borrowed books.
+          </Text>
+        </View>
+      </Surface>
       
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>
-          Library Services
-        </ThemedText>
-        <ThemedText style={styles.sectionText}>
-          • Browse our extensive collection of books
-        </ThemedText>
-        <ThemedText style={styles.sectionText}>
-          • Check out and return books easily
-        </ThemedText>
-        <ThemedText style={styles.sectionText}>
-          • Manage your reading history
-        </ThemedText>
-        <ThemedText style={styles.sectionText}>
-          • Get personalized recommendations
-        </ThemedText>
-      </View>
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title>Library Services</Title>
+          <List.Section>
+            <List.Item 
+              title="Browse our collection" 
+              left={props => <List.Icon {...props} icon="book-multiple" />} 
+            />
+            <List.Item 
+              title="Check out and return books" 
+              left={props => <List.Icon {...props} icon="book-arrow-right" />} 
+            />
+            <List.Item 
+              title="Manage your reading history" 
+              left={props => <List.Icon {...props} icon="history" />} 
+            />
+            <List.Item 
+              title="Get personalized recommendations" 
+              left={props => <List.Icon {...props} icon="star" />} 
+            />
+          </List.Section>
+        </Card.Content>
+        <Card.Actions>
+          <PaperButton mode="contained-tonal" onPress={() => {}}>
+            Explore Services
+          </PaperButton>
+        </Card.Actions>
+      </Card>
       
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>
-          New Arrivals
-        </ThemedText>
-        <ThemedText style={styles.sectionText}>
-          Check back soon to see our newest books!
-        </ThemedText>
-      </View>
+      <Card style={styles.card}>
+        <Card.Cover source={require('../../assets/images/icon.png')} />
+        <Card.Content>
+          <Title>New Arrivals</Title>
+          <Paragraph>
+            Check out our latest books and stay updated with new additions to our library.
+          </Paragraph>
+        </Card.Content>
+        <Card.Actions>
+          <PaperButton mode="outlined" onPress={() => {}}>View All</PaperButton>
+        </Card.Actions>
+      </Card>
+      
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.popularBooksHeader}>
+            <Title>Popular Books</Title>
+            <IconButton icon="arrow-right" size={24} onPress={() => {}} />
+          </View>
+          <Divider style={styles.divider} />
+          <View style={styles.popularBooks}>
+            <Surface style={styles.bookItem} elevation={2}>
+              <Text variant="titleMedium">The Great Gatsby</Text>
+              <Text variant="bodySmall">F. Scott Fitzgerald</Text>
+            </Surface>
+            <Surface style={styles.bookItem} elevation={2}>
+              <Text variant="titleMedium">To Kill a Mockingbird</Text>
+              <Text variant="bodySmall">Harper Lee</Text>
+            </Surface>
+            <Surface style={styles.bookItem} elevation={2}>
+              <Text variant="titleMedium">1984</Text>
+              <Text variant="bodySmall">George Orwell</Text>
+            </Surface>
+          </View>
+        </Card.Content>
+      </Card>
     </ScrollView>
   );
 }
@@ -53,36 +112,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  welcomeContainer: {
-    padding: 20,
+  header: {
+    padding: 24,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
+    marginBottom: 16,
+  },
+  headerTextContainer: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  avatar: {
+    marginRight: 8,
   },
   title: {
-    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
     opacity: 0.8,
   },
-  section: {
-    padding: 20,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
+  card: {
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  divider: {
+    marginVertical: 12,
   },
-  sectionText: {
-    fontSize: 16,
-    marginBottom: 5,
-    lineHeight: 24,
+  popularBooksHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
+  popularBooks: {
+    marginTop: 8,
+  },
+  bookItem: {
+    padding: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+  }
 });

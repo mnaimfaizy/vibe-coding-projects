@@ -1,10 +1,17 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import {
+  Button,
+  Card,
+  Divider,
+  HelperText,
+  Surface,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { validatePasswordResetRequest } from '../../utils/validation';
-import { Button } from '../ui/Button';
 import { FormInput } from '../ui/FormInput';
 
 export const PasswordResetForm: React.FC = () => {
@@ -14,8 +21,7 @@ export const PasswordResetForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   const { requestPasswordReset, error, clearError, navigateAfterAuth } = useAuth();
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -50,19 +56,24 @@ export const PasswordResetForm: React.FC = () => {
   if (isSubmitted) {
     return (
       <View style={styles.container}>
-        <View style={styles.successContainer}>
-          <Text style={[styles.successTitle, { color: textColor }]}>
-            Check your email
-          </Text>
-          <Text style={[styles.successMessage, { color: textColor }]}>
-            If an account exists with {email}, we've sent instructions to reset your password.
-          </Text>
-        </View>
+        <Card style={styles.successContainer}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.successTitle}>
+              Check your email
+            </Text>
+            <Text variant="bodyMedium" style={styles.successMessage}>
+              If an account exists with {email}, we've sent instructions to reset your password.
+            </Text>
+          </Card.Content>
+        </Card>
         
         <Button
-          title="Back to Login"
+          mode="contained"
           onPress={handleBackToLogin}
-        />
+          style={styles.button}
+        >
+          Back to Login
+        </Button>
       </View>
     );
   }
@@ -70,12 +81,14 @@ export const PasswordResetForm: React.FC = () => {
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!error} style={styles.errorText}>
+            {error}
+          </HelperText>
+        </Surface>
       )}
       
-      <Text style={[styles.instructions, { color: textColor }]}>
+      <Text variant="bodyLarge" style={styles.instructions}>
         Enter your email address and we'll send you instructions to reset your password.
       </Text>
       
@@ -91,26 +104,28 @@ export const PasswordResetForm: React.FC = () => {
         }}
         autoCapitalize="none"
         keyboardType="email-address"
-        icon="mail-outline"
+        icon="email"
         error={errors.email}
       />
       
       <Button
-        title="Reset Password"
+        mode="contained"
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
         style={styles.button}
-      />
+      >
+        Reset Password
+      </Button>
+      
+      <Divider style={styles.divider} />
       
       <View style={styles.loginContainer}>
-        <Text style={[styles.loginText, { color: textColor }]}>
+        <Text variant="bodyMedium">
           Remember your password?{' '}
         </Text>
         <Link href="/login" asChild>
-          <TouchableOpacity>
-            <Text style={[styles.loginLink, { color: tint }]}>Log In</Text>
-          </TouchableOpacity>
+          <Text variant="bodyMedium" style={styles.loginLink}>Log In</Text>
         </Link>
       </View>
     </View>
@@ -128,39 +143,37 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#ff0000',
     fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   instructions: {
-    fontSize: 16,
     marginBottom: 24,
   },
   button: {
-    marginTop: 8,
+    marginTop: 16,
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
+  },
+  divider: {
+    marginTop: 24,
+    marginBottom: 16,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
-  },
-  loginText: {
-    fontSize: 14,
   },
   loginLink: {
-    fontSize: 14,
     fontWeight: '600',
   },
   successContainer: {
     marginBottom: 24,
   },
   successTitle: {
-    fontSize: 20,
     fontWeight: '600',
     marginBottom: 8,
   },
   successMessage: {
-    fontSize: 16,
     lineHeight: 24,
   },
 });

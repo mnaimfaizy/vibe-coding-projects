@@ -1,10 +1,16 @@
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import {
+    Button,
+    Card,
+    HelperText,
+    Surface,
+    Text,
+    useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { validatePasswordReset } from '../../utils/validation';
-import { Button } from '../ui/Button';
 import { FormInput } from '../ui/FormInput';
 
 export const ResetPasswordForm: React.FC = () => {
@@ -16,7 +22,7 @@ export const ResetPasswordForm: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   
   const { resetPassword, error, clearError, navigateAfterAuth } = useAuth();
-  const textColor = useThemeColor({}, 'text');
+  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -57,19 +63,24 @@ export const ResetPasswordForm: React.FC = () => {
   if (isSuccess) {
     return (
       <View style={styles.container}>
-        <View style={styles.successContainer}>
-          <Text style={[styles.successTitle, { color: textColor }]}>
-            Password Reset Complete
-          </Text>
-          <Text style={[styles.successMessage, { color: textColor }]}>
-            Your password has been reset successfully. You can now log in with your new password.
-          </Text>
-        </View>
+        <Card style={styles.successContainer}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.successTitle}>
+              Password Reset Complete
+            </Text>
+            <Text variant="bodyMedium" style={styles.successMessage}>
+              Your password has been reset successfully. You can now log in with your new password.
+            </Text>
+          </Card.Content>
+        </Card>
         
         <Button
-          title="Go to Login"
+          mode="contained"
           onPress={handleGoToLogin}
-        />
+          style={styles.button}
+        >
+          Go to Login
+        </Button>
       </View>
     );
   }
@@ -77,18 +88,22 @@ export const ResetPasswordForm: React.FC = () => {
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!error} style={styles.errorText}>
+            {error}
+          </HelperText>
+        </Surface>
       )}
 
       {errors.general && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{errors.general}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!errors.general} style={styles.errorText}>
+            {errors.general}
+          </HelperText>
+        </Surface>
       )}
       
-      <Text style={[styles.instructions, { color: textColor }]}>
+      <Text variant="bodyLarge" style={styles.instructions}>
         Please enter your new password.
       </Text>
       
@@ -103,7 +118,7 @@ export const ResetPasswordForm: React.FC = () => {
           }
         }}
         secureTextEntry
-        icon="lock-closed-outline"
+        icon="lock"
         error={errors.password}
       />
       
@@ -118,17 +133,19 @@ export const ResetPasswordForm: React.FC = () => {
           }
         }}
         secureTextEntry
-        icon="shield-checkmark-outline"
+        icon="shield-check"
         error={errors.confirmPassword}
       />
       
       <Button
-        title="Reset Password"
+        mode="contained"
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
         style={styles.button}
-      />
+      >
+        Reset Password
+      </Button>
     </View>
   );
 };
@@ -144,27 +161,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#ff0000',
     fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   instructions: {
-    fontSize: 16,
     marginBottom: 24,
   },
   button: {
     marginTop: 16,
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
   },
   successContainer: {
     marginBottom: 24,
   },
   successTitle: {
-    fontSize: 20,
     fontWeight: '600',
     marginBottom: 8,
   },
   successMessage: {
-    fontSize: 16,
     lineHeight: 24,
   },
 });

@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Redirect, Tabs, useRouter } from 'expo-router';
-import { Pressable } from 'react-native';
+import { IconButton, useTheme } from 'react-native-paper';
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -18,6 +18,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+  const { colors } = useTheme();
   
   const backgroundColor = useThemeColor({}, 'background');
   const tabBackgroundColor = useThemeColor({}, 'tabBackground');
@@ -37,10 +38,24 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: tint,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: tabIconDefault,
-        tabBarStyle: { backgroundColor: tabBackgroundColor },
-        headerStyle: { backgroundColor },
+        tabBarStyle: { 
+          backgroundColor: tabBackgroundColor,
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
+        headerStyle: { 
+          backgroundColor,
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
         headerTintColor: useThemeColor({}, 'text'),
       }}>
       <Tabs.Screen
@@ -49,18 +64,13 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: () => (
-            <Pressable
+            <IconButton
+              icon="logout"
+              iconColor={colors.primary}
+              size={24}
               onPress={() => logout()}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-                marginRight: 15,
-              })}>
-              <FontAwesome
-                name="sign-out"
-                size={25}
-                color={tint}
-              />
-            </Pressable>
+              style={{ marginRight: 8 }}
+            />
           ),
         }}
       />

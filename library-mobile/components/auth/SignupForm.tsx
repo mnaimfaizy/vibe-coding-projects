@@ -1,10 +1,16 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import {
+  Button,
+  Divider,
+  HelperText,
+  Surface,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { validateSignup } from '../../utils/validation';
-import { Button } from '../ui/Button';
 import { FormInput } from '../ui/FormInput';
 
 export const SignupForm: React.FC = () => {
@@ -16,8 +22,7 @@ export const SignupForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signup, error, clearError, navigateAfterAuth } = useAuth();
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -48,9 +53,11 @@ export const SignupForm: React.FC = () => {
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!error} style={styles.errorText}>
+            {error}
+          </HelperText>
+        </Surface>
       )}
       
       <FormInput
@@ -63,7 +70,7 @@ export const SignupForm: React.FC = () => {
             setErrors({ ...errors, name: '' });
           }
         }}
-        icon="person-outline"
+        icon="account"
         error={errors.name}
       />
       
@@ -79,7 +86,7 @@ export const SignupForm: React.FC = () => {
         }}
         autoCapitalize="none"
         keyboardType="email-address"
-        icon="mail-outline"
+        icon="email"
         error={errors.email}
       />
       
@@ -94,7 +101,7 @@ export const SignupForm: React.FC = () => {
           }
         }}
         secureTextEntry
-        icon="lock-closed-outline"
+        icon="lock"
         error={errors.password}
       />
       
@@ -109,26 +116,28 @@ export const SignupForm: React.FC = () => {
           }
         }}
         secureTextEntry
-        icon="shield-checkmark-outline"
+        icon="shield-check"
         error={errors.confirmPassword}
       />
       
       <Button
-        title="Sign Up"
+        mode="contained"
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
         style={styles.button}
-      />
+      >
+        Sign Up
+      </Button>
+      
+      <Divider style={styles.divider} />
       
       <View style={styles.loginContainer}>
-        <Text style={[styles.loginText, { color: textColor }]}>
+        <Text variant="bodyMedium">
           Already have an account?{' '}
         </Text>
         <Link href="/login" asChild>
-          <TouchableOpacity>
-            <Text style={[styles.loginLink, { color: tint }]}>Log In</Text>
-          </TouchableOpacity>
+          <Text variant="bodyMedium" style={styles.loginLink}>Log In</Text>
         </Link>
       </View>
     </View>
@@ -146,23 +155,24 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#ff0000',
     fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   button: {
-    marginTop: 8,
+    marginTop: 16,
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
+  },
+  divider: {
+    marginTop: 24,
+    marginBottom: 16,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
-  },
-  loginText: {
-    fontSize: 14,
   },
   loginLink: {
-    fontSize: 14,
     fontWeight: '600',
   },
 });

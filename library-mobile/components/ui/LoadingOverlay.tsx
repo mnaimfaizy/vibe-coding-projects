@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Surface, Text, useTheme } from 'react-native-paper';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 interface LoadingOverlayProps {
@@ -8,15 +9,14 @@ interface LoadingOverlayProps {
 
 export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ message = 'Loading...' }) => {
   const backgroundColor = useThemeColor({}, 'background');
-  const tint = useThemeColor({}, 'tint');
-  const textColor = useThemeColor({}, 'text');
+  const { colors } = useTheme();
   
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor + 'dd' }]}>
-      <View style={[styles.loadingContainer, { backgroundColor }]}>
-        <ActivityIndicator size="large" color={tint} />
-        <Text style={[styles.message, { color: textColor }]}>{message}</Text>
-      </View>
+      <Surface style={styles.loadingContainer} elevation={4}>
+        <ActivityIndicator size="large" color={colors.primary} animating={true} />
+        <Text variant="bodyLarge" style={styles.message}>{message}</Text>
+      </Surface>
     </View>
   );
 };
@@ -29,19 +29,14 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   loadingContainer: {
-    padding: 20,
-    borderRadius: 8,
+    padding: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    minWidth: 200,
   },
   message: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: 16,
     fontWeight: '500',
   },
 });

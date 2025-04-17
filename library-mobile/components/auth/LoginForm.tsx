@@ -1,10 +1,16 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import {
+  Button,
+  Divider,
+  HelperText,
+  Surface,
+  Text,
+  useTheme
+} from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
-import { useThemeColor } from '../../hooks/useThemeColor';
 import { validateLogin } from '../../utils/validation';
-import { Button } from '../ui/Button';
 import { FormInput } from '../ui/FormInput';
 
 export const LoginForm: React.FC = () => {
@@ -14,8 +20,7 @@ export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { login, error, clearError, navigateAfterAuth } = useAuth();
-  const textColor = useThemeColor({}, 'text');
-  const tint = useThemeColor({}, 'tint');
+  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -47,9 +52,11 @@ export const LoginForm: React.FC = () => {
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Surface style={styles.errorContainer} elevation={0}>
+          <HelperText type="error" visible={!!error} style={styles.errorText}>
+            {error}
+          </HelperText>
+        </Surface>
       )}
       
       <FormInput
@@ -64,7 +71,7 @@ export const LoginForm: React.FC = () => {
         }}
         autoCapitalize="none"
         keyboardType="email-address"
-        icon="mail-outline"
+        icon="email"
         error={errors.email}
       />
       
@@ -79,33 +86,37 @@ export const LoginForm: React.FC = () => {
           }
         }}
         secureTextEntry
-        icon="lock-closed-outline"
+        icon="lock"
         error={errors.password}
       />
       
       <Link href="/forgot-password" asChild>
-        <TouchableOpacity style={styles.forgotPasswordContainer}>
-          <Text style={[styles.forgotPasswordText, { color: tint }]}>
-            Forgot password?
-          </Text>
-        </TouchableOpacity>
+        <Text 
+          variant="bodyMedium" 
+          style={styles.forgotPasswordText}
+        >
+          Forgot password?
+        </Text>
       </Link>
       
       <Button
-        title="Login"
+        mode="contained"
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
-      />
+        style={styles.button}
+      >
+        Login
+      </Button>
+      
+      <Divider style={styles.divider} />
       
       <View style={styles.registerContainer}>
-        <Text style={[styles.registerText, { color: textColor }]}>
+        <Text variant="bodyMedium">
           Don't have an account?{' '}
         </Text>
         <Link href="/signup" asChild>
-          <TouchableOpacity>
-            <Text style={[styles.registerLink, { color: tint }]}>Sign Up</Text>
-          </TouchableOpacity>
+          <Text variant="bodyMedium" style={styles.registerLink}>Sign Up</Text>
         </Link>
       </View>
     </View>
@@ -123,28 +134,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#ff0000',
     fontSize: 14,
-    fontWeight: '500',
-  },
-  forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
+    textAlign: 'center',
   },
   forgotPasswordText: {
-    fontSize: 14,
+    alignSelf: 'flex-end',
+    marginBottom: 20,
     fontWeight: '500',
+  },
+  button: {
+    marginTop: 8,
+    borderRadius: 8,
+    height: 50,
+    justifyContent: 'center',
+  },
+  divider: {
+    marginVertical: 24,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
-  },
-  registerText: {
-    fontSize: 14,
   },
   registerLink: {
-    fontSize: 14,
     fontWeight: '600',
   },
 });

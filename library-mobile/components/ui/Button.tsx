@@ -1,18 +1,15 @@
 import React from 'react';
-import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableOpacityProps
-} from 'react-native';
-import { useThemeColor } from '../../hooks/useThemeColor';
+import { StyleSheet, View } from 'react-native';
+import { Button as PaperButton, useTheme } from 'react-native-paper';
 
-interface ButtonProps extends TouchableOpacityProps {
+interface ButtonProps {
   title: string;
   variant?: 'primary' | 'secondary' | 'outline' | 'text';
   loading?: boolean;
   fullWidth?: boolean;
+  onPress?: () => void;
+  disabled?: boolean;
+  style?: any;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -22,103 +19,55 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = true,
   disabled,
   style,
+  onPress,
   ...props
 }) => {
-  const tint = useThemeColor({}, 'tint');
-  const textColor = useThemeColor({}, 'text');
-  const backgroundColor = useThemeColor({}, 'background');
+  const { colors } = useTheme();
   
-  const getButtonStyles = () => {
+  const getButtonMode = (): "text" | "outlined" | "contained" | "elevated" | "contained-tonal" => {
     switch (variant) {
       case 'primary':
-        return {
-          backgroundColor: disabled ? '#ccc' : tint,
-          borderColor: disabled ? '#ccc' : tint,
-          borderWidth: 1,
-        };
+        return 'contained';
       case 'secondary':
-        return {
-          backgroundColor: disabled ? '#f5f5f5' : '#f0f0f0',
-          borderColor: disabled ? '#f0f0f0' : '#e0e0e0',
-          borderWidth: 1,
-        };
+        return 'contained-tonal';  
       case 'outline':
-        return {
-          backgroundColor: 'transparent',
-          borderColor: disabled ? '#ccc' : tint,
-          borderWidth: 1,
-        };
+        return 'outlined';
       case 'text':
-        return {
-          backgroundColor: 'transparent',
-          borderColor: 'transparent',
-          borderWidth: 0,
-        };
+        return 'text';
       default:
-        return {
-          backgroundColor: disabled ? '#ccc' : tint,
-          borderColor: disabled ? '#ccc' : tint,
-          borderWidth: 1,
-        };
+        return 'contained';
     }
   };
-
-  const getTextStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return { color: backgroundColor };
-      case 'secondary':
-        return { color: textColor };
-      case 'outline':
-        return { color: disabled ? '#ccc' : tint };
-      case 'text':
-        return { color: disabled ? '#ccc' : tint };
-      default:
-        return { color: backgroundColor };
-    }
-  };
-
-  const buttonStyles = getButtonStyles();
-  const textStyles = getTextStyles();
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        buttonStyles,
-        fullWidth && styles.fullWidth,
-        style,
-      ]}
-      disabled={disabled || loading}
-      {...props}
-    >
-      {loading ? (
-        <ActivityIndicator 
-          color={variant === 'primary' ? backgroundColor : tint} 
-          size="small" 
-        />
-      ) : (
-        <Text style={[styles.text, textStyles]}>{title}</Text>
-      )}
-    </TouchableOpacity>
+    <View style={[fullWidth && styles.fullWidth, style]}>
+      <PaperButton
+        mode={getButtonMode()}
+        onPress={onPress}
+        loading={loading}
+        disabled={disabled || loading}
+        style={styles.button}
+        contentStyle={styles.buttonContent}
+        labelStyle={styles.buttonLabel}
+      >
+        {title}
+      </PaperButton>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-  },
   fullWidth: {
     width: '100%',
   },
-  text: {
+  button: {
+    borderRadius: 8,
+  },
+  buttonContent: {
+    height: 48,
+  },
+  buttonLabel: {
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
-  },
+  }
 });
