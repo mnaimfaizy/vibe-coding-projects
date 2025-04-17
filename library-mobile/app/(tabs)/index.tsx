@@ -1,74 +1,88 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { ThemedText } from '../../components/ThemedText';
+import { useAuth } from '../../hooks/useAuth';
+import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function HomeScreen() {
+  const { user } = useAuth();
+  const backgroundColor = useThemeColor({}, 'background');
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+    <ScrollView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.welcomeContainer}>
+        <ThemedText style={styles.title}>
+          Welcome, {user?.name || 'Reader'}!
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
+        <ThemedText style={styles.subtitle}>
+          Discover our library collection and manage your borrowed books.
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+      </View>
+      
+      <View style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>
+          Library Services
         </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <ThemedText style={styles.sectionText}>
+          • Browse our extensive collection of books
+        </ThemedText>
+        <ThemedText style={styles.sectionText}>
+          • Check out and return books easily
+        </ThemedText>
+        <ThemedText style={styles.sectionText}>
+          • Manage your reading history
+        </ThemedText>
+        <ThemedText style={styles.sectionText}>
+          • Get personalized recommendations
+        </ThemedText>
+      </View>
+      
+      <View style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>
+          New Arrivals
+        </ThemedText>
+        <ThemedText style={styles.sectionText}>
+          Check back soon to see our newest books!
+        </ThemedText>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  welcomeContainer: {
+    padding: 20,
     alignItems: 'center',
-    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ccc',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    opacity: 0.8,
+  },
+  section: {
+    padding: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ccc',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  sectionText: {
+    fontSize: 16,
+    marginBottom: 5,
+    lineHeight: 24,
   },
 });
