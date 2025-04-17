@@ -21,6 +21,8 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async (config) => {
     const token = await getToken();
+    console.log('Auth Token:', token ? 'Present' : 'Missing'); // Debug token presence
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
