@@ -38,8 +38,7 @@ export default function TabLayout() {
   // Custom header using Appbar.Header component
   const HomeHeader = () => (
     <Appbar.Header>
-      <Appbar.Content title="Home" />
-      <Appbar.Action icon="logout" onPress={() => logout()} />
+      <Appbar.Content title="MNF Library" />
     </Appbar.Header>
   );
 

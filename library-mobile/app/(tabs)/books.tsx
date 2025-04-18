@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-raw-text */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -246,12 +247,6 @@ export default function BooksScreen() {
     setIsListMode(!isListMode);
   };
 
-  const headerHeight = scrollY.interpolate({
-    inputRange: [0, 120],
-    outputRange: [80, 0],
-    extrapolate: 'clamp',
-  });
-
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 60, 120],
     outputRange: [1, 0.5, 0],
@@ -294,7 +289,7 @@ export default function BooksScreen() {
         style={[
           styles.welcomeContainer,
           {
-            height: headerHeight,
+            height: 120,
             opacity: headerOpacity,
           },
         ]}
@@ -472,8 +467,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   welcomeContainer: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
     justifyContent: 'center',
     overflow: 'hidden',
   },
