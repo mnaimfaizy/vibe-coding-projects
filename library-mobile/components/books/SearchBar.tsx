@@ -1,6 +1,9 @@
+/* eslint-disable react-native/no-color-literals */
 import React, { useRef, useState } from 'react';
+
 import { Animated, Keyboard, StyleSheet, View } from 'react-native';
-import { IconButton, Searchbar, useTheme } from 'react-native-paper';
+
+import { IconButton, Searchbar } from 'react-native-paper';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -21,7 +24,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const animatedWidth = useRef(new Animated.Value(1)).current;
-  const { colors } = useTheme();
 
   const handleFocus = () => {
     setIsFocused(true);

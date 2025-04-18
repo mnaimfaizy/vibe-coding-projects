@@ -1,6 +1,9 @@
+/* eslint-disable react-native/no-inline-styles */
+import { Redirect, Tabs } from 'expo-router';
+
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Redirect, Tabs, useRouter } from 'expo-router';
 import { IconButton, useTheme } from 'react-native-paper';
+
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -17,7 +20,6 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const router = useRouter();
   const { colors } = useTheme();
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -56,7 +58,7 @@ export default function TabLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 3,
         },
-        headerTintColor: useThemeColor({}, 'text'),
+        headerTintColor: tint,
       }}
     >
       <Tabs.Screen

@@ -1,7 +1,13 @@
-import { useLocalSearchParams } from 'expo-router';
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-raw-text */
 import React, { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, HelperText, Surface, Text, useTheme } from 'react-native-paper';
+
+import { useLocalSearchParams } from 'expo-router';
+
+import { Button, Card, HelperText, Surface, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { validatePasswordReset } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -15,7 +21,6 @@ export const ResetPasswordForm: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const { resetPassword, error, clearError, navigateAfterAuth } = useAuth();
-  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -108,7 +113,7 @@ export const ResetPasswordForm: React.FC = () => {
         }}
         secureTextEntry
         icon="lock"
-        error={errors.password}
+        error={!!errors.password}
       />
 
       <FormInput
@@ -123,7 +128,7 @@ export const ResetPasswordForm: React.FC = () => {
         }}
         secureTextEntry
         icon="shield-check"
-        error={errors.confirmPassword}
+        error={!!errors.confirmPassword}
       />
 
       <Button

@@ -1,7 +1,13 @@
-import { Link } from 'expo-router';
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-raw-text */
 import React, { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
+
+import { Link } from 'expo-router';
+
+import { Button, Card, Divider, HelperText, Surface, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { validatePasswordResetRequest } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -13,7 +19,6 @@ export const PasswordResetForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const { requestPasswordReset, error, clearError, navigateAfterAuth } = useAuth();
-  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -93,7 +98,7 @@ export const PasswordResetForm: React.FC = () => {
         autoCapitalize="none"
         keyboardType="email-address"
         icon="email"
-        error={errors.email}
+        error={!!errors.email}
       />
 
       <Button

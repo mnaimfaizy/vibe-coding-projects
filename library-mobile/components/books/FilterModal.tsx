@@ -1,17 +1,12 @@
+import React, { useState } from 'react';
+
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
-import {
-  Button,
-  Chip,
-  Divider,
-  IconButton,
-  RadioButton,
-  Surface,
-  Text,
-  useTheme,
-} from 'react-native-paper';
+
+import { Button, Chip, Divider, IconButton, RadioButton, Surface, Text } from 'react-native-paper';
+
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export interface FilterOptions {
@@ -37,9 +32,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);
 
-  const backgroundColor = useThemeColor({}, 'background');
-  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
-  const { colors } = useTheme();
+  const borderColor = useThemeColor({ lightColor: '#e0e0e0', darkColor: '#2c2c2e' }, 'border');
 
   const genres = [
     'Fiction',
@@ -232,11 +225,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           <Surface style={[styles.footer, { borderTopColor: borderColor }]} elevation={4}>
             {isFiltered && (
               <Button mode="text" onPress={handleResetFilters} style={styles.resetButton}>
-                Reset Filters
+                <Text>Reset Filters</Text>
               </Button>
             )}
             <Button mode="contained" onPress={handleApplyFilters} style={styles.applyButton}>
-              Apply Filters
+              <Text>Apply Filters</Text>
             </Button>
           </Surface>
         </Surface>

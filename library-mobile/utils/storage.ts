@@ -53,7 +53,7 @@ export const setUser = async (user: object): Promise<void> => {
 /**
  * Get stored user data
  */
-export const getUser = async (): Promise<any | null> => {
+export const getUser = async (): Promise<string | null> => {
   try {
     const userData = await SecureStore.getItemAsync(USER_KEY);
     if (userData) {

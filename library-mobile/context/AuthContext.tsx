@@ -1,5 +1,9 @@
-import { router } from 'expo-router';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
+
+import { router } from 'expo-router';
+
 import {
   authService,
   LoginData,
@@ -55,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Format error message from API or exception
   const formatErrorMessage = (err: any): string => {
-    console.log('Formatting error:', err);
+    console.warn('Formatting error:', err);
 
     if (typeof err === 'string') return err;
 
@@ -78,37 +82,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        console.log('AuthContext: Loading user session...');
+        console.warn('AuthContext: Loading user session...');
         const token = await getToken();
 
         if (!token) {
-          console.log('AuthContext: No token found');
+          console.warn('AuthContext: No token found');
           setIsLoading(false);
           setInitialCheckDone(true);
           return;
         }
 
-        console.log('AuthContext: Token found, getting stored user');
+        console.warn('AuthContext: Token found, getting stored user');
         // Try to get user from local storage first for faster loading
         const storedUser = await getUser();
         if (storedUser) {
-          console.log('AuthContext: Using stored user:', JSON.stringify(storedUser, null, 2));
-          setUserState(storedUser);
+          const parsedUser: User = JSON.parse(storedUser);
+          console.warn('AuthContext: Using stored user:', JSON.stringify(parsedUser, null, 2));
+          setUserState(parsedUser);
           setIsAuthenticated(true);
         }
 
         // Then verify with the server
         try {
-          console.log('AuthContext: Verifying user with server');
+          console.warn('AuthContext: Verifying user with server');
           const currentUser = await authService.getCurrentUser();
           if (currentUser) {
-            console.log('AuthContext: Server verification successful');
+            console.warn('AuthContext: Server verification successful');
             setUserState(currentUser);
             setUser(currentUser);
             setIsAuthenticated(true);
           } else {
             // Token is invalid or expired
-            console.log('AuthContext: Server returned no user, clearing session');
+            console.warn('AuthContext: Server returned no user, clearing session');
             setUserState(null);
             setIsAuthenticated(false);
             await removeUser();
@@ -118,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.error('AuthContext: Error verifying user with server:', err);
           // Keep using the stored user if available
           if (!storedUser) {
-            console.log('AuthContext: No stored user available, logging out');
+            console.warn('AuthContext: No stored user available, logging out');
             setUserState(null);
             setIsAuthenticated(false);
             await removeUser();
@@ -142,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     route: '/(tabs)' | '/login' | '/verify-email' | '/(auth)/forgot-password' | string
   ) => {
     // Ensure we don't navigate during rendering
-    console.log(`AuthContext: Navigating to ${route}`);
+    console.warn(`AuthContext: Navigating to ${route}`);
     setTimeout(() => {
       router.replace(route as any); // Cast to 'any' if necessary for dynamic routes
     }, 0);
@@ -152,9 +157,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       setIsLoading(true);
-      console.log('AuthContext: Starting signup process');
+      console.warn('AuthContext: Starting signup process');
       await authService.signup(data);
-      console.log('AuthContext: Signup successful');
+      console.warn('AuthContext: Signup successful');
       setIsLoading(false);
       return true;
     } catch (err: any) {
@@ -169,18 +174,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       setIsLoading(true);
-      console.log('AuthContext: Starting login process');
+      console.warn('AuthContext: Starting login process');
       const response = await authService.login(data);
 
       if (response.needsVerification) {
-        console.log('AuthContext: User needs email verification');
+        console.warn('AuthContext: User needs email verification');
         setIsLoading(false);
         navigateAfterAuth('/verify-email');
         return true;
       }
 
       if (response.user && response.token) {
-        console.log('AuthContext: Login successful with user and token');
+        console.warn('AuthContext: Login successful with user and token');
         setUserState(response.user);
         await setUser(response.user);
         setIsAuthenticated(true);
@@ -189,7 +194,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return true;
       }
 
-      console.log('AuthContext: Login response missing user or token');
+      console.warn('AuthContext: Login response missing user or token');
       setIsLoading(false);
       return false;
     } catch (err: any) {

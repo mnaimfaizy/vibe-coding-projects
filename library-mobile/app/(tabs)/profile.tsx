@@ -1,5 +1,8 @@
+/* eslint-disable react-native/no-raw-text */
 import React from 'react';
+
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+
 import {
   Avatar,
   Button,
@@ -7,16 +10,15 @@ import {
   IconButton,
   List,
   Surface,
-  Text,
-  useTheme,
+  Text
 } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
-  const { colors } = useTheme();
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [

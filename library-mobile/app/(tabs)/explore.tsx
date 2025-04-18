@@ -1,3 +1,6 @@
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { Image, Platform, StyleSheet } from 'react-native';
 
 import { Collapsible } from '@/components/Collapsible';

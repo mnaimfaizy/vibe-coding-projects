@@ -1,5 +1,9 @@
+/* eslint-disable react-native/no-raw-text */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
+
 import { ScrollView, StyleSheet, View } from 'react-native';
+
 import {
   Avatar,
   Card,
@@ -11,15 +15,14 @@ import {
   Surface,
   Text,
   Title,
-  useTheme,
 } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
-  const { colors } = useTheme();
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
@@ -63,7 +66,7 @@ export default function HomeScreen() {
         </Card.Content>
         <Card.Actions>
           <PaperButton mode="contained-tonal" onPress={() => {}}>
-            Explore Services
+            <Text>Explore Services</Text>
           </PaperButton>
         </Card.Actions>
       </Card>

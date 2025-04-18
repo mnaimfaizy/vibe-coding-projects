@@ -1,14 +1,19 @@
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable @typescript-eslint/no-require-imports */
+import React from 'react';
+
+import { Image, ScrollView, StyleSheet } from 'react-native';
+
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { Image, ScrollView, StyleSheet } from 'react-native';
-import { Surface, Text, useTheme } from 'react-native-paper';
+
+import { Surface, Text } from 'react-native-paper';
+
 import { LoginForm } from '../../components/auth/LoginForm';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, 'background');
-  const { colors } = useTheme();
 
   return (
     <>

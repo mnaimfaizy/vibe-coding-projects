@@ -1,7 +1,13 @@
-import { Link } from 'expo-router';
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-raw-text */
 import React, { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
+
+import { Link } from 'expo-router';
+
+import { Button, Divider, HelperText, Surface, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { validateLogin } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -12,8 +18,7 @@ export const LoginForm: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, error, clearError, navigateAfterAuth } = useAuth();
-  const { colors } = useTheme();
+  const { login, error, clearError } = useAuth();
 
   const handleSubmit = async () => {
     clearError();
@@ -65,7 +70,7 @@ export const LoginForm: React.FC = () => {
         autoCapitalize="none"
         keyboardType="email-address"
         icon="email"
-        error={errors.email}
+        error={!!errors.email}
       />
 
       <FormInput
@@ -80,7 +85,7 @@ export const LoginForm: React.FC = () => {
         }}
         secureTextEntry
         icon="lock"
-        error={errors.password}
+        error={!!errors.password}
       />
 
       <Link href="/forgot-password" asChild>

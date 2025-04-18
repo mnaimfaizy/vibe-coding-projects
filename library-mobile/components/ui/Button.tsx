@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button as PaperButton, useTheme } from 'react-native-paper';
+
+import { Button as PaperButton } from 'react-native-paper';
 
 interface ButtonProps {
   title: string;
@@ -22,8 +26,6 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   ...props
 }) => {
-  const { colors } = useTheme();
-
   const getButtonMode = (): 'text' | 'outlined' | 'contained' | 'elevated' | 'contained-tonal' => {
     switch (variant) {
       case 'primary':

@@ -1,7 +1,14 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, HelperText, Surface, Text, useTheme } from 'react-native-paper';
+
+import { router, useLocalSearchParams } from 'expo-router';
+
+import { Button, Card, HelperText, Surface, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { isValidEmail } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -16,14 +23,6 @@ export const VerifyEmailForm: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
 
   const { verifyEmail, resendVerification } = useAuth();
-  const { colors } = useTheme();
-
-  // If we have a token in the URL, try to verify it
-  React.useEffect(() => {
-    if (token) {
-      handleVerifyToken(token as string);
-    }
-  }, [token]);
 
   const handleVerifyToken = async (verificationToken: string) => {
     setVerifying(true);
@@ -41,6 +40,13 @@ export const VerifyEmailForm: React.FC = () => {
       setVerifying(false);
     }
   };
+
+  // If we have a token in the URL, try to verify it
+  useEffect(() => {
+    if (token) {
+      handleVerifyToken(token as string);
+    }
+  }, [token]);
 
   const handleResendVerification = async () => {
     if (!isValidEmail(email)) {
@@ -76,7 +82,7 @@ export const VerifyEmailForm: React.FC = () => {
         </Card>
 
         <Button mode="contained" onPress={() => router.replace('/login')} style={styles.button}>
-          Go to Login
+          <Text>Go to Login</Text>
         </Button>
       </View>
     );
@@ -98,7 +104,7 @@ export const VerifyEmailForm: React.FC = () => {
         </Card>
 
         <Button mode="contained" onPress={() => router.replace('/login')} style={styles.button}>
-          Back to Login
+          <Text>Back to Login</Text>
         </Button>
       </View>
     );
@@ -143,11 +149,11 @@ export const VerifyEmailForm: React.FC = () => {
         disabled={resending || verifying}
         style={styles.button}
       >
-        Resend Verification Email
+        <Text>Resend Verification Email</Text>
       </Button>
 
       <Button mode="text" onPress={() => router.replace('/login')} style={styles.backToLoginButton}>
-        Back to Login
+        <Text>Back to Login</Text>
       </Button>
     </View>
   );

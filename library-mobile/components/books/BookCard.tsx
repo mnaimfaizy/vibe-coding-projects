@@ -1,7 +1,11 @@
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
+
 import { Image, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, IconButton, Text, useTheme } from 'react-native-paper';
+
+import * as Haptics from 'expo-haptics';
+
+import { ActivityIndicator, Card, IconButton, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types/Book';
@@ -23,7 +27,6 @@ export const BookCard: React.FC<BookCardProps> = ({
   const [isInCollection, setIsInCollection] = useState<boolean>(inCollection);
   const [loading, setLoading] = useState<boolean>(false);
   const { isAuthenticated } = useAuth();
-  const { colors } = useTheme();
 
   // Keep local state in sync with props
   useEffect(() => {
@@ -43,14 +46,14 @@ export const BookCard: React.FC<BookCardProps> = ({
   const handleCollectionToggle = async () => {
     // First verify user is authenticated
     if (!isAuthenticated) {
-      console.log('Cannot toggle collection - user not authenticated');
+      console.warn('Cannot toggle collection - user not authenticated');
       return;
     }
 
     // Double-check we have a token before making API calls
     const token = await getToken();
     if (!token) {
-      console.log('No token available, cannot modify collection');
+      console.warn('No token available, cannot modify collection');
       return;
     }
 

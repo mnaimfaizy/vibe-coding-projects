@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { HelperText, TextInput, useTheme } from 'react-native-paper';
+
+import { HelperText, TextInput } from 'react-native-paper';
 
 interface FormInputProps extends React.ComponentProps<typeof TextInput> {
   label: string;
-  error?: string;
+  errorMessage?: string;
   secureTextEntry?: boolean;
   icon?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
   label,
-  error,
+  errorMessage,
   secureTextEntry,
   icon,
   ...props
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
+  const [, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -29,7 +29,7 @@ export const FormInput: React.FC<FormInputProps> = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         mode="outlined"
-        error={!!error}
+        error={!!errorMessage}
         left={icon ? <TextInput.Icon icon={icon} /> : undefined}
         right={
           secureTextEntry ? (
@@ -43,9 +43,9 @@ export const FormInput: React.FC<FormInputProps> = ({
         outlineStyle={styles.outline}
         {...props}
       />
-      {error ? (
-        <HelperText type="error" visible={!!error} style={styles.error}>
-          {error}
+      {errorMessage ? (
+        <HelperText type="error" visible={!!errorMessage} style={styles.error}>
+          {errorMessage}
         </HelperText>
       ) : null}
     </View>
@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '100%',
   },
+  // eslint-disable-next-line react-native/no-color-literals
   input: {
     backgroundColor: 'transparent',
   },

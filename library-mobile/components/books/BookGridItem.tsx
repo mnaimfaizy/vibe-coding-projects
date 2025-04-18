@@ -1,6 +1,10 @@
-import * as Haptics from 'expo-haptics';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
+
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
+
+import * as Haptics from 'expo-haptics';
+
 import {
   ActivityIndicator,
   Card,
@@ -10,6 +14,7 @@ import {
   Text,
   useTheme,
 } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types/Book';
@@ -54,14 +59,14 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
 
     // First verify user is authenticated
     if (!isAuthenticated) {
-      console.log('Cannot toggle collection - user not authenticated');
+      console.warn('Cannot toggle collection - user not authenticated');
       return;
     }
 
     // Double-check we have a token before making API calls
     const token = await getToken();
     if (!token) {
-      console.log('No token available, cannot modify collection');
+      console.warn('No token available, cannot modify collection');
       return;
     }
 
@@ -109,6 +114,7 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
                 onPress={handleCollectionToggle}
                 style={[
                   styles.favoriteButton,
+                  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
                   { backgroundColor: isInCollection ? colors.primary : 'rgba(0,0,0,0.5)' },
                 ]}
                 iconColor="#fff"

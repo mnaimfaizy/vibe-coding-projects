@@ -10,7 +10,17 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['node_modules', '.expo', 'ios', 'android', 'build', 'dist', 'coverage', 'web-build', 'scripts'],
+    ignores: [
+      'node_modules',
+      '.expo',
+      'ios',
+      'android',
+      'build',
+      'dist',
+      'coverage',
+      'web-build',
+      'scripts',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

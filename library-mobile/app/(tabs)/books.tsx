@@ -1,8 +1,13 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-native/no-raw-text */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+import { Animated, FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
+
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
+
 import {
   ActivityIndicator,
   Banner,
@@ -14,6 +19,7 @@ import {
   Text,
   useTheme,
 } from 'react-native-paper';
+
 import { BookCard } from '../../components/books/BookCard';
 import { BookDetailsModal } from '../../components/books/BookDetailsModal';
 import { BookGridItem } from '../../components/books/BookGridItem';
@@ -46,14 +52,13 @@ export default function BooksScreen() {
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
   const { colors } = useTheme();
 
   // Check auth token at startup
   useEffect(() => {
     const checkAuthToken = async () => {
       const token = await getToken();
-      console.log('Auth token in BooksScreen:', token ? 'Present' : 'Missing');
+      console.warn('Auth token in BooksScreen:', token ? 'Present' : 'Missing');
       setAuthChecked(true);
     };
 
@@ -73,10 +78,10 @@ export default function BooksScreen() {
 
       // Only attempt to fetch collection data if authenticated and auth check is complete
       if (isAuthenticated && !authLoading && authChecked) {
-        console.log('User is authenticated, fetching collection');
+        console.warn('User is authenticated, fetching collection');
         fetchUserCollection();
       } else {
-        console.log('Not fetching collection - user not authenticated or auth still loading');
+        console.warn('Not fetching collection - user not authenticated or auth still loading');
         // Clear collection data if not authenticated
         if (!isAuthenticated) {
           setUserCollectionIds(new Set());
@@ -124,17 +129,17 @@ export default function BooksScreen() {
   const fetchUserCollection = async () => {
     // Skip if not authenticated or already fetching
     if (!isAuthenticated || collectionLoading) {
-      console.log('Skipping collection fetch - not authenticated or already loading');
+      console.warn('Skipping collection fetch - not authenticated or already loading');
       return;
     }
 
     try {
       setCollectionLoading(true);
-      console.log('Fetching user collection...');
+      console.warn('Fetching user collection...');
 
       const token = await getToken();
       if (!token) {
-        console.log('No token available, cannot fetch collection');
+        console.warn('No token available, cannot fetch collection');
         return;
       }
 
@@ -142,7 +147,7 @@ export default function BooksScreen() {
       const collectionBooks = response.books || [];
       const collectionIds = new Set(collectionBooks.map(book => book.id));
       setUserCollectionIds(collectionIds);
-      console.log(`Collection fetched: ${collectionIds.size} books found`);
+      console.warn(`Collection fetched: ${collectionIds.size} books found`);
     } catch (err) {
       console.error('Failed to fetch user collection:', err);
       // Don't show an error UI for this - just silently fail

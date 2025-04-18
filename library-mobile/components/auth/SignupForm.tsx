@@ -1,7 +1,13 @@
-import { Link } from 'expo-router';
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-raw-text */
 import React, { useState } from 'react';
+
 import { StyleSheet, View } from 'react-native';
-import { Button, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
+
+import { Link } from 'expo-router';
+
+import { Button, Divider, HelperText, Surface, Text } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { validateSignup } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -15,7 +21,6 @@ export const SignupForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { signup, error, clearError, navigateAfterAuth } = useAuth();
-  const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
@@ -64,7 +69,7 @@ export const SignupForm: React.FC = () => {
           }
         }}
         icon="account"
-        error={errors.name}
+        error={!!errors.name}
       />
 
       <FormInput
@@ -80,7 +85,7 @@ export const SignupForm: React.FC = () => {
         autoCapitalize="none"
         keyboardType="email-address"
         icon="email"
-        error={errors.email}
+        error={!!errors.email}
       />
 
       <FormInput
@@ -95,7 +100,7 @@ export const SignupForm: React.FC = () => {
         }}
         secureTextEntry
         icon="lock"
-        error={errors.password}
+        error={!!errors.password}
       />
 
       <FormInput
@@ -110,7 +115,7 @@ export const SignupForm: React.FC = () => {
         }}
         secureTextEntry
         icon="shield-check"
-        error={errors.confirmPassword}
+        error={!!errors.confirmPassword}
       />
 
       <Button

@@ -1,12 +1,14 @@
-import axios, { AxiosError, AxiosInstance } from 'axios';
 import Constants from 'expo-constants';
+
+import axios, { AxiosError, AxiosInstance } from 'axios';
+
 import { getToken, removeToken } from '../utils/storage';
 
 // Use environment variable if available, otherwise use local network IP
 // that can be accessed from mobile devices on the same network
 const BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.9:3000/api'; // Replace with your computer's local IP
 
-console.log('API URL:', BASE_URL); // For debugging purposes
+console.warn('API URL:', BASE_URL); // For debugging purposes
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -20,7 +22,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async config => {
     const token = await getToken();
-    console.log('Auth Token:', token ? 'Present' : 'Missing'); // Debug token presence
+    console.warn('Auth Token:', token ? 'Present' : 'Missing'); // Debug token presence
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

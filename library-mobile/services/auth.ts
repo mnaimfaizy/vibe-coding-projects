@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { removeToken, setToken } from '../utils/storage';
+
 import api from './api';
 
 export interface SignupData {
@@ -57,9 +59,9 @@ export const authService = {
    */
   async signup(userData: SignupData): Promise<AuthResponse> {
     try {
-      console.log('Signup request:', JSON.stringify(userData, null, 2));
+      console.warn('Signup request:', JSON.stringify(userData, null, 2));
       const response = await api.post<AuthResponse>('/auth/register', userData);
-      console.log('Signup response:', JSON.stringify(response.data, null, 2));
+      console.warn('Signup response:', JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
       return handleApiError(error, 'signup');
@@ -71,13 +73,13 @@ export const authService = {
    */
   async login(credentials: LoginData): Promise<AuthResponse> {
     try {
-      console.log('Login request:', JSON.stringify({ email: credentials.email }, null, 2));
+      console.warn('Login request:', JSON.stringify({ email: credentials.email }, null, 2));
       const response = await api.post<AuthResponse>('/auth/login', credentials);
-      console.log('Login response:', JSON.stringify(response.data, null, 2));
+      console.warn('Login response:', JSON.stringify(response.data, null, 2));
 
       if (response.data.token) {
         await setToken(response.data.token);
-        console.log('Token stored successfully');
+        console.warn('Token stored successfully');
       }
 
       return response.data;
@@ -120,14 +122,14 @@ export const authService = {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      console.log('Fetching current user...');
+      console.warn('Fetching current user...');
       const response = await api.get<{ user: User }>('/auth/me');
-      console.log('Current user response:', JSON.stringify(response.data, null, 2));
+      console.warn('Current user response:', JSON.stringify(response.data, null, 2));
       return response.data.user;
     } catch (error) {
       console.error('Get current user error:', error);
-      if (error.response?.status === 401) {
-        console.log('Session expired or invalid token');
+      if (error instanceof Error && (error as any).response?.status === 401) {
+        console.warn('Session expired or invalid token');
         await removeToken();
       }
       return null;

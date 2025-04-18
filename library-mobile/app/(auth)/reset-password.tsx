@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+import React from 'react';
+
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
+
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
-import { ThemedText } from '../../components/ThemedText';
+
 import { ResetPasswordForm } from '../../components/auth/ResetPasswordForm';
+import { ThemedText } from '../../components/ThemedText';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function ResetPasswordScreen() {

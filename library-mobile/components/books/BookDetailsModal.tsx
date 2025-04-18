@@ -1,8 +1,13 @@
+/* eslint-disable react-native/no-color-literals */
+import React, { useEffect, useState } from 'react';
+
+import { Image, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+
 import { Button, Chip, Divider, IconButton, Surface, Text, useTheme } from 'react-native-paper';
+
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { bookService } from '../../services/bookService';
@@ -17,7 +22,6 @@ interface BookDetailsModalProps {
   inCollection?: boolean;
 }
 
-const { width } = Dimensions.get('window');
 const COVER_HEIGHT = 240;
 
 export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
@@ -37,8 +41,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
     setIsInCollection(inCollection);
   }, [inCollection]);
 
-  const backgroundColor = useThemeColor({}, 'background');
-  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
+  const borderColor = useThemeColor({ lightColor: '#e0e0e0', darkColor: '#2c2c2e' }, 'border');
 
   if (!book) return null;
 
@@ -53,14 +56,14 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
   const handleCollectionToggle = async () => {
     // First verify user is authenticated
     if (!isAuthenticated) {
-      console.log('Cannot toggle collection - user not authenticated');
+      console.warn('Cannot toggle collection - user not authenticated');
       return;
     }
 
     // Double-check we have a token before making API calls
     const token = await getToken();
     if (!token) {
-      console.log('No token available, cannot modify collection');
+      console.warn('No token available, cannot modify collection');
       return;
     }
 

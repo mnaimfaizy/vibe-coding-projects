@@ -1,6 +1,9 @@
 import React from 'react';
+
 import { StyleSheet, View } from 'react-native';
+
 import { ActivityIndicator, Surface, Text, useTheme } from 'react-native-paper';
+
 import { useThemeColor } from '../../hooks/useThemeColor';
 
 interface LoadingOverlayProps {
