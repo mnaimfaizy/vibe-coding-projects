@@ -112,7 +112,7 @@ jobs:
           
       - name: Run tests
         working-directory: ./library-mobile
-        run: npm test -- --ci --coverage --maxWorkers=2
+        run: npm run test:ci -- --coverage --maxWorkers=2
 
   build:
     name: Verify Build
