@@ -52,7 +52,8 @@ export const validateSignup = (
   if (!isNotEmpty(password)) {
     errors.password = 'Password is required';
   } else if (!isValidPassword(password)) {
-    errors.password = 'Password must be at least 8 characters with at least one letter and one number';
+    errors.password =
+      'Password must be at least 8 characters with at least one letter and one number';
   }
 
   if (!isNotEmpty(confirmPassword)) {
@@ -67,10 +68,7 @@ export const validateSignup = (
 /**
  * Validate login form
  */
-export const validateLogin = (
-  email: string,
-  password: string
-): Record<string, string> => {
+export const validateLogin = (email: string, password: string): Record<string, string> => {
   const errors: Record<string, string> = {};
 
   if (!isNotEmpty(email)) {
@@ -89,9 +87,7 @@ export const validateLogin = (
 /**
  * Validate password reset request form
  */
-export const validatePasswordResetRequest = (
-  email: string
-): Record<string, string> => {
+export const validatePasswordResetRequest = (email: string): Record<string, string> => {
   const errors: Record<string, string> = {};
 
   if (!isNotEmpty(email)) {
@@ -115,7 +111,8 @@ export const validatePasswordReset = (
   if (!isNotEmpty(password)) {
     errors.password = 'Password is required';
   } else if (!isValidPassword(password)) {
-    errors.password = 'Password must be at least 8 characters with at least one letter and one number';
+    errors.password =
+      'Password must be at least 8 characters with at least one letter and one number';
   }
 
   if (!isNotEmpty(confirmPassword)) {

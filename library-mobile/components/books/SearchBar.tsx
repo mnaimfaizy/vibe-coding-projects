@@ -1,10 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Keyboard, StyleSheet, View } from 'react-native';
-import {
-    IconButton,
-    Searchbar,
-    useTheme
-} from 'react-native-paper';
+import { IconButton, Searchbar, useTheme } from 'react-native-paper';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -19,43 +15,43 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onFilterPress,
   placeholder = 'Search for books...',
   initialValue = '',
-  showFilters = true
+  showFilters = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
-  
+
   const animatedWidth = useRef(new Animated.Value(1)).current;
   const { colors } = useTheme();
-  
+
   const handleFocus = () => {
     setIsFocused(true);
     Animated.timing(animatedWidth, {
       toValue: 0.85,
       duration: 200,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start();
   };
-  
+
   const handleBlur = () => {
     setIsFocused(false);
     Animated.timing(animatedWidth, {
       toValue: 1,
       duration: 200,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start();
   };
-  
+
   const handleSearch = () => {
     onSearch(searchQuery);
     Keyboard.dismiss();
   };
-  
+
   const handleChangeText = (text: string) => {
     setSearchQuery(text);
     // For a real-time search experience
     onSearch(text);
-  }
-  
+  };
+
   const clearSearch = () => {
     setSearchQuery('');
     onSearch('');
@@ -63,15 +59,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[
-        styles.searchContainer, 
-        { 
-          width: animatedWidth.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['85%', '100%']
-          })
-        }
-      ]}>
+      <Animated.View
+        style={[
+          styles.searchContainer,
+          {
+            width: animatedWidth.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['85%', '100%'],
+            }),
+          },
+        ]}
+      >
         <Searchbar
           placeholder={placeholder}
           onChangeText={handleChangeText}
@@ -86,12 +84,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onClearIconPress={clearSearch}
           mode="bar"
           showDivider={false}
-          traileringIcon={showFilters ? "filter-outline" : undefined}
+          traileringIcon={showFilters ? 'filter-outline' : undefined}
           traileringIconAccessibilityLabel="Filter"
           onTraileringIconPress={onFilterPress}
         />
       </Animated.View>
-      
+
       {isFocused && (
         <IconButton
           icon="keyboard-backspace"
@@ -130,5 +128,5 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginLeft: 4,
-  }
+  },
 });

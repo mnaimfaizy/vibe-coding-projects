@@ -19,12 +19,12 @@ export default function TabLayout() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const { colors } = useTheme();
-  
+
   const backgroundColor = useThemeColor({}, 'background');
   const tabBackgroundColor = useThemeColor({}, 'tabBackground');
   const tint = useThemeColor({}, 'tint');
   const tabIconDefault = useThemeColor({}, 'tabIconDefault');
-  
+
   // Show loading screen while checking authentication status
   if (isLoading) {
     return <LoadingOverlay message="Loading..." />;
@@ -40,7 +40,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: tabIconDefault,
-        tabBarStyle: { 
+        tabBarStyle: {
           backgroundColor: tabBackgroundColor,
           elevation: 4,
           shadowColor: '#000',
@@ -48,7 +48,7 @@ export default function TabLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 3,
         },
-        headerStyle: { 
+        headerStyle: {
           backgroundColor,
           elevation: 4,
           shadowColor: '#000',
@@ -57,7 +57,8 @@ export default function TabLayout() {
           shadowRadius: 3,
         },
         headerTintColor: useThemeColor({}, 'text'),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

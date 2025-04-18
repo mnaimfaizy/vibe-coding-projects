@@ -41,13 +41,13 @@ export interface AuthResponse {
 // Helper function to better handle and log API errors
 const handleApiError = (error: any, operation: string) => {
   console.error(`Auth error (${operation}):`, error);
-  
+
   // Log specific response data if available
   if (error.response) {
     console.error(`Status: ${error.response.status}`);
     console.error(`Response data:`, error.response.data);
   }
-  
+
   throw error;
 };
 
@@ -74,12 +74,12 @@ export const authService = {
       console.log('Login request:', JSON.stringify({ email: credentials.email }, null, 2));
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       console.log('Login response:', JSON.stringify(response.data, null, 2));
-      
+
       if (response.data.token) {
         await setToken(response.data.token);
         console.log('Token stored successfully');
       }
-      
+
       return response.data;
     } catch (error) {
       return handleApiError(error, 'login');
@@ -148,5 +148,5 @@ export const authService = {
   async resendVerification(email: string): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/resend-verification', { email });
     return response.data;
-  }
+  },
 };

@@ -1,15 +1,7 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  Button,
-  Card,
-  Divider,
-  HelperText,
-  Surface,
-  Text,
-  useTheme
-} from 'react-native-paper';
+import { Button, Card, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { validatePasswordResetRequest } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -19,22 +11,22 @@ export const PasswordResetForm: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
+
   const { requestPasswordReset, error, clearError, navigateAfterAuth } = useAuth();
   const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
     const formErrors = validatePasswordResetRequest(email);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    
+
     setErrors({});
     setIsLoading(true);
-    
+
     try {
       const success = await requestPasswordReset({ email });
       if (success) {
@@ -66,12 +58,8 @@ export const PasswordResetForm: React.FC = () => {
             </Text>
           </Card.Content>
         </Card>
-        
-        <Button
-          mode="contained"
-          onPress={handleBackToLogin}
-          style={styles.button}
-        >
+
+        <Button mode="contained" onPress={handleBackToLogin} style={styles.button}>
           Back to Login
         </Button>
       </View>
@@ -87,16 +75,16 @@ export const PasswordResetForm: React.FC = () => {
           </HelperText>
         </Surface>
       )}
-      
+
       <Text variant="bodyLarge" style={styles.instructions}>
         Enter your email address and we'll send you instructions to reset your password.
       </Text>
-      
+
       <FormInput
         label="Email"
         placeholder="Enter your email"
         value={email}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setEmail(text);
           if (errors.email) {
             setErrors({ ...errors, email: '' });
@@ -107,7 +95,7 @@ export const PasswordResetForm: React.FC = () => {
         icon="email"
         error={errors.email}
       />
-      
+
       <Button
         mode="contained"
         onPress={handleSubmit}
@@ -117,15 +105,15 @@ export const PasswordResetForm: React.FC = () => {
       >
         Reset Password
       </Button>
-      
+
       <Divider style={styles.divider} />
-      
+
       <View style={styles.loginContainer}>
-        <Text variant="bodyMedium">
-          Remember your password?{' '}
-        </Text>
+        <Text variant="bodyMedium">Remember your password? </Text>
         <Link href="/login" asChild>
-          <Text variant="bodyMedium" style={styles.loginLink}>Log In</Text>
+          <Text variant="bodyMedium" style={styles.loginLink}>
+            Log In
+          </Text>
         </Link>
       </View>
     </View>

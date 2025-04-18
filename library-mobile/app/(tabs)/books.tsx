@@ -2,14 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  FlatList,
-  Platform,
-  RefreshControl,
-  StyleSheet,
-  View
-} from 'react-native';
+import { Animated, FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import {
   ActivityIndicator,
   Banner,
@@ -19,7 +12,7 @@ import {
   Searchbar,
   Surface,
   Text,
-  useTheme
+  useTheme,
 } from 'react-native-paper';
 import { BookCard } from '../../components/books/BookCard';
 import { BookDetailsModal } from '../../components/books/BookDetailsModal';
@@ -44,18 +37,18 @@ export default function BooksScreen() {
   const [error, setError] = useState<string | null>(null);
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  
+
   // For display mode toggle (List vs Grid)
   const [isListMode, setIsListMode] = useState(true);
-  
+
   // For animated header
   const scrollY = useRef(new Animated.Value(0)).current;
-  
+
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const { colors } = useTheme();
-  
+
   // Check auth token at startup
   useEffect(() => {
     const checkAuthToken = async () => {
@@ -63,21 +56,21 @@ export default function BooksScreen() {
       console.log('Auth token in BooksScreen:', token ? 'Present' : 'Missing');
       setAuthChecked(true);
     };
-    
+
     checkAuthToken();
   }, []);
-  
+
   // Load books when component mounts
   useEffect(() => {
     fetchBooks();
   }, []);
-  
+
   // Handle authentication state changes and tab focus
   useFocusEffect(
     useCallback(() => {
       // Always fetch books when focusing the screen
       fetchBooks();
-      
+
       // Only attempt to fetch collection data if authenticated and auth check is complete
       if (isAuthenticated && !authLoading && authChecked) {
         console.log('User is authenticated, fetching collection');
@@ -91,19 +84,19 @@ export default function BooksScreen() {
       }
     }, [isAuthenticated, authLoading, authChecked])
   );
-  
+
   // Fetch books based on search and filters
   useEffect(() => {
     fetchBooks();
   }, [searchQuery, filters]);
-  
+
   const fetchBooks = async () => {
     try {
       setError(null);
       if (!refreshing) setLoading(true);
-      
+
       let booksData;
-      
+
       if (searchQuery) {
         const response = await bookService.searchBooks({ q: searchQuery });
         booksData = response.books || [];
@@ -111,12 +104,12 @@ export default function BooksScreen() {
         const response = await bookService.getAllBooks();
         booksData = response.books || [];
       }
-      
+
       // Apply filters if any
       if (Object.keys(filters).length > 0) {
         booksData = applyFilters(booksData);
       }
-      
+
       setBooks(booksData);
     } catch (err) {
       console.error('Failed to fetch books:', err);
@@ -127,24 +120,24 @@ export default function BooksScreen() {
       setRefreshing(false);
     }
   };
-  
+
   const fetchUserCollection = async () => {
     // Skip if not authenticated or already fetching
     if (!isAuthenticated || collectionLoading) {
       console.log('Skipping collection fetch - not authenticated or already loading');
       return;
     }
-    
+
     try {
       setCollectionLoading(true);
       console.log('Fetching user collection...');
-      
+
       const token = await getToken();
       if (!token) {
         console.log('No token available, cannot fetch collection');
         return;
       }
-      
+
       const response = await bookService.getUserCollection();
       const collectionBooks = response.books || [];
       const collectionIds = new Set(collectionBooks.map(book => book.id));
@@ -157,118 +150,113 @@ export default function BooksScreen() {
       setCollectionLoading(false);
     }
   };
-  
+
   const applyFilters = (booksToFilter: Book[]) => {
-    return booksToFilter.filter(book => {
-      // Filter by genre
-      if (filters.genre && book.genre !== filters.genre) {
-        return false;
-      }
-      
-      // Filter by year
-      if (filters.year !== undefined && filters.year !== null) {
-        if (
-          !book.publishYear || 
-          (filters.year < 2000 && book.publishYear >= 2000) ||
-          (filters.year >= 2000 && book.publishYear < filters.year)
-        ) {
+    return booksToFilter
+      .filter(book => {
+        // Filter by genre
+        if (filters.genre && book.genre !== filters.genre) {
           return false;
         }
-      }
-      
-      // More filters can be added here
-      
-      return true;
-    }).sort((a, b) => {
-      // Apply sorting
-      if (filters.sortBy === 'title') {
-        return filters.sortOrder === 'asc' 
-          ? a.title.localeCompare(b.title)
-          : b.title.localeCompare(a.title);
-      }
-      
-      if (filters.sortBy === 'author') {
-        const authorA = a.authors && a.authors.length > 0 
-          ? a.authors[0].name 
-          : a.author || '';
-          
-        const authorB = b.authors && b.authors.length > 0 
-          ? b.authors[0].name 
-          : b.author || '';
-          
-        return filters.sortOrder === 'asc' 
-          ? authorA.localeCompare(authorB)
-          : authorB.localeCompare(authorA);
-      }
-      
-      if (filters.sortBy === 'year') {
-        const yearA = a.publishYear || 0;
-        const yearB = b.publishYear || 0;
-        
-        return filters.sortOrder === 'asc' 
-          ? yearA - yearB
-          : yearB - yearA;
-      }
-      
-      // Default sorting by title
-      return a.title.localeCompare(b.title);
-    });
+
+        // Filter by year
+        if (filters.year !== undefined && filters.year !== null) {
+          if (
+            !book.publishYear ||
+            (filters.year < 2000 && book.publishYear >= 2000) ||
+            (filters.year >= 2000 && book.publishYear < filters.year)
+          ) {
+            return false;
+          }
+        }
+
+        // More filters can be added here
+
+        return true;
+      })
+      .sort((a, b) => {
+        // Apply sorting
+        if (filters.sortBy === 'title') {
+          return filters.sortOrder === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
+        }
+
+        if (filters.sortBy === 'author') {
+          const authorA = a.authors && a.authors.length > 0 ? a.authors[0].name : a.author || '';
+
+          const authorB = b.authors && b.authors.length > 0 ? b.authors[0].name : b.author || '';
+
+          return filters.sortOrder === 'asc'
+            ? authorA.localeCompare(authorB)
+            : authorB.localeCompare(authorA);
+        }
+
+        if (filters.sortBy === 'year') {
+          const yearA = a.publishYear || 0;
+          const yearB = b.publishYear || 0;
+
+          return filters.sortOrder === 'asc' ? yearA - yearB : yearB - yearA;
+        }
+
+        // Default sorting by title
+        return a.title.localeCompare(b.title);
+      });
   };
-  
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchBooks();
-    
+
     // Only fetch collection if authenticated
     if (isAuthenticated && authChecked) {
       fetchUserCollection();
     }
   };
-  
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
-  
+
   const handleFilterPress = () => {
     setFilterModalVisible(true);
     Haptics.selectionAsync();
   };
-  
+
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
   };
-  
+
   const handleBookPress = (book: Book) => {
     setSelectedBook(book);
     setDetailsModalVisible(true);
   };
-  
+
   const handleCollectionUpdate = () => {
     fetchUserCollection();
   };
-  
+
   const toggleDisplayMode = () => {
     Haptics.selectionAsync();
     setIsListMode(!isListMode);
   };
-  
+
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 120],
     outputRange: [80, 0],
-    extrapolate: 'clamp'
+    extrapolate: 'clamp',
   });
-  
+
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 60, 120],
     outputRange: [1, 0.5, 0],
-    extrapolate: 'clamp'
+    extrapolate: 'clamp',
   });
-  
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: false }
-  );
-  
+
+  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+    useNativeDriver: false,
+  });
+
   const isCollectionBook = (bookId: number) => {
     return userCollectionIds.has(bookId);
   };
@@ -294,22 +282,26 @@ export default function BooksScreen() {
       );
     }
   };
-  
+
   const renderHeader = () => (
     <>
-      <Animated.View style={[
-        styles.welcomeContainer,
-        { 
-          height: headerHeight, 
-          opacity: headerOpacity 
-        }
-      ]}>
-        <Text variant="headlineLarge" style={styles.welcomeTitle}>Explore Books</Text>
+      <Animated.View
+        style={[
+          styles.welcomeContainer,
+          {
+            height: headerHeight,
+            opacity: headerOpacity,
+          },
+        ]}
+      >
+        <Text variant="headlineLarge" style={styles.welcomeTitle}>
+          Explore Books
+        </Text>
         <Text variant="bodyLarge" style={styles.welcomeSubtitle}>
           Find your next favorite read
         </Text>
       </Animated.View>
-      
+
       <View style={styles.searchAndFilterContainer}>
         <View style={styles.searchbarContainer}>
           <Searchbar
@@ -320,13 +312,9 @@ export default function BooksScreen() {
             mode="bar"
           />
         </View>
-        
+
         <View style={styles.actionsContainer}>
-          <IconButton
-            icon="filter-variant"
-            size={24}
-            onPress={handleFilterPress}
-          />
+          <IconButton icon="filter-variant" size={24} onPress={handleFilterPress} />
           <IconButton
             icon={isListMode ? 'view-grid-outline' : 'view-list-outline'}
             size={24}
@@ -334,62 +322,57 @@ export default function BooksScreen() {
           />
         </View>
       </View>
-      
+
       {Object.keys(filters).length > 0 && (
         <Surface style={styles.filtersChipsContainer} elevation={0}>
           <View style={styles.filterChipRow}>
             {filters.genre && (
-              <Chip 
-                icon="book" 
-                onClose={() => setFilters({...filters, genre: undefined})}
+              <Chip
+                icon="book"
+                onClose={() => setFilters({ ...filters, genre: undefined })}
                 style={styles.filterChip}
               >
                 {filters.genre}
               </Chip>
             )}
-            
+
             {filters.year && (
-              <Chip 
-                icon="calendar" 
-                onClose={() => setFilters({...filters, year: undefined})}
+              <Chip
+                icon="calendar"
+                onClose={() => setFilters({ ...filters, year: undefined })}
                 style={styles.filterChip}
               >
                 {filters.year < 2000 ? 'Before 2000' : `From ${filters.year}`}
               </Chip>
             )}
-            
-            {(filters.sortBy && filters.sortOrder) && (
-              <Chip 
-                icon="sort" 
-                style={styles.filterChip}
-              >
+
+            {filters.sortBy && filters.sortOrder && (
+              <Chip icon="sort" style={styles.filterChip}>
                 {`Sort: ${filters.sortBy} (${filters.sortOrder === 'asc' ? '↑' : '↓'})`}
               </Chip>
             )}
           </View>
-          
-          <Button 
-            mode="text" 
-            onPress={() => setFilters({})}
-            style={styles.clearButton}
-          >
+
+          <Button mode="text" onPress={() => setFilters({})} style={styles.clearButton}>
             Clear All
           </Button>
         </Surface>
       )}
     </>
   );
-  
+
   const renderEmptyState = () => {
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
           <ActivityIndicator size="large" />
-          <Text variant="bodyLarge" style={styles.emptyText}>Loading books...</Text>
+          <Text variant="bodyLarge" style={styles.emptyText}>
+            Loading books...
+          </Text>
         </View>
       );
     }
-    
+
     if (error) {
       return (
         <Banner
@@ -406,19 +389,12 @@ export default function BooksScreen() {
         </Banner>
       );
     }
-    
+
     return (
       <View style={styles.emptyContainer}>
-        <IconButton
-          icon="book-off-outline"
-          size={64}
-          iconColor={colors.onSurfaceDisabled}
-        />
+        <IconButton icon="book-off-outline" size={64} iconColor={colors.onSurfaceDisabled} />
         <Text variant="bodyLarge" style={styles.emptyText}>
-          {searchQuery 
-            ? `No books found matching "${searchQuery}"`
-            : 'No books available'
-          }
+          {searchQuery ? `No books found matching "${searchQuery}"` : 'No books available'}
         </Text>
         {searchQuery && (
           <Button
@@ -436,7 +412,7 @@ export default function BooksScreen() {
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <StatusBar style="auto" />
-      
+
       <FlatList
         data={books}
         renderItem={renderBookItem}
@@ -458,14 +434,14 @@ export default function BooksScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       />
-      
+
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         onApplyFilters={handleApplyFilters}
         initialFilters={filters}
       />
-      
+
       <BookDetailsModal
         book={selectedBook}
         visible={detailsModalVisible}
@@ -487,7 +463,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   gridColumnWrapper: {
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
     marginBottom: 0,
   },
   welcomeContainer: {
@@ -550,5 +526,5 @@ const styles = StyleSheet.create({
   },
   emptyStateButton: {
     marginTop: 16,
-  }
+  },
 });

@@ -8,7 +8,7 @@ import { useThemeColor } from '../../hooks/useThemeColor';
 
 export default function ResetPasswordScreen() {
   const backgroundColor = useThemeColor({}, 'background');
-  
+
   return (
     <>
       <StatusBar style="auto" />
@@ -18,27 +18,27 @@ export default function ResetPasswordScreen() {
           headerShown: false,
         }}
       />
-      <ScrollView 
-        style={[styles.container, { backgroundColor }]} 
+      <ScrollView
+        style={[styles.container, { backgroundColor }]}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../assets/images/icon.png')} 
-            style={styles.logo} 
-            resizeMode="contain" 
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
           <ThemedText style={styles.appName}>Library App</ThemedText>
         </View>
-        
+
         <View style={styles.welcomeContainer}>
           <ThemedText style={styles.welcomeText}>Reset Password</ThemedText>
           <ThemedText style={styles.subtitleText}>
             Create a new secure password for your account
           </ThemedText>
         </View>
-        
+
         <View style={styles.formContainer}>
           <ResetPasswordForm />
         </View>

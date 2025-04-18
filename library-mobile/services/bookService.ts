@@ -20,7 +20,7 @@ export const bookService = {
       const params = new URLSearchParams();
       if (page !== undefined) params.append('page', page.toString());
       if (limit !== undefined) params.append('limit', limit.toString());
-      
+
       const response = await api.get<BooksResponse>('/books', { params });
       return response.data;
     } catch (error) {
@@ -38,7 +38,7 @@ export const bookService = {
       searchParams.append('q', params.q);
       if (params.page !== undefined) searchParams.append('page', params.page.toString());
       if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
-      
+
       const response = await api.get<BookSearchResponse>('/books/search', { params: searchParams });
       return response.data;
     } catch (error) {
@@ -97,5 +97,5 @@ export const bookService = {
       console.error('Error removing book from collection:', error);
       throw error;
     }
-  }
+  },
 };

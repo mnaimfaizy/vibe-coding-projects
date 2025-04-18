@@ -18,6 +18,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
+    // @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
@@ -43,26 +44,29 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const backgroundColor = useThemeColor({}, 'background');
   const colorScheme = useColorScheme();
-  
+
   // Create Paper theme based on device color scheme
-  const paperTheme = colorScheme === 'dark' ? {
-    ...MD3DarkTheme,
-    colors: {
-      ...MD3DarkTheme.colors,
-      primary: '#6200ee',
-      accent: '#03dac4',
-      background: backgroundColor,
-    }
-  } : {
-    ...MD3LightTheme,
-    colors: {
-      ...MD3LightTheme.colors,
-      primary: '#6200ee',
-      accent: '#03dac4',
-      background: backgroundColor,
-    }
-  };
-  
+  const paperTheme =
+    colorScheme === 'dark'
+      ? {
+          ...MD3DarkTheme,
+          colors: {
+            ...MD3DarkTheme.colors,
+            primary: '#6200ee',
+            accent: '#03dac4',
+            background: backgroundColor,
+          },
+        }
+      : {
+          ...MD3LightTheme,
+          colors: {
+            ...MD3LightTheme.colors,
+            primary: '#6200ee',
+            accent: '#03dac4',
+            background: backgroundColor,
+          },
+        };
+
   return (
     <PaperProvider theme={paperTheme}>
       <AuthProvider>

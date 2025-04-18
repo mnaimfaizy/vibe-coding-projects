@@ -1,14 +1,14 @@
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import {
-    Avatar,
-    Button,
-    Divider,
-    IconButton,
-    List,
-    Surface,
-    Text,
-    useTheme
+  Avatar,
+  Button,
+  Divider,
+  IconButton,
+  List,
+  Surface,
+  Text,
+  useTheme,
 } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -17,43 +17,31 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const { colors } = useTheme();
-  
+
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive', 
-          onPress: () => logout() 
-        }
-      ]
-    );
+    Alert.alert('Logout', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => logout(),
+      },
+    ]);
   };
 
   const handleChangePassword = () => {
     // In a real app, navigate to change password screen
     Alert.alert('Change Password', 'This feature will be implemented soon!');
   };
-  
+
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
       <Surface style={styles.profileHeader} elevation={0}>
         <View style={styles.avatarContainer}>
-          <Avatar.Text 
-            size={100} 
-            label={(user?.name?.charAt(0) || 'U').toUpperCase()}
-          />
-          <IconButton
-            icon="camera"
-            mode="contained"
-            size={20}
-            style={styles.editAvatarButton}
-          />
+          <Avatar.Text size={100} label={(user?.name?.charAt(0) || 'U').toUpperCase()} />
+          <IconButton icon="camera" mode="contained" size={20} style={styles.editAvatarButton} />
         </View>
-        
+
         <Text variant="headlineSmall" style={styles.profileName}>
           {user?.name || 'User'}
         </Text>
@@ -61,10 +49,12 @@ export default function ProfileScreen() {
           {user?.email || 'email@example.com'}
         </Text>
       </Surface>
-      
+
       <Surface style={styles.sectionContainer} elevation={0}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>Account</Text>
-        
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Account
+        </Text>
+
         <List.Item
           title="Edit Profile"
           left={props => <List.Icon {...props} icon="account-edit" />}
@@ -72,7 +62,7 @@ export default function ProfileScreen() {
           style={styles.listItem}
           onPress={() => {}}
         />
-        
+
         <List.Item
           title="Change Password"
           left={props => <List.Icon {...props} icon="lock" />}
@@ -81,12 +71,14 @@ export default function ProfileScreen() {
           onPress={handleChangePassword}
         />
       </Surface>
-      
+
       <Divider />
-      
+
       <Surface style={styles.sectionContainer} elevation={0}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>Library Activity</Text>
-        
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Library Activity
+        </Text>
+
         <List.Item
           title="Borrowed Books"
           description="0 books"
@@ -95,7 +87,7 @@ export default function ProfileScreen() {
           style={styles.listItem}
           onPress={() => {}}
         />
-        
+
         <List.Item
           title="Reading History"
           left={props => <List.Icon {...props} icon="history" />}
@@ -103,7 +95,7 @@ export default function ProfileScreen() {
           style={styles.listItem}
           onPress={() => {}}
         />
-        
+
         <List.Item
           title="Wishlist"
           left={props => <List.Icon {...props} icon="bookmark" />}
@@ -112,12 +104,14 @@ export default function ProfileScreen() {
           onPress={() => {}}
         />
       </Surface>
-      
+
       <Divider />
-      
+
       <Surface style={styles.sectionContainer} elevation={0}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>Preferences</Text>
-        
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Preferences
+        </Text>
+
         <List.Item
           title="Notifications"
           left={props => <List.Icon {...props} icon="bell" />}
@@ -125,7 +119,7 @@ export default function ProfileScreen() {
           style={styles.listItem}
           onPress={() => {}}
         />
-        
+
         <List.Item
           title="App Appearance"
           left={props => <List.Icon {...props} icon="theme-light-dark" />}
@@ -134,7 +128,7 @@ export default function ProfileScreen() {
           onPress={() => {}}
         />
       </Surface>
-      
+
       <View style={styles.actionsContainer}>
         <Button
           mode="contained-tonal"
@@ -146,7 +140,7 @@ export default function ProfileScreen() {
         >
           Logout
         </Button>
-        
+
         <Text variant="bodySmall" style={styles.versionText}>
           Version 1.0.0
         </Text>
@@ -204,5 +198,5 @@ const styles = StyleSheet.create({
   },
   versionText: {
     opacity: 0.5,
-  }
+  },
 });

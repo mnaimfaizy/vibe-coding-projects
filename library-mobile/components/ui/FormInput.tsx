@@ -18,9 +18,9 @@ export const FormInput: React.FC<FormInputProps> = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { colors } = useTheme();
-  
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -31,12 +31,13 @@ export const FormInput: React.FC<FormInputProps> = ({
         mode="outlined"
         error={!!error}
         left={icon ? <TextInput.Icon icon={icon} /> : undefined}
-        right={secureTextEntry ? 
-          <TextInput.Icon 
-            icon={showPassword ? "eye-off" : "eye"} 
-            onPress={() => setShowPassword(!showPassword)}
-          /> : 
-          undefined
+        right={
+          secureTextEntry ? (
+            <TextInput.Icon
+              icon={showPassword ? 'eye-off' : 'eye'}
+              onPress={() => setShowPassword(!showPassword)}
+            />
+          ) : undefined
         }
         style={styles.input}
         outlineStyle={styles.outline}
@@ -65,5 +66,5 @@ const styles = StyleSheet.create({
   error: {
     marginBottom: 0,
     paddingHorizontal: 0,
-  }
+  },
 });

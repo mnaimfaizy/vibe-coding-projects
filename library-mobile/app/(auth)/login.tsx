@@ -9,7 +9,7 @@ import { useThemeColor } from '../../hooks/useThemeColor';
 export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const { colors } = useTheme();
-  
+
   return (
     <>
       <StatusBar style="auto" />
@@ -19,27 +19,31 @@ export default function LoginScreen() {
           headerShown: false,
         }}
       />
-      <ScrollView 
-        style={[styles.container, { backgroundColor }]} 
+      <ScrollView
+        style={[styles.container, { backgroundColor }]}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
         <Surface style={styles.logoContainer} elevation={0}>
-          <Image 
-            source={require('../../assets/images/icon.png')} 
-            style={styles.logo} 
-            resizeMode="contain" 
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
-          <Text variant="headlineMedium" style={styles.appName}>Library App</Text>
+          <Text variant="headlineMedium" style={styles.appName}>
+            MNF Library App
+          </Text>
         </Surface>
-        
+
         <Surface style={styles.welcomeContainer} elevation={0}>
-          <Text variant="headlineLarge" style={styles.welcomeText}>Welcome back!</Text>
+          <Text variant="headlineLarge" style={styles.welcomeText}>
+            Welcome back!
+          </Text>
           <Text variant="bodyLarge" style={styles.subtitleText}>
             Sign in to continue to your account
           </Text>
         </Surface>
-        
+
         <Surface style={styles.formContainer} elevation={1}>
           <LoginForm />
         </Surface>

@@ -2,13 +2,13 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import {
-    ActivityIndicator,
-    Card,
-    Chip,
-    IconButton,
-    Surface,
-    Text,
-    useTheme
+  ActivityIndicator,
+  Card,
+  Chip,
+  IconButton,
+  Surface,
+  Text,
+  useTheme,
 } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { bookService } from '../../services/bookService';
@@ -25,49 +25,50 @@ interface BookGridItemProps {
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2; // 2 items per row with spacing
 
-export const BookGridItem: React.FC<BookGridItemProps> = ({ 
-  book, 
+export const BookGridItem: React.FC<BookGridItemProps> = ({
+  book,
   inCollection = false,
   onPress,
-  onCollectionUpdate
+  onCollectionUpdate,
 }) => {
   const [isInCollection, setIsInCollection] = useState<boolean>(inCollection);
   const [loading, setLoading] = useState<boolean>(false);
   const { isAuthenticated } = useAuth();
   const { colors } = useTheme();
-  
+
   // Keep local state in sync with props
   useEffect(() => {
     setIsInCollection(inCollection);
   }, [inCollection]);
 
-  const authorText = book.authors && book.authors.length > 0
-    ? book.authors[0].name // Just show the primary author in grid view
-    : book.author || 'Unknown Author';
-    
+  const authorText =
+    book.authors && book.authors.length > 0
+      ? book.authors[0].name // Just show the primary author in grid view
+      : book.author || 'Unknown Author';
+
   const defaultImage = 'https://via.placeholder.com/150x200/CCCCCC/808080?text=No+Cover';
   const imageSource = book.cover ? { uri: book.cover } : { uri: defaultImage };
 
   const handleCollectionToggle = async (e: any) => {
     e.stopPropagation();
-    
+
     // First verify user is authenticated
     if (!isAuthenticated) {
       console.log('Cannot toggle collection - user not authenticated');
       return;
     }
-    
+
     // Double-check we have a token before making API calls
     const token = await getToken();
     if (!token) {
       console.log('No token available, cannot modify collection');
       return;
     }
-    
+
     try {
       setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
+
       if (isInCollection) {
         await bookService.removeFromCollection(book.id);
         setIsInCollection(false);
@@ -75,7 +76,7 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
         await bookService.addToCollection(book.id);
         setIsInCollection(true);
       }
-      
+
       if (onCollectionUpdate) {
         onCollectionUpdate();
       }
@@ -87,20 +88,16 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
   };
 
   return (
-    <Card 
-      style={styles.container} 
-      onPress={() => onPress && onPress(book)}
-      mode="elevated"
-    >
+    <Card style={styles.container} onPress={() => onPress && onPress(book)} mode="elevated">
       <View style={styles.imageContainer}>
         <Image source={imageSource} style={styles.cover} />
-        
+
         {book.publishYear && (
           <Surface style={styles.yearBadge} elevation={2}>
             <Text style={styles.yearText}>{book.publishYear}</Text>
           </Surface>
         )}
-        
+
         {isAuthenticated && (
           <View style={styles.favoriteButtonContainer}>
             {loading ? (
@@ -111,8 +108,8 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
                 size={18}
                 onPress={handleCollectionToggle}
                 style={[
-                  styles.favoriteButton, 
-                  { backgroundColor: isInCollection ? colors.primary : 'rgba(0,0,0,0.5)' }
+                  styles.favoriteButton,
+                  { backgroundColor: isInCollection ? colors.primary : 'rgba(0,0,0,0.5)' },
                 ]}
                 iconColor="#fff"
               />
@@ -120,7 +117,7 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
           </View>
         )}
       </View>
-      
+
       <Card.Content style={styles.contentContainer}>
         <Text variant="titleSmall" numberOfLines={2} style={styles.title}>
           {book.title}
@@ -128,14 +125,9 @@ export const BookGridItem: React.FC<BookGridItemProps> = ({
         <Text variant="bodySmall" numberOfLines={1} style={styles.author}>
           {authorText}
         </Text>
-        
+
         {book.genre && (
-          <Chip 
-            mode="flat" 
-            style={styles.genre} 
-            textStyle={styles.genreText}
-            compact
-          >
+          <Chip mode="flat" style={styles.genre} textStyle={styles.genreText} compact>
             {book.genre}
           </Chip>
         )}
@@ -198,5 +190,5 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     margin: 0,
-  }
+  },
 });

@@ -2,15 +2,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import {
-    Button,
-    Chip,
-    Divider,
-    IconButton,
-    Surface,
-    Text,
-    useTheme
-} from 'react-native-paper';
+import { Button, Chip, Divider, IconButton, Surface, Text, useTheme } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
 import { bookService } from '../../services/bookService';
@@ -33,48 +25,49 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
   visible,
   onClose,
   onCollectionUpdate,
-  inCollection = false
+  inCollection = false,
 }) => {
   const [isInCollection, setIsInCollection] = useState<boolean>(inCollection);
   const [loading, setLoading] = useState<boolean>(false);
   const { isAuthenticated } = useAuth();
   const { colors } = useTheme();
-  
+
   // Keep local state in sync with props
   useEffect(() => {
     setIsInCollection(inCollection);
   }, [inCollection]);
-  
+
   const backgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
-  
+
   if (!book) return null;
-  
-  const authorText = book.authors && book.authors.length > 0
-    ? book.authors.map(a => a.name).join(', ')
-    : book.author || 'Unknown Author';
-    
+
+  const authorText =
+    book.authors && book.authors.length > 0
+      ? book.authors.map(a => a.name).join(', ')
+      : book.author || 'Unknown Author';
+
   const defaultImage = 'https://via.placeholder.com/300x450/CCCCCC/808080?text=No+Cover';
   const imageSource = book.cover ? { uri: book.cover } : { uri: defaultImage };
-  
+
   const handleCollectionToggle = async () => {
     // First verify user is authenticated
     if (!isAuthenticated) {
       console.log('Cannot toggle collection - user not authenticated');
       return;
     }
-    
+
     // Double-check we have a token before making API calls
     const token = await getToken();
     if (!token) {
       console.log('No token available, cannot modify collection');
       return;
     }
-    
+
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setLoading(true);
-      
+
       if (isInCollection) {
         await bookService.removeFromCollection(book.id);
         setIsInCollection(false);
@@ -82,7 +75,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
         await bookService.addToCollection(book.id);
         setIsInCollection(true);
       }
-      
+
       if (onCollectionUpdate) {
         onCollectionUpdate();
       }
@@ -92,14 +85,9 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
       setLoading(false);
     }
   };
-  
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <BlurView intensity={20} style={styles.overlay}>
         <Surface style={[styles.container, { borderColor }]} elevation={5}>
           <View style={styles.header}>
@@ -111,7 +99,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               iconColor={colors.primary}
             />
           </View>
-          
+
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
@@ -120,48 +108,66 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               <Image source={imageSource} style={styles.coverImage} />
               {book.publishYear && (
                 <Surface style={styles.yearBadge} elevation={3}>
-                  <Text variant="labelLarge" style={styles.yearText}>{book.publishYear}</Text>
+                  <Text variant="labelLarge" style={styles.yearText}>
+                    {book.publishYear}
+                  </Text>
                 </Surface>
               )}
             </View>
-            
+
             <Surface style={styles.detailsContainer} elevation={0}>
-              <Text variant="headlineSmall" style={styles.title}>{book.title}</Text>
-              <Text variant="titleMedium" style={styles.author}>by {authorText}</Text>
-              
+              <Text variant="headlineSmall" style={styles.title}>
+                {book.title}
+              </Text>
+              <Text variant="titleMedium" style={styles.author}>
+                by {authorText}
+              </Text>
+
               {book.genre && (
-                <Chip 
-                  icon="tag" 
-                  style={styles.genreChip} 
-                  mode="outlined"
-                >
+                <Chip icon="tag" style={styles.genreChip} mode="outlined">
                   {book.genre}
                 </Chip>
               )}
-              
+
               {book.description && (
                 <View style={styles.section}>
-                  <Text variant="titleMedium" style={styles.sectionTitle}>Description</Text>
-                  <Text variant="bodyMedium" style={styles.description}>{book.description}</Text>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Description
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.description}>
+                    {book.description}
+                  </Text>
                 </View>
               )}
-              
+
               <Divider style={styles.divider} />
-              
+
               <View style={styles.section}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>Details</Text>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Details
+                </Text>
                 <View style={styles.detailRow}>
-                  <Text variant="bodyLarge" style={styles.detailLabel}>ISBN:</Text>
-                  <Text variant="bodyMedium" style={styles.detailValue}>{book.isbn || 'N/A'}</Text>
+                  <Text variant="bodyLarge" style={styles.detailLabel}>
+                    ISBN:
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.detailValue}>
+                    {book.isbn || 'N/A'}
+                  </Text>
                 </View>
-                
+
                 <View style={styles.detailRow}>
-                  <Text variant="bodyLarge" style={styles.detailLabel}>Publication Year:</Text>
-                  <Text variant="bodyMedium" style={styles.detailValue}>{book.publishYear || 'N/A'}</Text>
+                  <Text variant="bodyLarge" style={styles.detailLabel}>
+                    Publication Year:
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.detailValue}>
+                    {book.publishYear || 'N/A'}
+                  </Text>
                 </View>
-                
+
                 <View style={styles.detailRow}>
-                  <Text variant="bodyLarge" style={styles.detailLabel}>Added on:</Text>
+                  <Text variant="bodyLarge" style={styles.detailLabel}>
+                    Added on:
+                  </Text>
                   <Text variant="bodyMedium" style={styles.detailValue}>
                     {book.createdAt ? new Date(book.createdAt).toLocaleDateString() : 'N/A'}
                   </Text>
@@ -169,12 +175,12 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               </View>
             </Surface>
           </ScrollView>
-          
+
           {isAuthenticated && (
             <Surface style={[styles.footer, { borderTopColor: borderColor }]} elevation={4}>
               <Button
                 mode="contained"
-                icon={isInCollection ? "bookmark-remove" : "bookmark-outline"}
+                icon={isInCollection ? 'bookmark-remove' : 'bookmark-outline'}
                 onPress={handleCollectionToggle}
                 disabled={loading}
                 loading={loading}

@@ -21,14 +21,7 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: [
-    'react',
-    'react-native',
-    'react-hooks',
-    '@typescript-eslint',
-    'jsx-a11y',
-    'import',
-  ],
+  plugins: ['react', 'react-native', 'react-hooks', '@typescript-eslint', 'jsx-a11y', 'import'],
   env: {
     'react-native/react-native': true,
     jest: true,
@@ -36,68 +29,59 @@ module.exports = {
   rules: {
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],
-    
+
     // React
     'react/prop-types': 'off', // Not needed with TypeScript
     'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-    
+
     // React Hooks
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    
+
     // TypeScript
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    
+
     // React Native
     'react-native/no-unused-styles': 'warn',
     'react-native/no-inline-styles': 'warn',
     'react-native/no-color-literals': 'warn',
     'react-native/no-raw-text': ['warn', { skip: ['ThemedText'] }],
-    
+
     // Import
     'import/order': [
       'warn',
       {
-        'groups': [
-          'builtin', 
-          'external', 
-          'internal', 
-          'parent', 
-          'sibling', 
-          'index',
-          'object',
-          'type'
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+        pathGroups: [
+          {
+            pattern: 'react',
+            group: 'builtin',
+            position: 'before',
+          },
+          {
+            pattern: 'react-native',
+            group: 'builtin',
+            position: 'before',
+          },
+          {
+            pattern: 'expo-*',
+            group: 'external',
+            position: 'before',
+          },
+          {
+            pattern: '@/**',
+            group: 'internal',
+          },
         ],
-        'pathGroups': [
-          {
-            'pattern': 'react',
-            'group': 'builtin',
-            'position': 'before'
-          },
-          {
-            'pattern': 'react-native',
-            'group': 'builtin',
-            'position': 'before'
-          },
-          {
-            'pattern': 'expo-*',
-            'group': 'external',
-            'position': 'before'
-          },
-          {
-            'pattern': '@/**',
-            'group': 'internal'
-          }
-        ],
-        'pathGroupsExcludedImportTypes': ['react', 'react-native'],
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
+        pathGroupsExcludedImportTypes: ['react', 'react-native'],
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
         },
-        'newlines-between': 'always'
-      }
+        'newlines-between': 'always',
+      },
     ],
     'import/no-duplicates': 'warn',
   },
@@ -107,8 +91,8 @@ module.exports = {
     },
     'import/resolver': {
       node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx']
-      }
-    }
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+    },
   },
 };

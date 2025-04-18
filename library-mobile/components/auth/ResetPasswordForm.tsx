@@ -1,14 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-    Button,
-    Card,
-    HelperText,
-    Surface,
-    Text,
-    useTheme
-} from 'react-native-paper';
+import { Button, Card, HelperText, Surface, Text, useTheme } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { validatePasswordReset } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -20,29 +13,29 @@ export const ResetPasswordForm: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const { resetPassword, error, clearError, navigateAfterAuth } = useAuth();
   const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
     const formErrors = validatePasswordReset(password, confirmPassword);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    
+
     if (!token) {
       setErrors({
-        general: 'Reset token is missing. Please request a new password reset link.'
+        general: 'Reset token is missing. Please request a new password reset link.',
       });
       return;
     }
-    
+
     setErrors({});
     setIsLoading(true);
-    
+
     try {
       const success = await resetPassword({ token: token as string, newPassword: password });
       if (success) {
@@ -73,12 +66,8 @@ export const ResetPasswordForm: React.FC = () => {
             </Text>
           </Card.Content>
         </Card>
-        
-        <Button
-          mode="contained"
-          onPress={handleGoToLogin}
-          style={styles.button}
-        >
+
+        <Button mode="contained" onPress={handleGoToLogin} style={styles.button}>
           Go to Login
         </Button>
       </View>
@@ -102,16 +91,16 @@ export const ResetPasswordForm: React.FC = () => {
           </HelperText>
         </Surface>
       )}
-      
+
       <Text variant="bodyLarge" style={styles.instructions}>
         Please enter your new password.
       </Text>
-      
+
       <FormInput
         label="New Password"
         placeholder="Enter your new password"
         value={password}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setPassword(text);
           if (errors.password) {
             setErrors({ ...errors, password: '' });
@@ -121,12 +110,12 @@ export const ResetPasswordForm: React.FC = () => {
         icon="lock"
         error={errors.password}
       />
-      
+
       <FormInput
         label="Confirm New Password"
         placeholder="Re-enter your new password"
         value={confirmPassword}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setConfirmPassword(text);
           if (errors.confirmPassword) {
             setErrors({ ...errors, confirmPassword: '' });
@@ -136,7 +125,7 @@ export const ResetPasswordForm: React.FC = () => {
         icon="shield-check"
         error={errors.confirmPassword}
       />
-      
+
       <Button
         mode="contained"
         onPress={handleSubmit}

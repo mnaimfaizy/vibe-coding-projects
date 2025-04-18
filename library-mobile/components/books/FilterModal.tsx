@@ -3,14 +3,14 @@ import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import {
-    Button,
-    Chip,
-    Divider,
-    IconButton,
-    RadioButton,
-    Surface,
-    Text,
-    useTheme
+  Button,
+  Chip,
+  Divider,
+  IconButton,
+  RadioButton,
+  Surface,
+  Text,
+  useTheme,
 } from 'react-native-paper';
 import { useThemeColor } from '../../hooks/useThemeColor';
 
@@ -33,27 +33,27 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   visible,
   onClose,
   onApplyFilters,
-  initialFilters = {}
+  initialFilters = {},
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);
-  
+
   const backgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#2c2c2e' }, 'border');
   const { colors } = useTheme();
-  
+
   const genres = [
-    'Fiction', 
-    'Non-Fiction', 
-    'Mystery', 
-    'Science Fiction', 
-    'Fantasy', 
-    'Romance', 
-    'Thriller', 
+    'Fiction',
+    'Non-Fiction',
+    'Mystery',
+    'Science Fiction',
+    'Fantasy',
+    'Romance',
+    'Thriller',
     'Biography',
     'History',
-    'Self-Help'
+    'Self-Help',
   ];
-  
+
   const years = [
     { label: 'Any Year', value: null },
     { label: '2023+', value: 2023 },
@@ -63,7 +63,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     { label: '2000+', value: 2000 },
     { label: 'Before 2000', value: 1999 },
   ];
-  
+
   const sortOptions = [
     { label: 'Title (A-Z)', value: { sortBy: 'title', sortOrder: 'asc' } },
     { label: 'Title (Z-A)', value: { sortBy: 'title', sortOrder: 'desc' } },
@@ -72,74 +72,72 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     { label: 'Year (Oldest)', value: { sortBy: 'year', sortOrder: 'asc' } },
     { label: 'Popularity', value: { sortBy: 'popularity', sortOrder: 'desc' } },
   ];
-  
+
   const availabilityOptions = [
     { label: 'All Books', value: 'all' },
     { label: 'Available Only', value: 'available' },
     { label: 'Checked Out', value: 'unavailable' },
   ];
-  
+
   const handleSelectGenre = (genre: string) => {
     Haptics.selectionAsync();
     setFilters(prev => ({
       ...prev,
-      genre: prev.genre === genre ? undefined : genre
+      genre: prev.genre === genre ? undefined : genre,
     }));
   };
-  
+
   const handleSelectYear = (year: number | null) => {
     Haptics.selectionAsync();
     setFilters(prev => ({ ...prev, year }));
   };
-  
-  const handleSelectSort = (sortBy: 'title' | 'author' | 'year' | 'popularity', sortOrder: 'asc' | 'desc') => {
+
+  const handleSelectSort = (
+    sortBy: 'title' | 'author' | 'year' | 'popularity',
+    sortOrder: 'asc' | 'desc'
+  ) => {
     Haptics.selectionAsync();
     setFilters(prev => ({ ...prev, sortBy, sortOrder }));
   };
-  
+
   const handleSelectAvailability = (availability: 'all' | 'available' | 'unavailable') => {
     Haptics.selectionAsync();
     setFilters(prev => ({ ...prev, availability }));
   };
-  
+
   const handleApplyFilters = () => {
     onApplyFilters(filters);
     onClose();
   };
-  
+
   const handleResetFilters = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     setFilters({});
   };
-  
+
   const isFiltered = Object.values(filters).some(value => value !== undefined);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <BlurView intensity={20} style={styles.overlay}>
         <Surface style={[styles.container, { borderColor }]} elevation={4}>
           <View style={[styles.header, { borderBottomColor: borderColor }]}>
-            <Text variant="titleLarge" style={styles.title}>Filter Books</Text>
-            <IconButton 
-              icon="close" 
-              size={24} 
-              onPress={onClose} 
-            />
+            <Text variant="titleLarge" style={styles.title}>
+              Filter Books
+            </Text>
+            <IconButton icon="close" size={24} onPress={onClose} />
           </View>
-          
+
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>Genres</Text>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Genres
+              </Text>
               <View style={styles.chipContainer}>
-                {genres.map((genre) => (
+                {genres.map(genre => (
                   <Chip
                     key={genre}
-                    mode={filters.genre === genre ? "flat" : "outlined"}
+                    mode={filters.genre === genre ? 'flat' : 'outlined'}
                     selected={filters.genre === genre}
                     onPress={() => handleSelectGenre(genre)}
                     style={styles.chip}
@@ -149,16 +147,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </View>
             </View>
-            
+
             <Divider style={styles.divider} />
-            
+
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>Publication Year</Text>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Publication Year
+              </Text>
               <RadioButton.Group
                 value={filters.year?.toString() || 'null'}
                 onValueChange={value => handleSelectYear(value === 'null' ? null : Number(value))}
               >
-                {years.map((year) => (
+                {years.map(year => (
                   <RadioButton.Item
                     key={year.label}
                     label={year.label}
@@ -169,16 +169,20 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </RadioButton.Group>
             </View>
-            
+
             <Divider style={styles.divider} />
-            
+
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>Availability</Text>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Availability
+              </Text>
               <RadioButton.Group
                 value={filters.availability || 'all'}
-                onValueChange={value => handleSelectAvailability(value as 'all' | 'available' | 'unavailable')}
+                onValueChange={value =>
+                  handleSelectAvailability(value as 'all' | 'available' | 'unavailable')
+                }
               >
-                {availabilityOptions.map((option) => (
+                {availabilityOptions.map(option => (
                   <RadioButton.Item
                     key={option.value}
                     label={option.label}
@@ -189,21 +193,30 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </RadioButton.Group>
             </View>
-            
+
             <Divider style={styles.divider} />
-            
+
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>Sort By</Text>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Sort By
+              </Text>
               <RadioButton.Group
-                value={filters.sortBy && filters.sortOrder ? `${filters.sortBy}-${filters.sortOrder}` : ''}
+                value={
+                  filters.sortBy && filters.sortOrder
+                    ? `${filters.sortBy}-${filters.sortOrder}`
+                    : ''
+                }
                 onValueChange={value => {
                   if (value) {
-                    const [sortBy, sortOrder] = value.split('-') as ['title' | 'author' | 'year' | 'popularity', 'asc' | 'desc'];
+                    const [sortBy, sortOrder] = value.split('-') as [
+                      'title' | 'author' | 'year' | 'popularity',
+                      'asc' | 'desc',
+                    ];
                     handleSelectSort(sortBy, sortOrder);
                   }
                 }}
               >
-                {sortOptions.map((option) => (
+                {sortOptions.map(option => (
                   <RadioButton.Item
                     key={`${option.value.sortBy}-${option.value.sortOrder}`}
                     label={option.label}
@@ -215,22 +228,14 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               </RadioButton.Group>
             </View>
           </ScrollView>
-          
+
           <Surface style={[styles.footer, { borderTopColor: borderColor }]} elevation={4}>
             {isFiltered && (
-              <Button 
-                mode="text" 
-                onPress={handleResetFilters}
-                style={styles.resetButton}
-              >
+              <Button mode="text" onPress={handleResetFilters} style={styles.resetButton}>
                 Reset Filters
               </Button>
             )}
-            <Button 
-              mode="contained" 
-              onPress={handleApplyFilters}
-              style={styles.applyButton}
-            >
+            <Button mode="contained" onPress={handleApplyFilters} style={styles.applyButton}>
               Apply Filters
             </Button>
           </Surface>
@@ -301,5 +306,5 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     borderRadius: 8,
-  }
+  },
 });

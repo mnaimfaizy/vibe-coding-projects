@@ -1,17 +1,17 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
-    Avatar,
-    Card,
-    Divider,
-    IconButton,
-    List,
-    Button as PaperButton,
-    Paragraph,
-    Surface,
-    Text,
-    Title,
-    useTheme
+  Avatar,
+  Card,
+  Divider,
+  IconButton,
+  List,
+  Button as PaperButton,
+  Paragraph,
+  Surface,
+  Text,
+  Title,
+  useTheme,
 } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -20,13 +20,13 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const { colors } = useTheme();
-  
+
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
       <Surface style={styles.header} elevation={1}>
-        <Avatar.Text 
-          size={64} 
-          label={(user?.name?.[0] || 'R').toUpperCase()} 
+        <Avatar.Text
+          size={64}
+          label={(user?.name?.[0] || 'R').toUpperCase()}
           style={styles.avatar}
         />
         <View style={styles.headerTextContainer}>
@@ -38,26 +38,26 @@ export default function HomeScreen() {
           </Text>
         </View>
       </Surface>
-      
+
       <Card style={styles.card}>
         <Card.Content>
           <Title>Library Services</Title>
           <List.Section>
-            <List.Item 
-              title="Browse our collection" 
-              left={props => <List.Icon {...props} icon="book-multiple" />} 
+            <List.Item
+              title="Browse our collection"
+              left={props => <List.Icon {...props} icon="book-multiple" />}
             />
-            <List.Item 
-              title="Check out and return books" 
-              left={props => <List.Icon {...props} icon="book-arrow-right" />} 
+            <List.Item
+              title="Check out and return books"
+              left={props => <List.Icon {...props} icon="book-arrow-right" />}
             />
-            <List.Item 
-              title="Manage your reading history" 
-              left={props => <List.Icon {...props} icon="history" />} 
+            <List.Item
+              title="Manage your reading history"
+              left={props => <List.Icon {...props} icon="history" />}
             />
-            <List.Item 
-              title="Get personalized recommendations" 
-              left={props => <List.Icon {...props} icon="star" />} 
+            <List.Item
+              title="Get personalized recommendations"
+              left={props => <List.Icon {...props} icon="star" />}
             />
           </List.Section>
         </Card.Content>
@@ -67,7 +67,7 @@ export default function HomeScreen() {
           </PaperButton>
         </Card.Actions>
       </Card>
-      
+
       <Card style={styles.card}>
         <Card.Cover source={require('../../assets/images/icon.png')} />
         <Card.Content>
@@ -77,10 +77,12 @@ export default function HomeScreen() {
           </Paragraph>
         </Card.Content>
         <Card.Actions>
-          <PaperButton mode="outlined" onPress={() => {}}>View All</PaperButton>
+          <PaperButton mode="outlined" onPress={() => {}}>
+            View All
+          </PaperButton>
         </Card.Actions>
       </Card>
-      
+
       <Card style={styles.card}>
         <Card.Content>
           <View style={styles.popularBooksHeader}>
@@ -150,5 +152,5 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 8,
     borderRadius: 8,
-  }
+  },
 });

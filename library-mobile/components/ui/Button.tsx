@@ -23,13 +23,13 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const { colors } = useTheme();
-  
-  const getButtonMode = (): "text" | "outlined" | "contained" | "elevated" | "contained-tonal" => {
+
+  const getButtonMode = (): 'text' | 'outlined' | 'contained' | 'elevated' | 'contained-tonal' => {
     switch (variant) {
       case 'primary':
         return 'contained';
       case 'secondary':
-        return 'contained-tonal';  
+        return 'contained-tonal';
       case 'outline':
         return 'outlined';
       case 'text':
@@ -69,5 +69,5 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 16,
     fontWeight: '600',
-  }
+  },
 });

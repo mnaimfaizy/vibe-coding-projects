@@ -1,14 +1,7 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  Button,
-  Divider,
-  HelperText,
-  Surface,
-  Text,
-  useTheme
-} from 'react-native-paper';
+import { Button, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { validateSignup } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -20,22 +13,22 @@ export const SignupForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { signup, error, clearError, navigateAfterAuth } = useAuth();
   const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
     const formErrors = validateSignup(name, email, password, confirmPassword);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    
+
     setErrors({});
     setIsLoading(true);
-    
+
     try {
       const success = await signup({ name, email, password });
       if (success) {
@@ -59,12 +52,12 @@ export const SignupForm: React.FC = () => {
           </HelperText>
         </Surface>
       )}
-      
+
       <FormInput
         label="Full Name"
         placeholder="Enter your name"
         value={name}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setName(text);
           if (errors.name) {
             setErrors({ ...errors, name: '' });
@@ -73,12 +66,12 @@ export const SignupForm: React.FC = () => {
         icon="account"
         error={errors.name}
       />
-      
+
       <FormInput
         label="Email"
         placeholder="Enter your email"
         value={email}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setEmail(text);
           if (errors.email) {
             setErrors({ ...errors, email: '' });
@@ -89,12 +82,12 @@ export const SignupForm: React.FC = () => {
         icon="email"
         error={errors.email}
       />
-      
+
       <FormInput
         label="Password"
         placeholder="Create a password"
         value={password}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setPassword(text);
           if (errors.password) {
             setErrors({ ...errors, password: '' });
@@ -104,12 +97,12 @@ export const SignupForm: React.FC = () => {
         icon="lock"
         error={errors.password}
       />
-      
+
       <FormInput
         label="Confirm Password"
         placeholder="Re-enter your password"
         value={confirmPassword}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setConfirmPassword(text);
           if (errors.confirmPassword) {
             setErrors({ ...errors, confirmPassword: '' });
@@ -119,7 +112,7 @@ export const SignupForm: React.FC = () => {
         icon="shield-check"
         error={errors.confirmPassword}
       />
-      
+
       <Button
         mode="contained"
         onPress={handleSubmit}
@@ -129,15 +122,15 @@ export const SignupForm: React.FC = () => {
       >
         Sign Up
       </Button>
-      
+
       <Divider style={styles.divider} />
-      
+
       <View style={styles.loginContainer}>
-        <Text variant="bodyMedium">
-          Already have an account?{' '}
-        </Text>
+        <Text variant="bodyMedium">Already have an account? </Text>
         <Link href="/login" asChild>
-          <Text variant="bodyMedium" style={styles.loginLink}>Log In</Text>
+          <Text variant="bodyMedium" style={styles.loginLink}>
+            Log In
+          </Text>
         </Link>
       </View>
     </View>

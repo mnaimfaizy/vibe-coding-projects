@@ -1,14 +1,7 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  Button,
-  Divider,
-  HelperText,
-  Surface,
-  Text,
-  useTheme
-} from 'react-native-paper';
+import { Button, Divider, HelperText, Surface, Text, useTheme } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { validateLogin } from '../../utils/validation';
 import { FormInput } from '../ui/FormInput';
@@ -18,22 +11,22 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login, error, clearError, navigateAfterAuth } = useAuth();
   const { colors } = useTheme();
 
   const handleSubmit = async () => {
     clearError();
     const formErrors = validateLogin(email, password);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    
+
     setErrors({});
     setIsLoading(true);
-    
+
     try {
       const success = await login({ email, password });
       if (success) {
@@ -58,12 +51,12 @@ export const LoginForm: React.FC = () => {
           </HelperText>
         </Surface>
       )}
-      
+
       <FormInput
         label="Email"
         placeholder="Enter your email"
         value={email}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setEmail(text);
           if (errors.email) {
             setErrors({ ...errors, email: '' });
@@ -74,12 +67,12 @@ export const LoginForm: React.FC = () => {
         icon="email"
         error={errors.email}
       />
-      
+
       <FormInput
         label="Password"
         placeholder="Enter your password"
         value={password}
-        onChangeText={(text) => {
+        onChangeText={text => {
           setPassword(text);
           if (errors.password) {
             setErrors({ ...errors, password: '' });
@@ -89,16 +82,13 @@ export const LoginForm: React.FC = () => {
         icon="lock"
         error={errors.password}
       />
-      
+
       <Link href="/forgot-password" asChild>
-        <Text 
-          variant="bodyMedium" 
-          style={styles.forgotPasswordText}
-        >
+        <Text variant="bodyMedium" style={styles.forgotPasswordText}>
           Forgot password?
         </Text>
       </Link>
-      
+
       <Button
         mode="contained"
         onPress={handleSubmit}
@@ -108,15 +98,15 @@ export const LoginForm: React.FC = () => {
       >
         Login
       </Button>
-      
+
       <Divider style={styles.divider} />
-      
+
       <View style={styles.registerContainer}>
-        <Text variant="bodyMedium">
-          Don't have an account?{' '}
-        </Text>
+        <Text variant="bodyMedium">Don't have an account? </Text>
         <Link href="/signup" asChild>
-          <Text variant="bodyMedium" style={styles.registerLink}>Sign Up</Text>
+          <Text variant="bodyMedium" style={styles.registerLink}>
+            Sign Up
+          </Text>
         </Link>
       </View>
     </View>

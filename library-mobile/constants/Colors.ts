@@ -19,6 +19,7 @@ export default {
     error: '#ff3b30',
     success: '#34c759',
     warning: '#ffcc00',
+    icon: '#000',
   },
   dark: {
     text: '#fff',
@@ -32,5 +33,6 @@ export default {
     error: '#ff453a',
     success: '#30d158',
     warning: '#ffd60a',
+    icon: '#fff',
   },
 };
