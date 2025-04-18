@@ -2,7 +2,7 @@
 import { Redirect, Tabs } from 'expo-router';
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { IconButton, useTheme } from 'react-native-paper';
+import { Appbar, useTheme } from 'react-native-paper';
 
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,9 +22,7 @@ export default function TabLayout() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const { colors } = useTheme();
 
-  const backgroundColor = useThemeColor({}, 'background');
   const tabBackgroundColor = useThemeColor({}, 'tabBackground');
-  const tint = useThemeColor({}, 'tint');
   const tabIconDefault = useThemeColor({}, 'tabIconDefault');
 
   // Show loading screen while checking authentication status
@@ -36,6 +34,29 @@ export default function TabLayout() {
   if (!isAuthenticated) {
     return <Redirect href="/login" />;
   }
+
+  // Custom header using Appbar.Header component
+  const HomeHeader = () => (
+    <Appbar.Header>
+      <Appbar.Content title="Home" />
+      <Appbar.Action icon="logout" onPress={() => logout()} />
+    </Appbar.Header>
+  );
+
+  const BooksHeader = () => (
+    <Appbar.Header>
+      <Appbar.Content title="Books" />
+      <Appbar.Action icon="magnify" onPress={() => {}} />
+      <Appbar.Action icon="filter-variant" onPress={() => {}} />
+    </Appbar.Header>
+  );
+
+  const ProfileHeader = () => (
+    <Appbar.Header>
+      <Appbar.Content title="Profile" />
+      <Appbar.Action icon="cog" onPress={() => {}} />
+    </Appbar.Header>
+  );
 
   return (
     <Tabs
@@ -50,15 +71,8 @@ export default function TabLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 3,
         },
-        headerStyle: {
-          backgroundColor,
-          elevation: 4,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
-        },
-        headerTintColor: tint,
+        // We need to show headers with custom components
+        headerShown: true,
       }}
     >
       <Tabs.Screen
@@ -66,15 +80,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerRight: () => (
-            <IconButton
-              icon="logout"
-              iconColor={colors.primary}
-              size={24}
-              onPress={() => logout()}
-              style={{ marginRight: 8 }}
-            />
-          ),
+          header: () => <HomeHeader />,
         }}
       />
       <Tabs.Screen
@@ -82,6 +88,7 @@ export default function TabLayout() {
         options={{
           title: 'Books',
           tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} />,
+          header: () => <BooksHeader />,
         }}
       />
       <Tabs.Screen
@@ -89,6 +96,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          header: () => <ProfileHeader />,
         }}
       />
     </Tabs>
