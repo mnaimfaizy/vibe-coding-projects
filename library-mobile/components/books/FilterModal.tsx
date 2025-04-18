@@ -133,8 +133,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     mode={filters.genre === genre ? 'flat' : 'outlined'}
                     selected={filters.genre === genre}
                     onPress={() => handleSelectGenre(genre)}
-                    style={styles.chip}
-                  >
+                    style={styles.chip}>
                     {genre}
                   </Chip>
                 ))}
@@ -149,8 +148,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               </Text>
               <RadioButton.Group
                 value={filters.year?.toString() || 'null'}
-                onValueChange={value => handleSelectYear(value === 'null' ? null : Number(value))}
-              >
+                onValueChange={value => handleSelectYear(value === 'null' ? null : Number(value))}>
                 {years.map(year => (
                   <RadioButton.Item
                     key={year.label}
@@ -173,8 +171,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 value={filters.availability || 'all'}
                 onValueChange={value =>
                   handleSelectAvailability(value as 'all' | 'available' | 'unavailable')
-                }
-              >
+                }>
                 {availabilityOptions.map(option => (
                   <RadioButton.Item
                     key={option.value}
@@ -207,8 +204,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     ];
                     handleSelectSort(sortBy, sortOrder);
                   }
-                }}
-              >
+                }}>
                 {sortOptions.map(option => (
                   <RadioButton.Item
                     key={`${option.value.sortBy}-${option.value.sortOrder}`}

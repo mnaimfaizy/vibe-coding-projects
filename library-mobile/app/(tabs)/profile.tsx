@@ -3,15 +3,7 @@ import React from 'react';
 
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
-import {
-  Avatar,
-  Button,
-  Divider,
-  IconButton,
-  List,
-  Surface,
-  Text
-} from 'react-native-paper';
+import { Avatar, Button, Divider, IconButton, List, Surface, Text } from 'react-native-paper';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -138,8 +130,7 @@ export default function ProfileScreen() {
           buttonColor="rgba(255, 59, 48, 0.1)"
           textColor="#ff3b30"
           style={styles.logoutButton}
-          onPress={handleLogout}
-        >
+          onPress={handleLogout}>
           Logout
         </Button>
 

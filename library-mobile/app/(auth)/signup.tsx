@@ -25,8 +25,7 @@ export default function SignupScreen() {
       <ScrollView
         style={[styles.container, { backgroundColor }]}
         contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
-      >
+        keyboardShouldPersistTaps="handled">
         <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/images/icon.png')}

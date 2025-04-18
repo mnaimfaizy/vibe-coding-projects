@@ -27,8 +27,7 @@ export default function LoginScreen() {
       <ScrollView
         style={[styles.container, { backgroundColor }]}
         contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
-      >
+        keyboardShouldPersistTaps="handled">
         <Surface style={styles.logoContainer} elevation={0}>
           <Image
             source={require('../../assets/images/logo.png')}

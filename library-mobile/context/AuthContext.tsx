@@ -296,8 +296,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         verifyEmail,
         resendVerification,
         navigateAfterAuth,
-      }}
-    >
+      }}>
       {children}
     </AuthContext.Provider>
   );

@@ -292,8 +292,7 @@ export default function BooksScreen() {
             height: 120,
             opacity: headerOpacity,
           },
-        ]}
-      >
+        ]}>
         <Text variant="headlineLarge" style={styles.welcomeTitle}>
           Explore Books
         </Text>
@@ -330,8 +329,7 @@ export default function BooksScreen() {
               <Chip
                 icon="book"
                 onClose={() => setFilters({ ...filters, genre: undefined })}
-                style={styles.filterChip}
-              >
+                style={styles.filterChip}>
                 {filters.genre}
               </Chip>
             )}
@@ -340,8 +338,7 @@ export default function BooksScreen() {
               <Chip
                 icon="calendar"
                 onClose={() => setFilters({ ...filters, year: undefined })}
-                style={styles.filterChip}
-              >
+                style={styles.filterChip}>
                 {filters.year < 2000 ? 'Before 2000' : `From ${filters.year}`}
               </Chip>
             )}
@@ -383,8 +380,7 @@ export default function BooksScreen() {
               label: 'Try Again',
               onPress: fetchBooks,
             },
-          ]}
-        >
+          ]}>
           {error}
         </Banner>
       );
@@ -400,8 +396,7 @@ export default function BooksScreen() {
           <Button
             mode="contained-tonal"
             onPress={() => setSearchQuery('')}
-            style={styles.emptyStateButton}
-          >
+            style={styles.emptyStateButton}>
             Clear Search
           </Button>
         )}

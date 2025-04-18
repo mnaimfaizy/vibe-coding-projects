@@ -50,8 +50,7 @@ export const Button: React.FC<ButtonProps> = ({
         disabled={disabled || loading}
         style={styles.button}
         contentStyle={styles.buttonContent}
-        labelStyle={styles.buttonLabel}
-      >
+        labelStyle={styles.buttonLabel}>
         {title}
       </PaperButton>
     </View>

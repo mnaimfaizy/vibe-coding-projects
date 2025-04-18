@@ -19,7 +19,7 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { colors } = useTheme();
 
   const tabBackgroundColor = useThemeColor({}, 'tabBackground');
@@ -72,8 +72,7 @@ export default function TabLayout() {
         },
         // We need to show headers with custom components
         headerShown: true,
-      }}
-    >
+      }}>
       <Tabs.Screen
         name="index"
         options={{

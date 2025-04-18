@@ -147,8 +147,7 @@ export const VerifyEmailForm: React.FC = () => {
         onPress={handleResendVerification}
         loading={resending}
         disabled={resending || verifying}
-        style={styles.button}
-      >
+        style={styles.button}>
         <Text>Resend Verification Email</Text>
       </Button>
 

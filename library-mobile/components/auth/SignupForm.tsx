@@ -123,8 +123,7 @@ export const SignupForm: React.FC = () => {
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
-        style={styles.button}
-      >
+        style={styles.button}>
         Sign Up
       </Button>
 

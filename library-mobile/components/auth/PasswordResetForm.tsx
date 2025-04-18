@@ -106,8 +106,7 @@ export const PasswordResetForm: React.FC = () => {
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
-        style={styles.button}
-      >
+        style={styles.button}>
         Reset Password
       </Button>
 

@@ -70,8 +70,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               outputRange: ['85%', '100%'],
             }),
           },
-        ]}
-      >
+        ]}>
         <Searchbar
           placeholder={placeholder}
           onChangeText={handleChangeText}

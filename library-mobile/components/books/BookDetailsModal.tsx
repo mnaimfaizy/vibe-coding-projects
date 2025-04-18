@@ -105,8 +105,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
 
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
+            contentContainerStyle={styles.scrollContent}>
             <View style={styles.coverContainer}>
               <Image source={imageSource} style={styles.coverImage} />
               {book.publishYear && (
@@ -188,8 +187,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
                 disabled={loading}
                 loading={loading}
                 buttonColor={isInCollection ? '#e53935' : colors.primary}
-                style={styles.collectionButton}
-              >
+                style={styles.collectionButton}>
                 {isInCollection ? 'Remove from Collection' : 'Add to Collection'}
               </Button>
             </Surface>
