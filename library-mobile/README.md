@@ -1,50 +1,182 @@
-# Welcome to your Expo app 👋
+# Library Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application for the digital library management system.
 
-## Get started
+## Technology Stack
 
-1. Install dependencies
+- React Native 0.76.9
+- Expo SDK 52
+- TypeScript 5.3
+- Expo Router 4.0 (for navigation)
+- React Native Paper (UI components)
+- Axios (API client)
+- Expo SecureStore (for secure storage)
+- Jest & React Test Renderer (for testing)
 
+## Overview
+
+The Library Mobile app provides a mobile client experience for the digital library system. It integrates with the Library API backend to provide a comprehensive library management experience on mobile devices.
+
+## Features
+
+- **User Authentication**
+  - Secure login and signup
+  - Email verification
+  - Password reset functionality
+  - JWT-based authentication with secure storage
+
+- **Book Management**
+  - Browse and search the book catalog
+  - View detailed book information
+  - Add books to personal collections
+  - Leave reviews and ratings
+
+- **User Profile**
+  - View and edit user information
+  - Manage personal book collections
+  - Track reading history
+
+- **Responsive UI**
+  - Native mobile experience
+  - Support for both light and dark themes
+  - Haptic feedback for enhanced user experience
+  - Smooth animations and transitions
+
+- **Offline Capabilities**
+  - Cache frequently accessed data
+  - Synchronize when back online
+
+## Project Structure
+
+- `app/` - Contains the main application screens using Expo Router
+  - `(tabs)/` - Tab-based navigation screens
+  - `(auth)/` - Authentication-related screens
+- `components/` - Reusable UI components
+- `context/` - React context providers (e.g., AuthContext)
+- `hooks/` - Custom React hooks
+- `services/` - API service implementations
+- `types/` - TypeScript type definitions
+- `utils/` - Utility functions
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for macOS) or Android Emulator
+
+### Installation
+
+1. Clone the repository
+2. Navigate to the library-mobile directory
+3. Install the dependencies:
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Running the Application
 
 ```bash
-npm run reset-project
+# Start the development server
+npm start
+# or
+yarn start
+
+# Run on iOS simulator
+npm run ios
+# or
+yarn ios
+
+# Run on Android emulator
+npm run android
+# or
+yarn android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Testing
 
-## Learn more
+```bash
+# Run tests in watch mode
+npm test
+# or
+yarn test
 
-To learn more about developing your project with Expo, look at the following resources:
+# Run tests for CI environment
+npm run test:ci
+# or
+yarn test:ci
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Linting and Formatting
 
-## Join the community
+```bash
+# Run linter
+npm run lint
+# or
+yarn lint
 
-Join our community of developers creating universal apps.
+# Fix linting issues
+npm run lint:fix
+# or
+yarn lint:fix
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Format code with Prettier
+npm run format
+# or
+yarn format
+
+# Check types
+npm run check-types
+# or
+yarn check-types
+
+# Run all validation checks
+npm run validate
+# or
+yarn validate
+```
+
+## Connecting to the API
+
+The app connects to the Library API backend. By default, it will use the API URL defined in the Expo configuration. You can update this in the `api.ts` file if needed.
+
+## Git Workflow
+
+This project uses:
+- Husky for git hooks
+- Commitizen for standardized commit messages
+- Conventional commit format
+- ESLint and Prettier for code quality
+
+To make a commit:
+```bash
+npm run commit
+# or
+yarn commit
+```
+
+## Reset Project
+
+To reset the project to a clean state:
+```bash
+npm run reset-project
+# or
+yarn reset-project
+```
+
+## Troubleshooting
+
+If you encounter any issues during development:
+
+1. Make sure the backend API is running
+2. Check that your device/emulator and API server are on the same network
+3. Verify API URL configuration in `services/api.ts`
+4. Try clearing the Expo cache: `expo start -c`
+
+## License
+
+This project is open source and available for personal and commercial use.
