@@ -91,7 +91,7 @@ export function AdminNavigationComponent() {
   }
 
   return (
-    <nav className="bg-gray-100 shadow dark:bg-gray-900">
+    <nav role="navigation" className="bg-gray-100 shadow dark:bg-gray-900">
       <div className="container px-6 py-2 mx-auto">
         {/* Admin Navigation */}
         <div className="flex items-center justify-between">

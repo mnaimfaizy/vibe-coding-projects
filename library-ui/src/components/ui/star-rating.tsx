@@ -1,7 +1,7 @@
 // filepath: c:\Users\mnaim\Downloads\Projects\vibe-coding-projects\library-ui\src\components\ui\star-rating.tsx
-import React from "react";
-import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Star } from "lucide-react";
+import React from "react";
 
 interface StarRatingProps {
   rating: number;
@@ -44,6 +44,8 @@ export function StarRating({
         return (
           <Star
             key={i}
+            role={interactive ? "button" : undefined} // Add role="button" when interactive
+            data-testid={isActive ? "filled-star" : "empty-star"} // Add data-testid
             className={cn(
               sizeClass,
               "transition-all duration-100",

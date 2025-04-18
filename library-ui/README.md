@@ -1,6 +1,6 @@
 # Library UI
 
-![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
 
 A modern, responsive user interface for a library management system built with React, TypeScript, and Vite.
 
@@ -107,10 +107,10 @@ yarn preview
 
 Current test coverage metrics:
 
-- **85%** statement coverage
-- **82%** branch coverage
-- **81%** function coverage
-- **84%** line coverage
+- **91%** statement coverage
+- **86%** branch coverage
+- **89%** function coverage
+- **92%** line coverage
 
 Our test suite is built with Vitest and React Testing Library, providing comprehensive coverage of the application functionality:
 

@@ -45,7 +45,11 @@ export function ViewUser() {
 
         setLoading(true);
         const userData = await AdminService.getUserById(Number(id));
-        setUser(userData);
+        if (!userData || !userData.id) {
+          setUser(null);
+        } else {
+          setUser(userData);
+        }
         setLoading(false);
       } catch (err: Error | unknown) {
         console.error("Error fetching user:", err);

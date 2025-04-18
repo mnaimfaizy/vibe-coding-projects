@@ -14,7 +14,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import AdminService, { UserDetail } from "@/services/adminService";
@@ -172,9 +171,20 @@ export function ChangeUserPassword() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      aria-invalid={
+                        form.formState.errors.newPassword ? "true" : "false"
+                      }
+                    />
                   </FormControl>
-                  <FormMessage />
+                  {form.formState.errors.newPassword && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {form.formState.errors.newPassword.message}
+                    </p>
+                  )}
                 </FormItem>
               )}
             />
@@ -186,9 +196,20 @@ export function ChangeUserPassword() {
                 <FormItem>
                   <FormLabel>Confirm New Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      aria-invalid={
+                        form.formState.errors.confirmPassword ? "true" : "false"
+                      }
+                    />
                   </FormControl>
-                  <FormMessage />
+                  {form.formState.errors.confirmPassword && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {form.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
                 </FormItem>
               )}
             />
@@ -198,6 +219,9 @@ export function ChangeUserPassword() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/admin/users")}
+                role="button"
+                name="cancel"
+                aria-label="Cancel"
               >
                 Cancel
               </Button>
