@@ -56,6 +56,32 @@ The Library UI is a modern frontend application for managing a digital library s
 
 The application is built with modern React patterns including hooks, context API, and component composition to create a maintainable and extensible codebase. The test suite includes 222 passing tests covering unit tests, component tests, and integration tests for key user flows. Service files are particularly well covered (96-100%), while UI components have varying degrees of coverage. Core components like authentication, user collection management, and book details have excellent coverage.
 
+### Library Mobile
+
+**Technology Stack:**
+
+- React Native 0.76.9
+- Expo SDK 52
+- TypeScript 5.3
+- Expo Router 4.0
+- React Native Paper
+- Axios
+- Expo SecureStore
+
+**Purpose:**
+The Library Mobile app provides the digital library management system experience on mobile devices, integrating with the same Library API backend. Key features include:
+
+- User authentication with email verification and password reset
+- Book browsing and detailed information viewing
+- Personal collections management
+- Review and rating capabilities
+- User profile management
+- Responsive native mobile experience with theme support
+- Haptic feedback and smooth animations
+- Offline data caching
+
+The application is built with a modern React Native architecture using Expo's managed workflow, with well-organized component structure and comprehensive type safety through TypeScript.
+
 ### React Survey App
 
 **Technology Stack:**

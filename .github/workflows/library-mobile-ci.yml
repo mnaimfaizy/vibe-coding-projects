@@ -1,0 +1,147 @@
+name: Library Mobile CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'library-mobile/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'library-mobile/**'
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'library-mobile/package.json'
+
+      - name: Install dependencies
+        working-directory: ./library-mobile
+        run: npm ci
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./library-mobile/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('library-mobile/package-lock.json') }}
+
+  lint:
+    name: Lint
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'library-mobile/package.json'
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./library-mobile/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('library-mobile/package-lock.json') }}
+          
+      - name: Run ESLint
+        working-directory: ./library-mobile
+        run: npm run lint
+
+  type-check:
+    name: Type Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'library-mobile/package.json'
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./library-mobile/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('library-mobile/package-lock.json') }}
+          
+      - name: Run TypeScript check
+        working-directory: ./library-mobile
+        run: npm run check-types
+
+  test:
+    name: Test
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'library-mobile/package.json'
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./library-mobile/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('library-mobile/package-lock.json') }}
+          
+      - name: Run tests
+        working-directory: ./library-mobile
+        run: npm run test:ci -- --coverage --maxWorkers=2
+
+  build:
+    name: Verify Build
+    needs: [lint, type-check, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'library-mobile/package.json'
+          
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./library-mobile/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('library-mobile/package-lock.json') }}
+          
+      - name: Verify Expo build
+        working-directory: ./library-mobile
+        run: npx expo prebuild --clean
