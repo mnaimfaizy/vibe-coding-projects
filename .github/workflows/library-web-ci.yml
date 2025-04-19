@@ -1,14 +1,14 @@
-name: Library UI CI
+name: Library WEB CI
 
 on:
   push:
     branches: [main]
     paths:
-      - "library-ui/**"
+      - "library-web/**"
   pull_request:
     branches: [main]
     paths:
-      - "library-ui/**"
+      - "library-web/**"
 
 jobs:
   install-dependencies:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: library-ui
+        working-directory: library-web
 
     strategy:
       matrix:
@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: "library-ui/package-lock.json"
+          cache-dependency-path: "library-web/package-lock.json"
 
       - name: Install dependencies
         run: npm ci
@@ -41,8 +41,8 @@ jobs:
         uses: actions/cache@v3
         id: cache-node-modules
         with:
-          path: library-ui/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+          path: library-web/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-web/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: library-ui
+        working-directory: library-web
 
     steps:
       - name: Checkout code
@@ -62,8 +62,8 @@ jobs:
       - name: Restore node_modules cache
         uses: actions/cache@v3
         with:
-          path: library-ui/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+          path: library-web/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-web/package-lock.json') }}
 
       - name: Run linting
         run: npm run lint
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: library-ui
+        working-directory: library-web
 
     steps:
       - name: Checkout code
@@ -84,8 +84,8 @@ jobs:
       - name: Restore node_modules cache
         uses: actions/cache@v3
         with:
-          path: library-ui/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+          path: library-web/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-web/package-lock.json') }}
 
       - name: Run tests
         run: npm test
@@ -98,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: library-ui/coverage
+          path: library-web/coverage
           retention-days: 7
 
   build:
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: library-ui
+        working-directory: library-web
 
     steps:
       - name: Checkout code
@@ -117,8 +117,8 @@ jobs:
       - name: Restore node_modules cache
         uses: actions/cache@v3
         with:
-          path: library-ui/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-ui/package-lock.json') }}
+          path: library-web/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('library-web/package-lock.json') }}
 
       - name: Build application
         run: npm run build
@@ -128,5 +128,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: library-ui/dist
+          path: library-web/dist
           retention-days: 3
