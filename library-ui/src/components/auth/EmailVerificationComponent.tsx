@@ -19,8 +19,14 @@ export function EmailVerificationComponent() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { isLoading, error, emailVerified } = useAppSelector(
-    (state) => state.auth
+  // Add a fallback empty object with default values to prevent destructuring errors in tests
+  const {
+    isLoading = false,
+    error = null,
+    emailVerified = false,
+  } = useAppSelector(
+    (state) =>
+      state?.auth || { isLoading: false, error: null, emailVerified: false }
   );
 
   const [isResending, setIsResending] = useState(false);

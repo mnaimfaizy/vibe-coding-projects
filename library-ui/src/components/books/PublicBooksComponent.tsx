@@ -9,106 +9,65 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import BookService, { Book } from "@/services/bookService";
-import { Eye, Star } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import BookService from "@/services/bookService";
+import { Eye, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
+
+interface PublicBook {
+  id?: number;
+  title: string;
+  author?: string;
+  genre?: string;
+  publishYear?: number;
+  description?: string;
+  coverImage?: string;
+  cover?: string;
+}
 
 export function PublicBooksComponent() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [booksPerPage] = useState<number>(12);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [books, setBooks] = useState<PublicBook[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setIsLoading(true);
+        const response = await BookService.getAllBooks();
+        setBooks(response);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err : new Error("Failed to fetch books")
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchBooks();
   }, []);
 
-  const filterBooks = useCallback(() => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) {
-      setFilteredBooks(books);
-      setTotalPages(Math.ceil(books.length / booksPerPage));
-      return;
-    }
+  const filterBooks = useCallback(
+    (books: PublicBook[]) => {
+      const query = searchQuery.toLowerCase().trim();
+      if (!query) return books;
 
-    const filtered = books.filter(
-      (book) =>
-        book.title.toLowerCase().includes(query) ||
-        book.author?.toLowerCase().includes(query) ||
-        book.genre?.toLowerCase().includes(query)
-    );
+      return books.filter(
+        (book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author?.toLowerCase().includes(query) ||
+          book.genre?.toLowerCase().includes(query)
+      );
+    },
+    [searchQuery]
+  );
 
-    setFilteredBooks(filtered);
-    setCurrentPage(1); // Reset to first page on new search
-    setTotalPages(Math.ceil(filtered.length / booksPerPage));
-  }, [books, searchQuery, booksPerPage]);
-
-  // Update filtered books whenever books or search query changes
-  useEffect(() => {
-    filterBooks();
-  }, [books, searchQuery, booksPerPage, filterBooks]);
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const response = await BookService.getAllBooks();
-
-      if (Array.isArray(response)) {
-        setBooks(response);
-      } else if (
-        response &&
-        typeof response === "object" &&
-        "books" in response
-      ) {
-        setBooks(response as Book[]);
-      } else {
-        console.error("Unexpected API response format:", response);
-        setBooks([]);
-        toast.error("Received invalid data format from API");
-      }
-    } catch (error) {
-      console.error("Error fetching books:", error);
-      toast.error("Failed to load books.");
-      setBooks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const renderRating = (rating?: number) => {
-    if (!rating) return null;
-
-    // Round to nearest 0.5
-    const stars = [];
-    const roundedRating = Math.round((rating || 0) * 2) / 2;
-
-    for (let i = 1; i <= 5; i++) {
-      if (i <= roundedRating) {
-        stars.push(
-          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-        );
-      } else if (i - 0.5 === roundedRating) {
-        stars.push(<Star key={i} className="w-4 h-4 text-yellow-400" />);
-      } else {
-        stars.push(<Star key={i} className="w-4 h-4 text-gray-300" />);
-      }
-    }
-
-    return stars;
-  };
-
-  // Get current books for pagination
+  const filteredBooks = useMemo(() => filterBooks(books), [filterBooks, books]);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
@@ -118,8 +77,38 @@ export function PublicBooksComponent() {
     window.scrollTo(0, 0);
   };
 
-  if (loading) {
-    return <div className="flex justify-center p-8">Loading books...</div>;
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const renderRating = (rating?: number) => {
+    if (!rating) return null;
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <span className="ml-4 text-lg">Loading books catalog...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <h3 className="text-2xl font-semibold text-red-600">Error</h3>
+        <p className="text-muted-foreground mt-2">
+          Failed to load books. Please try again later.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -147,7 +136,7 @@ export function PublicBooksComponent() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-            {currentBooks.map((book) => (
+            {currentBooks.map((book: PublicBook) => (
               <Card
                 key={book.id}
                 className="overflow-hidden flex flex-col py-0 gap-1"
@@ -174,11 +163,7 @@ export function PublicBooksComponent() {
                   </CardTitle>
                   <CardDescription>
                     {book.author}{" "}
-                    {book.publishedDate
-                      ? `(${new Date(book.publishedDate).getFullYear()})`
-                      : book.publishYear
-                      ? `(${book.publishYear})`
-                      : ""}
+                    {book.publishYear ? `(${book.publishYear})` : ""}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-2">

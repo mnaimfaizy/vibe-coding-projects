@@ -223,12 +223,18 @@ const BookService = {
       // Get publish year from either publishYear or firstPublishYear
       const publishYear = bookData.publishYear || bookData.firstPublishYear;
 
+      // Default author name if neither authors array nor author string is provided
+      const defaultAuthorName = "Unknown Author";
+
       // Process authors: either use the authors array or create from author string
-      const authors = bookData.authors
-        ? bookData.authors.map((a) => ({ name: a.name }))
-        : bookData.author
-        ? [{ name: safeProcess(bookData.author) }]
-        : [{ name: "Unknown Author" }];
+      let authors = [];
+      if (bookData.authors && bookData.authors.length > 0) {
+        authors = bookData.authors.map((a) => ({ name: a.name }));
+      } else if (bookData.author && bookData.author.trim()) {
+        authors = [{ name: safeProcess(bookData.author) }];
+      } else {
+        authors = [{ name: defaultAuthorName }];
+      }
 
       // For backward compatibility, also include the author string
       const authorString = authors.map((a) => a.name).join(", ");

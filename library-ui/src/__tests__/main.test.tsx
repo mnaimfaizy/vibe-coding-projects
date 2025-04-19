@@ -34,17 +34,18 @@ const mockStore = {
   getState: vi.fn(),
   dispatch: vi.fn(),
   subscribe: vi.fn(),
+  replaceReducer: vi.fn(),
+  [Symbol.observable]: vi.fn(() => ({
+    subscribe: vi.fn(),
+    [Symbol.observable]: vi.fn(),
+  })),
 };
 
 // Mock store module early to avoid import issues
-vi.mock(
-  "../store",
-  () => ({
-    setupStore: () => mockStore,
-    store: mockStore,
-  }),
-  { virtual: true }
-);
+vi.mock("../store", () => ({
+  setupStore: () => mockStore,
+  store: mockStore,
+}));
 
 // Mock react-redux
 vi.mock("react-redux", () => ({

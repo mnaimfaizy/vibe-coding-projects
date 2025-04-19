@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AuthService from "./authService";
+import { User } from "./adminService";
+import AuthService, { LoginRequest, SignupRequest } from "./authService";
 import { useAuth } from "./useAuth";
 
 // Mock the default export of authService
@@ -14,6 +15,14 @@ vi.mock("./authService", () => ({
   },
 }));
 
+const mockedUser = {
+  id: 1,
+  name: "A",
+  email: "a@example.com",
+  role: "user",
+  email_verified: true,
+} as User;
+
 describe("useAuth hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -22,20 +31,28 @@ describe("useAuth hook", () => {
 
   it("returns initial auth state from AuthService", () => {
     // Setup mocks for this test
-    AuthService.isAuthenticated.mockReturnValue(true);
-    AuthService.getCurrentUser.mockReturnValue({ id: 1, name: "A" });
+    AuthService.isAuthenticated = vi.fn(() => true);
+    AuthService.getCurrentUser = vi.fn(() => mockedUser);
 
     const { result } = renderHook(() => useAuth());
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.user).toEqual({ id: 1, name: "A" });
+    expect(result.current.user).toEqual({
+      id: 1,
+      name: "A",
+      email: "a@example.com",
+      role: "user",
+      email_verified: true,
+    });
   });
 
   it("updates state on storage event", () => {
     // Setup sequence of mock returns
-    AuthService.isAuthenticated
+    AuthService.isAuthenticated = vi
+      .fn()
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(true);
-    AuthService.getCurrentUser
+    AuthService.getCurrentUser = vi
+      .fn()
       .mockReturnValueOnce(null)
       .mockReturnValueOnce({ id: 2, name: "B" });
 
@@ -57,13 +74,27 @@ describe("useAuth hook", () => {
     expect(typeof result.current.signup).toBe("function");
 
     // Call the methods and verify original services were called
-    result.current.login("user", "pass");
-    expect(AuthService.login).toHaveBeenCalledWith("user", "pass");
+    result.current.login({
+      email: "a@example.com",
+      password: "pass",
+    } as LoginRequest);
+    expect(AuthService.login).toHaveBeenCalledWith({
+      email: "a@example.com",
+      password: "pass",
+    });
 
     result.current.logout();
     expect(AuthService.logout).toHaveBeenCalled();
 
-    result.current.signup({ name: "Test User" });
-    expect(AuthService.signup).toHaveBeenCalledWith({ name: "Test User" });
+    result.current.signup({
+      name: "A",
+      email: "a@example.com",
+      password: "pass",
+    } as SignupRequest);
+    expect(AuthService.signup).toHaveBeenCalledWith({
+      name: "A",
+      email: "a@example.com",
+      password: "pass",
+    });
   });
 });

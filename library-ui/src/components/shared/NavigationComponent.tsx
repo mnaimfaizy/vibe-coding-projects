@@ -86,7 +86,7 @@ export function NavigationComponent() {
   }
 
   return (
-    <nav className="bg-white shadow dark:bg-gray-800">
+    <nav role="navigation" className="bg-white shadow dark:bg-gray-800">
       <div className="container px-6 py-2 mx-auto">
         {/* Desktop Navigation - No logo, just the navigation items */}
         <div className="flex items-center justify-center">

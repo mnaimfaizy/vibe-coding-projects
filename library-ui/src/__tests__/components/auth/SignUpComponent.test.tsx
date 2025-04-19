@@ -12,7 +12,19 @@ const mockResetAuthError = vi.fn();
 // Set up component mocking to avoid Redux issues
 vi.mock("../../../store/hooks", () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector) =>
+  useAppSelector: (
+    selector: (state: {
+      auth: {
+        user: null;
+        token: null;
+        isAuthenticated: boolean;
+        isLoading: boolean;
+        error: null;
+        emailVerified: boolean;
+        verificationRequired: boolean;
+      };
+    }) => unknown
+  ) =>
     selector({
       auth: {
         user: null,
@@ -64,7 +76,9 @@ describe("SignUpComponent", () => {
   });
 
   // Create a simplified test component for validation tests
-  const ValidationErrorProvider = ({ children }) => {
+  const ValidationErrorProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => {
     return (
       <div>
         {children}

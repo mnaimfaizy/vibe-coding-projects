@@ -26,30 +26,33 @@ describe("BooksCatalogComponent", () => {
   const mockBooks = [
     {
       id: 1,
-      title: "Test Book 1",
+      title: "Public Book 1",
       author: "Test Author 1",
       description: "Description for book 1",
       coverImage: "https://example.com/cover1.jpg",
       genre: "Fiction",
       publishYear: 2023,
+      isbn: "978-0123456789",
     },
     {
       id: 2,
-      title: "Test Book 2",
+      title: "Public Book 2",
       author: "Test Author 2",
       description: "Description for book 2",
       coverImage: "https://example.com/cover2.jpg",
       genre: "Non-Fiction",
       publishYear: 2022,
+      isbn: "978-0123456790",
     },
     {
       id: 3,
-      title: "Test Book 3",
+      title: "Public Book 3",
       author: "Test Author 3",
       description: "Description for book 3",
       coverImage: "https://example.com/cover3.jpg",
       genre: "Mystery",
       publishYear: 2021,
+      isbn: "978-0123456791",
     },
   ];
 
@@ -68,7 +71,7 @@ describe("BooksCatalogComponent", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Loading books...")).toBeInTheDocument();
+    expect(screen.getByText("Loading books catalog...")).toBeInTheDocument();
   });
 
   it("renders books when data is loaded", async () => {
@@ -80,12 +83,12 @@ describe("BooksCatalogComponent", () => {
 
     // Wait for books to load
     await waitFor(() => {
-      expect(screen.getByText("Test Book 1")).toBeInTheDocument();
+      expect(screen.getByText("Public Book 1")).toBeInTheDocument();
     });
 
     // Check if book titles are correctly displayed
-    expect(screen.getByText("Test Book 2")).toBeInTheDocument();
-    expect(screen.getByText("Test Book 3")).toBeInTheDocument();
+    expect(screen.getByText("Public Book 2")).toBeInTheDocument();
+    expect(screen.getByText("Public Book 3")).toBeInTheDocument();
 
     // Look for author text in a more flexible way, as it might be rendered as part of a description
     // or with additional formatting
@@ -156,7 +159,7 @@ describe("BooksCatalogComponent", () => {
 
     // Wait for books to load
     await waitFor(() => {
-      expect(screen.getByText("Test Book 1")).toBeInTheDocument();
+      expect(screen.getByText("Public Book 1")).toBeInTheDocument();
     });
 
     // Check if the badge is displayed for the first book
@@ -172,13 +175,13 @@ describe("BooksCatalogComponent", () => {
 
     // Wait for books to load
     await waitFor(() => {
-      expect(screen.getByText("Test Book 1")).toBeInTheDocument();
+      expect(screen.getByText("Public Book 1")).toBeInTheDocument();
     });
 
     // Find all "Collect" buttons (there should be 3 initially)
     const collectButtons = screen.getAllByText("Collect");
 
-    // Click the first "Collect" button (for Test Book 1)
+    // Click the first "Collect" button (for Public Book 1)
     fireEvent.click(collectButtons[0]);
 
     // Verify the service was called

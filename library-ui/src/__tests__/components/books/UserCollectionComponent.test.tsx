@@ -25,6 +25,7 @@ describe("UserCollectionComponent", () => {
     {
       id: 1,
       title: "Collected Book 1",
+      isbn: "1234567890",
       author: "Author 1",
       description: "Description for collected book 1",
       coverImage: "https://example.com/cover1.jpg",
@@ -32,6 +33,7 @@ describe("UserCollectionComponent", () => {
     {
       id: 2,
       title: "Collected Book 2",
+      isbn: "0987654321",
       author: "Author 2",
       description: "Description for collected book 2",
       coverImage: "https://example.com/cover2.jpg",

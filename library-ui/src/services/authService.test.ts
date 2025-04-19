@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import appNavigate from "@/lib/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "./api";
@@ -6,7 +7,6 @@ import AuthService from "./authService";
 vi.mock("./api");
 vi.mock("@/lib/navigation", () => ({ default: vi.fn() }));
 const mockApi = api as unknown as Record<string, any>;
-const mockNavigate = appNavigate as unknown as ReturnType<typeof vi.fn>;
 
 describe("AuthService", () => {
   beforeEach(() => {
@@ -15,14 +15,12 @@ describe("AuthService", () => {
   });
 
   it("login stores token and user", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: {
-          token: "tok",
-          user: { id: 1, name: "A", email: "a@a.com", role: "USER" },
-        },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: {
+        token: "tok",
+        user: { id: 1, name: "A", email: "a@a.com", role: "USER" },
+      },
+    });
     const res = await AuthService.login({ email: "a@a.com", password: "pw" });
     expect(localStorage.getItem("token")).toBe("tok");
     expect(JSON.parse(localStorage.getItem("user")!)).toEqual({
@@ -38,11 +36,9 @@ describe("AuthService", () => {
   });
 
   it("signup returns message and user", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: { message: "ok", user: { id: 2, email: "b@b.com" } },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: { message: "ok", user: { id: 2, email: "b@b.com" } },
+    });
     const res = await AuthService.signup({
       name: "B",
       email: "b@b.com",
@@ -82,14 +78,12 @@ describe("AuthService", () => {
   });
 
   it("updateProfile updates localStorage and returns data", async () => {
-    mockApi.put = vi
-      .fn()
-      .mockResolvedValue({
-        data: {
-          message: "updated",
-          user: { id: 1, name: "A", email: "a@a.com", role: "USER" },
-        },
-      });
+    mockApi.put = vi.fn().mockResolvedValue({
+      data: {
+        message: "updated",
+        user: { id: 1, name: "A", email: "a@a.com", role: "USER" },
+      },
+    });
     const res = await AuthService.updateProfile("A");
     expect(JSON.parse(localStorage.getItem("user")!)).toEqual({
       id: 1,

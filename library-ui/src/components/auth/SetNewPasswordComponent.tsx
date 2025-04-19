@@ -34,7 +34,6 @@ const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-// Infer the TypeScript type from the schema
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function SetNewPasswordComponent() {
@@ -56,38 +55,41 @@ export function SetNewPasswordComponent() {
     },
   });
 
-  // Extract token from URL on component mount
+  // Function to validate the token
+  const validateToken = async (tokenToValidate: string) => {
+    try {
+      // In a real app, you might have an API endpoint to validate the token
+      // For now, we'll validate that it exists and isn't empty
+      if (!tokenToValidate || tokenToValidate.trim() === "") {
+        throw new Error("Invalid token");
+      }
+      setTokenValid(true);
+      return true;
+    } catch (err) {
+      console.error("Token validation error:", err);
+      setError(
+        "Invalid or expired reset token. Please request a new password reset."
+      );
+      setTokenValid(false);
+      return false;
+    }
+  };
+
+  // Extract and validate token on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
 
     if (tokenParam) {
       setToken(tokenParam);
-      // Optionally verify if token is valid before displaying form
-      validateToken();
+      validateToken(tokenParam);
     } else {
       setError("No reset token provided. Please request a new password reset.");
       setTokenValid(false);
     }
   }, []);
 
-  // Function to validate the token
-  const validateToken = async () => {
-    try {
-      // In a real app, you might have an API endpoint to validate the token
-      // For now, we'll assume it's valid if it exists
-      setTokenValid(true);
-    } catch (err: unknown) {
-      console.error("Token validation error:", err);
-      setError(
-        "Invalid or expired reset token. Please request a new password reset."
-      );
-      setTokenValid(false);
-    }
-  };
-
   const onSubmit = async (data: ResetPasswordFormValues) => {
-    // Reset error state
     setError("");
 
     if (!token) {
@@ -101,7 +103,6 @@ export function SetNewPasswordComponent() {
       await AuthService.resetPassword(token, data.password);
       setIsSuccess(true);
 
-      // Redirect to login page after 3 seconds
       setTimeout(() => {
         navigate("/login");
       }, 3000);
@@ -125,7 +126,6 @@ export function SetNewPasswordComponent() {
   };
 
   if (tokenValid === null) {
-    // Loading state while checking token
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <Card className="w-[400px] p-6 text-center">
@@ -137,7 +137,6 @@ export function SetNewPasswordComponent() {
   }
 
   if (tokenValid === false) {
-    // Invalid token state
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <Card className="w-[400px]">

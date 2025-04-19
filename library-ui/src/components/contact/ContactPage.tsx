@@ -40,9 +40,8 @@ const contactFormSchema = z.object({
   message: z
     .string()
     .min(10, { message: "Message must be at least 10 characters." }),
-  inquiryType: z.string({
-    required_error: "Please select an inquiry type.",
-  }),
+  // Fix: Use .min(1) for required string validation
+  inquiryType: z.string().min(1, { message: "Please select an inquiry type." }),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -59,24 +58,24 @@ export function ContactPage() {
       email: "",
       subject: "",
       message: "",
-      inquiryType: "",
+      // Fix: Use undefined as default for required Select field
+      inquiryType: undefined,
     },
   });
 
   // Form submission handler
-  function onSubmit(data: ContactFormValues) {
+  async function onSubmit(data: ContactFormValues) {
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Form submitted:", data);
-      setIsSubmitting(false);
-      setSubmitted(true);
-      toast.success("Your message has been sent successfully!", {
-        description: "We'll get back to you as soon as possible.",
-      });
-      form.reset();
-    }, 1500);
+    // Simulate API call with a Promise for test compatibility
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    console.log("Form submitted:", data);
+    setIsSubmitting(false);
+    setSubmitted(true);
+    toast.success("Your message has been sent successfully!", {
+      description: "We'll get back to you as soon as possible.",
+    });
+    form.reset();
   }
 
   return (
@@ -104,7 +103,10 @@ export function ContactPage() {
             <CardContent>
               {submitted ? (
                 <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg text-center">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <CheckCircle
+                    className="h-12 w-12 text-green-500 mx-auto mb-4"
+                    data-testid="check-circle-icon"
+                  />
                   <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
                   <p className="mb-4">
                     Your message has been received. We'll respond to your
@@ -117,6 +119,7 @@ export function ContactPage() {
               ) : (
                 <Form {...form}>
                   <form
+                    role="form"
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-6"
                   >
@@ -264,7 +267,9 @@ export function ContactPage() {
               <div className="flex">
                 <MapPin className="h-5 w-5 mr-3 text-blue-600 shrink-0" />
                 <div>
-                  <h3 className="font-medium">Address</h3>
+                  <h3 className="font-medium" id="contact-address-heading">
+                    Address
+                  </h3>
                   <address className="text-muted-foreground not-italic">
                     123 Library Lane
                     <br />
@@ -278,7 +283,9 @@ export function ContactPage() {
               <div className="flex">
                 <Phone className="h-5 w-5 mr-3 text-blue-600 shrink-0" />
                 <div>
-                  <h3 className="font-medium">Phone</h3>
+                  <h3 className="font-medium" id="contact-phone-heading">
+                    Phone
+                  </h3>
                   <p className="text-muted-foreground">(555) 123-4567</p>
                 </div>
               </div>
@@ -286,7 +293,9 @@ export function ContactPage() {
               <div className="flex">
                 <Mail className="h-5 w-5 mr-3 text-blue-600 shrink-0" />
                 <div>
-                  <h3 className="font-medium">Email</h3>
+                  <h3 className="font-medium" id="contact-email-heading">
+                    Email
+                  </h3>
                   <p className="text-muted-foreground">
                     contact@librarysystem.org
                   </p>
@@ -296,7 +305,9 @@ export function ContactPage() {
               <div className="flex">
                 <Clock className="h-5 w-5 mr-3 text-blue-600 shrink-0" />
                 <div>
-                  <h3 className="font-medium">Library Hours</h3>
+                  <h3 className="font-medium" id="contact-hours-heading">
+                    Library Hours
+                  </h3>
                   <div className="text-muted-foreground">
                     <p>Monday - Friday: 9:00 AM - 8:00 PM</p>
                     <p>Saturday: 10:00 AM - 6:00 PM</p>
