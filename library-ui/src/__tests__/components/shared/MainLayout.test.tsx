@@ -47,7 +47,17 @@ describe("MainLayout Component", () => {
   it("renders children, header and footer", () => {
     // Default mock state has isAuthenticated: false
     vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: false } })
+      selector({
+        auth: {
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+          emailVerified: false,
+          verificationRequired: false,
+        },
+      })
     );
 
     render(
@@ -63,7 +73,17 @@ describe("MainLayout Component", () => {
 
   it("does not render navigation when user is not authenticated", () => {
     vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: false } })
+      selector({
+        auth: {
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+          emailVerified: false,
+          verificationRequired: false,
+        },
+      })
     );
 
     render(
@@ -78,7 +98,17 @@ describe("MainLayout Component", () => {
   it("renders navigation when user is authenticated", () => {
     // Mock authenticated state
     vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: true } })
+      selector({
+        auth: {
+          isAuthenticated: true,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+          emailVerified: false,
+          verificationRequired: false,
+        },
+      })
     );
 
     render(
@@ -92,11 +122,27 @@ describe("MainLayout Component", () => {
 
   it("renders admin navigation on admin pages", () => {
     // Mock admin route
-    vi.mocked(useLocation).mockReturnValue({ pathname: "/admin/users" });
+    vi.mocked(useLocation).mockReturnValue({
+      pathname: "/admin/users",
+      state: undefined,
+      key: "",
+      search: "",
+      hash: "",
+    });
 
     // Mock authenticated state
     vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: true } })
+      selector({
+        auth: {
+          isAuthenticated: true,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+          emailVerified: false,
+          verificationRequired: false,
+        },
+      })
     );
 
     render(

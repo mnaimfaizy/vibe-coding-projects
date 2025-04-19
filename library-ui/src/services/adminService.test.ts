@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminService from "./adminService";
 import api from "./api";
@@ -28,11 +29,9 @@ describe("AdminService", () => {
   });
 
   it("createUser returns created user", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: 3, name: "C" }, message: "ok" },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: { user: { id: 3, name: "C" }, message: "ok" },
+    });
     const user = await AdminService.createUser({
       name: "C",
       email: "c@c.com",
@@ -42,11 +41,9 @@ describe("AdminService", () => {
   });
 
   it("updateUser returns updated user", async () => {
-    mockApi.put = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: 4, name: "D" }, message: "ok" },
-      });
+    mockApi.put = vi.fn().mockResolvedValue({
+      data: { user: { id: 4, name: "D" }, message: "ok" },
+    });
     const user = await AdminService.updateUser(4, { name: "D" });
     expect(user).toEqual({ id: 4, name: "D" });
   });
@@ -82,31 +79,25 @@ describe("AdminService", () => {
   });
 
   it("createBook returns created book", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: { book: { id: 3, title: "Book3" }, message: "ok" },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: { book: { id: 3, title: "Book3" }, message: "ok" },
+    });
     const book = await AdminService.createBook({ title: "Book3" });
     expect(book).toEqual({ id: 3, title: "Book3" });
   });
 
   it("createBookByIsbn returns created book", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: { book: { id: 4, title: "Book4" }, message: "ok" },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: { book: { id: 4, title: "Book4" }, message: "ok" },
+    });
     const book = await AdminService.createBookByIsbn("isbn4");
     expect(book).toEqual({ id: 4, title: "Book4" });
   });
 
   it("updateBook returns updated book", async () => {
-    mockApi.put = vi
-      .fn()
-      .mockResolvedValue({
-        data: { book: { id: 5, title: "Book5" }, message: "ok" },
-      });
+    mockApi.put = vi.fn().mockResolvedValue({
+      data: { book: { id: 5, title: "Book5" }, message: "ok" },
+    });
     const book = await AdminService.updateBook(5, { title: "Book5" });
     expect(book).toEqual({ id: 5, title: "Book5" });
   });
@@ -128,31 +119,25 @@ describe("AdminService", () => {
   });
 
   it("getAuthorById returns author and books", async () => {
-    mockApi.get = vi
-      .fn()
-      .mockResolvedValue({
-        data: { author: { id: 2, name: "A2" }, books: [{ id: 1 }] },
-      });
+    mockApi.get = vi.fn().mockResolvedValue({
+      data: { author: { id: 2, name: "A2" }, books: [{ id: 1 }] },
+    });
     const res = await AdminService.getAuthorById(2);
     expect(res).toEqual({ author: { id: 2, name: "A2" }, books: [{ id: 1 }] });
   });
 
   it("createAuthor returns created author", async () => {
-    mockApi.post = vi
-      .fn()
-      .mockResolvedValue({
-        data: { author: { id: 3, name: "A3" }, message: "ok" },
-      });
+    mockApi.post = vi.fn().mockResolvedValue({
+      data: { author: { id: 3, name: "A3" }, message: "ok" },
+    });
     const author = await AdminService.createAuthor({ name: "A3" });
     expect(author).toEqual({ id: 3, name: "A3" });
   });
 
   it("updateAuthor returns updated author", async () => {
-    mockApi.put = vi
-      .fn()
-      .mockResolvedValue({
-        data: { author: { id: 4, name: "A4" }, message: "ok" },
-      });
+    mockApi.put = vi.fn().mockResolvedValue({
+      data: { author: { id: 4, name: "A4" }, message: "ok" },
+    });
     const author = await AdminService.updateAuthor(4, { name: "A4" });
     expect(author).toEqual({ id: 4, name: "A4" });
   });

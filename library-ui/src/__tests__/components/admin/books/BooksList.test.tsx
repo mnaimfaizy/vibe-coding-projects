@@ -49,7 +49,9 @@ describe("BooksList", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllBooks.mockImplementation(() => new Promise(() => {}));
+    AdminService.getAllBooks = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <BooksList />
@@ -60,7 +62,7 @@ describe("BooksList", () => {
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllBooks.mockRejectedValue(new Error("fail"));
+    AdminService.getAllBooks = vi.fn().mockRejectedValue(new Error("fail"));
     render(
       <MemoryRouter>
         <BooksList />
@@ -73,7 +75,7 @@ describe("BooksList", () => {
 
   it("renders 'no books found' state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllBooks.mockResolvedValue([]);
+    AdminService.getAllBooks = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <BooksList />
@@ -86,7 +88,7 @@ describe("BooksList", () => {
 
   it("renders a list of books", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllBooks.mockResolvedValue(mockBooks);
+    AdminService.getAllBooks = vi.fn().mockResolvedValue(mockBooks);
     render(
       <MemoryRouter>
         <BooksList />
@@ -101,7 +103,7 @@ describe("BooksList", () => {
 
   it("calls navigate when 'Add Book' is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllBooks.mockResolvedValue([]);
+    AdminService.getAllBooks = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <BooksList />

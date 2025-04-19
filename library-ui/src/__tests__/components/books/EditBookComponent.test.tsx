@@ -45,7 +45,7 @@ vi.mock("sonner", () => ({
 
 // Import the mocked services
 import authorService from "@/services/authorService";
-import BookService from "@/services/bookService";
+import BookService, { Author, Book } from "@/services/bookService";
 
 const mockStore = configureStore([]);
 const store = mockStore({});
@@ -57,7 +57,7 @@ describe("EditBookComponent", () => {
 
   it("renders loading state initially", async () => {
     // Setup: Make getBookById take a long time to resolve
-    BookService.getBookById.mockImplementation(() => {
+    BookService.getBookById = vi.fn().mockImplementation(() => {
       return new Promise((resolve) =>
         setTimeout(() => {
           resolve({
@@ -69,7 +69,7 @@ describe("EditBookComponent", () => {
     });
 
     // Set up authors to resolve quickly
-    authorService.getAuthors.mockResolvedValue([]);
+    authorService.getAuthors = vi.fn(() => new Promise<Author[]>(() => {}));
 
     render(
       <Provider store={store}>
@@ -103,8 +103,8 @@ describe("EditBookComponent", () => {
       ],
     };
 
-    BookService.getBookById.mockResolvedValue(mockBook);
-    authorService.getAuthors.mockResolvedValue([
+    BookService.getBookById = vi.fn().mockResolvedValue(mockBook);
+    authorService.getAuthors = vi.fn().mockResolvedValue([
       { id: 1, name: "Author One" },
       { id: 2, name: "Author Two" },
       { id: 3, name: "Author Three" },
@@ -142,8 +142,10 @@ describe("EditBookComponent", () => {
   });
 
   it("shows error when book fetch fails", async () => {
-    BookService.getBookById.mockRejectedValue(new Error("Failed to fetch"));
-    authorService.getAuthors.mockResolvedValue([]);
+    BookService.getBookById = vi
+      .fn()
+      .mockRejectedValue(new Error("Failed to fetch"));
+    authorService.getAuthors = vi.fn().mockResolvedValue([]);
 
     render(
       <Provider store={store}>
@@ -175,12 +177,12 @@ describe("EditBookComponent", () => {
       authors: [],
     };
 
-    BookService.getBookById.mockResolvedValue(mockBook);
-    authorService.getAuthors.mockResolvedValue([
-      { id: 1, name: "Existing Author" },
-    ]);
+    BookService.getBookById = vi.fn().mockResolvedValue(mockBook);
+    authorService.getAuthors = vi
+      .fn()
+      .mockResolvedValue([{ id: 1, name: "Existing Author" }]);
 
-    authorService.createAuthor.mockResolvedValue({
+    authorService.createAuthor = vi.fn().mockResolvedValue({
       id: 2,
       name: "New Author",
     });
@@ -241,11 +243,13 @@ describe("EditBookComponent", () => {
       authors: [{ id: 1, name: "Original Author", is_primary: true }],
     };
 
-    BookService.getBookById.mockResolvedValue(mockBook);
-    authorService.getAuthors.mockResolvedValue([
-      { id: 1, name: "Original Author" },
-    ]);
-    BookService.updateBook.mockResolvedValue({ id: 1, title: "Updated Title" });
+    BookService.getBookById = vi.fn().mockResolvedValue(mockBook);
+    authorService.getAuthors = vi
+      .fn()
+      .mockResolvedValue([{ id: 1, name: "Original Author" }]);
+    BookService.updateBook = vi
+      .fn()
+      .mockResolvedValue({ id: 1, title: "Updated Title" });
 
     render(
       <Provider store={store}>
@@ -305,8 +309,8 @@ describe("EditBookComponent", () => {
       ],
     };
 
-    BookService.getBookById.mockResolvedValue(mockBook);
-    authorService.getAuthors.mockResolvedValue([
+    BookService.getBookById = vi.fn().mockResolvedValue(mockBook);
+    authorService.getAuthors = vi.fn().mockResolvedValue([
       { id: 1, name: "First Author" },
       { id: 2, name: "Second Author" },
     ]);
@@ -376,8 +380,8 @@ describe("EditBookComponent", () => {
       ],
     };
 
-    BookService.getBookById.mockResolvedValue(mockBook);
-    authorService.getAuthors.mockResolvedValue([
+    BookService.getBookById = vi.fn().mockResolvedValue(mockBook);
+    authorService.getAuthors = vi.fn().mockResolvedValue([
       { id: 1, name: "First Author" },
       { id: 2, name: "Second Author" },
     ]);
@@ -421,10 +425,15 @@ describe("EditBookComponent", () => {
 
     // Mock the state update that would happen when an author is removed
     // We need to update our mock data to simulate this behavior
-    BookService.getBookById.mockResolvedValue({
-      ...mockBook,
-      authors: [{ id: 2, name: "Second Author", is_primary: true }],
-    });
+    BookService.getBookById = vi.fn(
+      () =>
+        new Promise<Book>(() => {
+          return {
+            ...mockBook,
+            authors: [{ id: 2, name: "Second Author", is_primary: true }],
+          };
+        })
+    );
 
     // Re-render with the new state to simulate the component update
     // For the test, we're going to validate that handleRemoveAuthor was called

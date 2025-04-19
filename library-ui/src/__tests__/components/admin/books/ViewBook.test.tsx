@@ -43,7 +43,9 @@ describe("ViewBook", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockImplementation(() => new Promise(() => {}));
+    AdminService.getBookById = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <ViewBook />
@@ -54,7 +56,7 @@ describe("ViewBook", () => {
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockRejectedValue({
+    AdminService.getBookById = vi.fn().mockRejectedValue({
       response: { data: { message: "API error" } },
     });
     render(
@@ -69,7 +71,7 @@ describe("ViewBook", () => {
 
   it("renders book not found", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockResolvedValue(null);
+    AdminService.getBookById = vi.fn().mockResolvedValue(null);
     render(
       <MemoryRouter>
         <ViewBook />
@@ -82,7 +84,7 @@ describe("ViewBook", () => {
 
   it("renders book details", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockResolvedValue(mockBook);
+    AdminService.getBookById = vi.fn().mockResolvedValue(mockBook);
     render(
       <MemoryRouter>
         <ViewBook />
@@ -97,7 +99,7 @@ describe("ViewBook", () => {
 
   it("calls navigate when Edit is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockResolvedValue(mockBook);
+    AdminService.getBookById = vi.fn().mockResolvedValue(mockBook);
     render(
       <MemoryRouter>
         <ViewBook />
@@ -112,7 +114,7 @@ describe("ViewBook", () => {
 
   it("calls navigate when Back to Books List is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getBookById.mockResolvedValue(mockBook);
+    AdminService.getBookById = vi.fn().mockResolvedValue(mockBook);
     render(
       <MemoryRouter>
         <ViewBook />

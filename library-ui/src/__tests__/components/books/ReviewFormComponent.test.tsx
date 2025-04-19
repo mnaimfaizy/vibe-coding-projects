@@ -64,10 +64,17 @@ describe("ReviewFormComponent", () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      signup: vi.fn(),
     });
 
     // Default mock implementation for createReview
-    vi.mocked(reviewService.createReview).mockResolvedValue({ id: 1 });
+    vi.mocked(reviewService.createReview).mockResolvedValue({
+      id: 1,
+      bookId: 1,
+      username: "Test User",
+      rating: 5,
+      comment: "Great book",
+    });
   });
 
   it("renders the review form correctly", () => {
@@ -100,6 +107,7 @@ describe("ReviewFormComponent", () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      signup: vi.fn(),
     });
 
     render(
@@ -291,9 +299,6 @@ describe("ReviewFormComponent", () => {
     const commentInput = screen.getByLabelText(/your review/i);
     fireEvent.change(usernameInput, { target: { value: "Test User" } });
     fireEvent.change(commentInput, { target: { value: "Good book!" } });
-
-    // Get the submit button
-    const submitButton = screen.getByRole("button", { name: /submit review/i });
 
     // Create a custom event and submit the form manually
     const form = screen.getByRole("form", { name: /review form/i });

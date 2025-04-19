@@ -56,7 +56,7 @@ describe("CreateAuthor", () => {
 
   it("submits the form and shows success", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.createAuthor.mockResolvedValue({ id: 123 });
+    AdminService.createAuthor = vi.fn().mockResolvedValue({ id: 123 });
     render(
       <MemoryRouter>
         <CreateAuthor />
@@ -75,7 +75,7 @@ describe("CreateAuthor", () => {
 
   it("shows error if API fails", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.createAuthor.mockRejectedValue({
+    AdminService.createAuthor = vi.fn().mockRejectedValue({
       response: { data: { message: "API error" } },
     });
     render(

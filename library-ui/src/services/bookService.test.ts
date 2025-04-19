@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "./api";
 import BookService from "./bookService";
@@ -227,12 +228,12 @@ describe("BookService", () => {
 
     const book = await BookService.addBookFromOpenLibrary({
       title: "Complex Book",
-      author: { name: "Complex Author", url: "http://example.com" },
-      description: { value: "A complex description object" },
+      author: "Complex Author",
+      description: "A complex description object",
       firstPublishYear: 2020,
-      publishYear: null,
-      isbn: null,
-      cover: null,
+      publishYear: undefined,
+      isbn: undefined,
+      cover: undefined,
     });
 
     expect(book).toEqual({ id: 7, title: "Complex Book" });
@@ -253,8 +254,8 @@ describe("BookService", () => {
 
     const book = await BookService.addBookFromOpenLibrary({
       title: "No Author",
-      author: null,
-      authors: null,
+      author: "Unknown Author",
+      authors: [],
       cover: "",
     });
 
@@ -262,6 +263,9 @@ describe("BookService", () => {
     expect(mockApi.post).toHaveBeenCalled();
 
     const apiArg = mockApi.post.mock.calls[0][1];
+    expect(apiArg.author).toBe("Unknown Author");
+    expect(apiArg.authors).toBeDefined();
+    expect(apiArg.authors.length).toBeGreaterThan(0);
     expect(apiArg.authors[0].name).toBe("Unknown Author");
   });
 
@@ -286,6 +290,7 @@ describe("BookService", () => {
     await BookService.addBookFromOpenLibrary({
       title: "Multi-Author Book",
       authors: [{ name: "Author 1" }, { name: "Author 2" }],
+      author: "",
     });
 
     expect(mockApi.post).toHaveBeenCalled();

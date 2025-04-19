@@ -1,3 +1,4 @@
+import { Author } from "@/services/adminService";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,7 +50,9 @@ describe("AuthorsList", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllAuthors.mockImplementation(() => new Promise(() => {}));
+    AdminService.getAllAuthors = vi.fn(
+      () => new Promise<Author[]>(() => mockAuthors)
+    );
     render(
       <MemoryRouter>
         <AuthorsList />
@@ -60,7 +63,7 @@ describe("AuthorsList", () => {
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllAuthors.mockRejectedValue(new Error("fail"));
+    AdminService.getAllAuthors = vi.fn().mockRejectedValue(new Error("fail"));
     render(
       <MemoryRouter>
         <AuthorsList />
@@ -73,7 +76,7 @@ describe("AuthorsList", () => {
 
   it("renders 'no authors found' state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllAuthors.mockResolvedValue([]);
+    AdminService.getAllAuthors = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <AuthorsList />
@@ -86,7 +89,7 @@ describe("AuthorsList", () => {
 
   it("renders a list of authors", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllAuthors.mockResolvedValue(mockAuthors);
+    AdminService.getAllAuthors = vi.fn().mockResolvedValue(mockAuthors);
     render(
       <MemoryRouter>
         <AuthorsList />
@@ -101,7 +104,7 @@ describe("AuthorsList", () => {
 
   it("calls navigate when 'Add Author' is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllAuthors.mockResolvedValue([]);
+    AdminService.getAllAuthors = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <AuthorsList />

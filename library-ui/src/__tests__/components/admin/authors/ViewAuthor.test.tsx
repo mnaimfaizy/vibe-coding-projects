@@ -50,7 +50,9 @@ describe("ViewAuthor", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockImplementation(() => new Promise(() => {}));
+    AdminService.getAuthorById = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <ViewAuthor />
@@ -61,7 +63,7 @@ describe("ViewAuthor", () => {
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockRejectedValue({
+    AdminService.getAuthorById = vi.fn().mockRejectedValue({
       response: { data: { message: "API error" } },
     });
     render(
@@ -76,7 +78,9 @@ describe("ViewAuthor", () => {
 
   it("renders author not found", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockResolvedValue({ author: null, books: [] });
+    AdminService.getAuthorById = vi
+      .fn()
+      .mockResolvedValue({ author: null, books: [] });
     render(
       <MemoryRouter>
         <ViewAuthor />
@@ -89,7 +93,7 @@ describe("ViewAuthor", () => {
 
   it("renders author details and books", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockResolvedValue({
+    AdminService.getAuthorById = vi.fn().mockResolvedValue({
       author: mockAuthor,
       books: mockBooks,
     });
@@ -107,7 +111,7 @@ describe("ViewAuthor", () => {
 
   it("calls navigate when Edit is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockResolvedValue({
+    AdminService.getAuthorById = vi.fn().mockResolvedValue({
       author: mockAuthor,
       books: [],
     });
@@ -124,7 +128,7 @@ describe("ViewAuthor", () => {
 
   it("calls navigate when Back to Authors List is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAuthorById.mockResolvedValue({
+    AdminService.getAuthorById = vi.fn().mockResolvedValue({
       author: mockAuthor,
       books: [],
     });

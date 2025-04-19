@@ -1,3 +1,4 @@
+import { User } from "@/services/adminService";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,18 +49,22 @@ describe("UsersList", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllUsers.mockImplementation(() => new Promise(() => {}));
+    // This promise will intentionally never resolve, keeping the component in loading state
+    AdminService.getAllUsers = vi.fn(() => new Promise<User[]>(() => {}));
     render(
       <MemoryRouter>
         <UsersList />
       </MemoryRouter>
     );
-    expect(screen.getByText("Loading users...")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Loading users...")).toBeInTheDocument();
+    });
   });
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllUsers.mockRejectedValue(new Error("fail"));
+    // Fix: Properly reject the promise to trigger error state
+    AdminService.getAllUsers = vi.fn().mockRejectedValue(new Error("fail"));
     render(
       <MemoryRouter>
         <UsersList />
@@ -72,7 +77,8 @@ describe("UsersList", () => {
 
   it("renders 'no users found' state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllUsers.mockResolvedValue([]);
+    // Fix: Properly resolve the promise with an empty array
+    AdminService.getAllUsers = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <UsersList />
@@ -85,7 +91,8 @@ describe("UsersList", () => {
 
   it("renders a list of users", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllUsers.mockResolvedValue(mockUsers);
+    // Fix: Properly resolve the promise with mock users array
+    AdminService.getAllUsers = vi.fn().mockResolvedValue(mockUsers);
     render(
       <MemoryRouter>
         <UsersList />
@@ -101,15 +108,16 @@ describe("UsersList", () => {
 
   it("calls navigate when 'Add User' is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllUsers.mockResolvedValue([]);
+    // Fix: Properly resolve the promise with mock users array
+    AdminService.getAllUsers = vi.fn().mockResolvedValue(mockUsers);
     render(
       <MemoryRouter>
         <UsersList />
       </MemoryRouter>
     );
     await waitFor(() => {
-      fireEvent.click(screen.getByText(/Add User/i));
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/users/create"); // Assert against the mockNavigate function
+      fireEvent.click(screen.getByText("Add User"));
+      expect(mockNavigate).toHaveBeenCalledWith("/admin/users/create");
     });
   });
 });

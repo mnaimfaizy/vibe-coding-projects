@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { createReview, updateReview } from "../../services/reviewService";
-import { useAppDispatch } from "../../store/hooks";
-import { StarRating } from "../ui/StarRating";
+import reviewService from "../../services/reviewService";
+import { StarRating } from "../ui/star-rating";
 
 interface ReviewFormProps {
   bookId: string;
@@ -22,7 +22,6 @@ export const ReviewFormComponent = ({
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [comment, setComment] = useState(existingReview?.comment || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +35,17 @@ export const ReviewFormComponent = ({
 
     try {
       if (existingReview) {
-        await updateReview(existingReview.id, { rating, comment });
+        await reviewService.updateReview(Number(existingReview.id), {
+          rating,
+          comment,
+        });
         toast.success("Review updated successfully");
       } else {
-        await createReview(bookId, { rating, comment });
+        await reviewService.createReview(Number(bookId), {
+          rating,
+          comment,
+          username: "",
+        });
         toast.success("Review submitted successfully");
       }
 
@@ -53,7 +59,8 @@ export const ReviewFormComponent = ({
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
       toast.error("Failed to submit review");
     } finally {
       setIsSubmitting(false);

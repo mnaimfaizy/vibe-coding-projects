@@ -22,7 +22,7 @@ vi.mock("sonner", () => ({
 }));
 
 // Import the mocked service
-import BookService from "@/services/bookService";
+import BookService, { Book } from "@/services/bookService";
 
 describe("BooksListComponent", () => {
   beforeEach(() => {
@@ -32,7 +32,9 @@ describe("BooksListComponent", () => {
   it("renders loading state initially", () => {
     // Set up an unresolved promise to keep the loading state active
     const loadingPromise = new Promise(() => {});
-    vi.mocked(BookService.getAllBooks).mockReturnValue(loadingPromise);
+    vi.mocked(BookService.getAllBooks).mockReturnValue(
+      loadingPromise as Promise<Book[]>
+    );
 
     render(
       <BrowserRouter>
@@ -48,6 +50,7 @@ describe("BooksListComponent", () => {
       {
         id: 1,
         title: "Book 1",
+        isbn: "1234567890",
         author: "Author 1",
         genre: "Genre 1",
         publishYear: 2021,
@@ -55,6 +58,7 @@ describe("BooksListComponent", () => {
       {
         id: 2,
         title: "Book 2",
+        isbn: "0987654321",
         author: "Author 2",
         genre: "Genre 2",
         publishYear: 2022,

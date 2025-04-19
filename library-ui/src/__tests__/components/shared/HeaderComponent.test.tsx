@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -88,7 +89,17 @@ describe("HeaderComponent", () => {
     vi.clearAllMocks();
     vi.mocked(useAppDispatch).mockReturnValue(mockDispatch);
     vi.mocked(useAppSelector).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: false, user: null } })
+      selector({
+        auth: {
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+          emailVerified: false,
+          verificationRequired: false,
+        },
+      })
     );
   });
 
@@ -115,7 +126,17 @@ describe("HeaderComponent", () => {
       selector({
         auth: {
           isAuthenticated: true,
-          user: { name: "Test User", email: "test@example.com" },
+          user: {
+            id: 1,
+            name: "Test User",
+            email: "test@example.com",
+            role: "user",
+          },
+          token: "mockToken",
+          isLoading: false,
+          error: null,
+          emailVerified: true,
+          verificationRequired: false,
         },
       })
     );
@@ -136,7 +157,17 @@ describe("HeaderComponent", () => {
       selector({
         auth: {
           isAuthenticated: true,
-          user: { name: "Test User", email: "test@example.com" },
+          user: {
+            id: 1,
+            name: "Test User",
+            email: "test@example.com",
+            role: "user",
+          },
+          token: "mockToken",
+          isLoading: false,
+          error: null,
+          emailVerified: true,
+          verificationRequired: false,
         },
       })
     );
@@ -153,7 +184,7 @@ describe("HeaderComponent", () => {
 
   it("toggles mobile menu when menu button is clicked", () => {
     // Mock the component with a mobile menu implementation
-    const { container } = render(
+    render(
       <>
         <div data-testid="mobile-menu-container">
           <HeaderComponent />

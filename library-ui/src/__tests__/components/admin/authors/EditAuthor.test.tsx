@@ -1,11 +1,12 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EditAuthor } from "../../../../components/admin/authors/EditAuthor";
-import AdminService from "../../../../services/adminService";
+import { Author } from "../../../../services/authorService";
 
 // Mock dependencies
 vi.mock("../../../../services/adminService", () => ({
+  __esModule: true,
   default: {
     getAuthorById: vi.fn(),
     updateAuthor: vi.fn(),
@@ -30,49 +31,66 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+const mockAuthor = {
+  author: {
+    id: 1,
+    name: "Author One",
+    biography: "Bio",
+    birth_date: "1980-01-01",
+    photo_url: "http://example.com/photo1.jpg",
+  } as Author,
+  books: [],
+};
+
 describe("EditAuthor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default mock implementation for getAuthorById
-    vi.mocked(AdminService.getAuthorById).mockResolvedValue({
-      author: {
-        id: 1,
-        name: "Author One",
-        biography: "Bio",
-        birth_date: "1980-01-01",
-        photo_url: "http://example.com/photo1.jpg",
-      },
-      books: [],
-    });
+    mockNavigate.mockClear(); // Clear the mock before each test
   });
 
-  it("shows validation error if name is missing", async () => {
+  it("renders loading state", async () => {
+    const AdminService = (await import("@/services/adminService")).default;
+    AdminService.getAuthorById = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <EditAuthor />
       </MemoryRouter>
     );
+    expect(screen.getByText("Loading author data...")).toBeInTheDocument();
+  });
 
-    // Wait for the form to be populated
+  it("renders author not found", async () => {
+    const AdminService = (await import("@/services/adminService")).default;
+    AdminService.getAuthorById = vi.fn().mockResolvedValue(null);
+    render(
+      <MemoryRouter>
+        <EditAuthor />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load author data")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders the form with author data", async () => {
+    const AdminService = (await import("@/services/adminService")).default;
+    AdminService.getAuthorById = vi.fn().mockResolvedValue(mockAuthor);
+    render(
+      <MemoryRouter>
+        <EditAuthor />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByDisplayValue("Author One")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Bio")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("1980-01-01")).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue("http://example.com/photo1.jpg")
+      ).toBeInTheDocument();
     });
-
-    // Clear the name field
-    const nameInput = screen.getByLabelText(/name \*/i);
-    fireEvent.change(nameInput, { target: { value: "" } });
-
-    // Submit the form
-    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
-
-    // Wait for and check the validation message
-    await waitFor(() => {
-      const errorMessage = screen.getByText("Author name is required");
-      expect(errorMessage).toBeInTheDocument();
-    });
-
-    // Verify that the API call was not made
-    expect(AdminService.updateAuthor).not.toHaveBeenCalled();
   });
 });

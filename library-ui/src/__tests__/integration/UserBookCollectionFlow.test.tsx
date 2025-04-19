@@ -4,36 +4,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setupStore } from "../../store";
 
 // Import services before mocking
-import * as authService from "../../services/authService";
-import * as bookService from "../../services/bookService";
+import authService from "../../services/authService";
+import bookService from "../../services/bookService"; // Change to default import
 
 // Mock all service modules
-vi.mock("../../services/authService", async () => {
-  const actual = await vi.importActual("../../services/authService");
+vi.mock("../../services/authService", () => {
   return {
-    ...actual,
-    login: vi.fn(),
-    getCurrentUser: vi.fn(),
-    logout: vi.fn(),
-    checkAuth: vi.fn(),
+    default: {
+      login: vi.fn(),
+      getCurrentUser: vi.fn(),
+      logout: vi.fn(),
+      checkAuth: vi.fn(),
+      isAuthenticated: vi.fn(),
+    },
   };
 });
 
-vi.mock("../../services/bookService", async () => {
-  const actual = await vi.importActual("../../services/bookService");
+vi.mock("../../services/bookService", () => {
   return {
-    ...actual,
-    getAllBooks: vi.fn(),
-    getBookById: vi.fn(),
-    getUserCollection: vi.fn(),
-    addToCollection: vi.fn(),
-    removeFromCollection: vi.fn(),
     default: {
       getAllBooks: vi.fn(),
       getBookById: vi.fn(),
       getUserCollection: vi.fn(),
-      addToCollection: vi.fn(),
-      removeFromCollection: vi.fn(),
+      addToUserCollection: vi.fn(), // Correct method name
+      removeFromUserCollection: vi.fn(), // Correct method name
+      isBookInUserCollection: vi.fn(),
     },
   };
 });
@@ -45,7 +40,9 @@ vi.mock("react-router-dom", async () => {
     ...actualModule,
     // Return the actual components but make sure BrowserRouter is essentially a passthrough
     // to avoid nested router issues in tests
-    BrowserRouter: ({ children }) => <>{children}</>,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
   };
 });
 
@@ -77,16 +74,34 @@ vi.mock("sonner", () => {
 
 describe("User Book Collection Flow Integration Tests", () => {
   const mockBooks = [
-    { id: "1", title: "Book 1", author: "Author 1", coverImage: "image1.jpg" },
-    { id: "2", title: "Book 2", author: "Author 2", coverImage: "image2.jpg" },
+    {
+      id: 1, // Change to number
+      title: "Book 1",
+      author: "Author 1",
+      isbn: "ISBN-1", // Add required isbn property
+      coverImage: "image1.jpg",
+    },
+    {
+      id: 2, // Change to number
+      title: "Book 2",
+      author: "Author 2",
+      isbn: "ISBN-2", // Add required isbn property
+      coverImage: "image2.jpg",
+    },
   ];
 
   const mockUserCollection = [
-    { id: "1", title: "Book 1", author: "Author 1", coverImage: "image1.jpg" },
+    {
+      id: 1, // Change to number
+      title: "Book 1",
+      author: "Author 1",
+      isbn: "ISBN-1", // Add required isbn property
+      coverImage: "image1.jpg",
+    },
   ];
 
   const mockUser = {
-    id: "user1",
+    id: 1,
     name: "Test User",
     email: "test@example.com",
     role: "user",
@@ -130,29 +145,6 @@ describe("User Book Collection Flow Integration Tests", () => {
     },
   });
 
-  const renderWithProviders = (
-    ui: React.ReactElement,
-    initialRoute = "/books",
-    useAuthenticatedStore = true
-  ) => {
-    // Import directly to avoid using mocked version
-    const { MemoryRouter, Routes, Route } = require("react-router-dom");
-
-    return render(
-      <Provider
-        store={
-          useAuthenticatedStore ? authenticatedStore : unauthenticatedStore
-        }
-      >
-        <MemoryRouter initialEntries={[initialRoute]}>
-          <Routes>
-            <Route path="/*" element={ui} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-  };
-
   beforeEach(() => {
     vi.resetAllMocks();
 
@@ -165,18 +157,24 @@ describe("User Book Collection Flow Integration Tests", () => {
     vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser);
 
     // Mock successful books API responses
-    vi.mocked(bookService.getAllBooks).mockResolvedValue(mockBooks);
+    vi.mocked(bookService.getAllBooks).mockResolvedValue(
+      mockBooks.map((book) => ({
+        ...book,
+        isbn: `ISBN-${book.id}`, // Adding the missing isbn property
+      }))
+    );
     vi.mocked(bookService.getUserCollection).mockResolvedValue(
       mockUserCollection
     );
-    vi.mocked(bookService.addToCollection).mockResolvedValue({ success: true });
-    vi.mocked(bookService.removeFromCollection).mockResolvedValue({
-      success: true,
-    });
+    vi.mocked(bookService.addToUserCollection).mockResolvedValue(true);
+    vi.mocked(bookService.removeFromUserCollection).mockResolvedValue(true);
   });
 
   // Create and render a simplified login form for testing
-  const renderLoginFormAndTest = async (mockLoginFn, errorMessage = null) => {
+  const renderLoginFormAndTest = async (
+    mockLoginFn: (email: string, password: string) => void | Promise<void>,
+    errorMessage: string | null = null
+  ) => {
     // Directly render the login component for simplicity
     const { container } = render(
       <Provider store={unauthenticatedStore}>
@@ -185,11 +183,15 @@ describe("User Book Collection Flow Integration Tests", () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              const email = e.currentTarget.querySelector(
-                'input[type="email"]'
+              const email = (
+                e.currentTarget.querySelector(
+                  'input[type="email"]'
+                ) as HTMLInputElement
               )?.value;
-              const password = e.currentTarget.querySelector(
-                'input[type="password"]'
+              const password = (
+                e.currentTarget.querySelector(
+                  'input[type="password"]'
+                ) as HTMLInputElement
               )?.value;
               mockLoginFn(email, password);
             }}
@@ -251,12 +253,10 @@ describe("User Book Collection Flow Integration Tests", () => {
 
   it("handles book collection operations correctly", async () => {
     // Create a simple mock for collection operations
-    const mockAddToCollection = vi.fn().mockResolvedValue({ success: true });
-    const mockRemoveFromCollection = vi
-      .fn()
-      .mockResolvedValue({ success: true });
+    const mockAddToCollection = vi.fn().mockResolvedValue(true);
+    const mockRemoveFromCollection = vi.fn().mockResolvedValue(true);
 
-    const { container } = render(
+    render(
       <Provider store={authenticatedStore}>
         <div className="book-collection">
           <h1>My Collection</h1>
@@ -312,6 +312,8 @@ describe("User Book Collection Flow Integration Tests", () => {
                   try {
                     await mockAddToCollection("2");
                   } catch (error) {
+                    // Handle error state
+                    console.error("Error adding book:", error);
                     // Add error message to DOM
                     const errorEl = document.createElement("div");
                     errorEl.className = "error-message text-red-500";

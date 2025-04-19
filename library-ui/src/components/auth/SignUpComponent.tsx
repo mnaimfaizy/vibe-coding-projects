@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { resetAuthError, signupUser } from "../../store/slices/authSlice";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import {
   Card,
   CardContent,
@@ -15,8 +15,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/Card";
-import { Input } from "../ui/Input";
+} from "../ui/card";
+import { Input } from "../ui/input";
 import { GuestGuard } from "./guards/GuestGuard";
 
 // Define validation schema
@@ -38,9 +38,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export const SignUpComponent = () => {
   const dispatch = useAppDispatch();
-  const { isLoading, error, isAuthenticated } = useAppSelector(
-    (state) => state.auth
-  );
+  const { isLoading, error } = useAppSelector((state) => state.auth);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
@@ -77,6 +75,7 @@ export const SignUpComponent = () => {
         window.location.href = "/login";
       }, 2000);
     } catch (err) {
+      console.error("Signup error:", err);
       // Error is handled by the redux slice and displayed below
       toast.error("Registration failed. Please try again.");
     }

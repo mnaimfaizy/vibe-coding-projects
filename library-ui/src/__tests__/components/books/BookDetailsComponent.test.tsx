@@ -41,8 +41,18 @@ describe("BookDetailsComponent", () => {
   };
 
   const mockSimilarBooks = [
-    { id: 2, title: "Similar Book 1", cover: "https://example.com/cover1.jpg" },
-    { id: 3, title: "Similar Book 2", cover: "https://example.com/cover2.jpg" },
+    {
+      id: 2,
+      title: "Similar Book 1",
+      cover: "https://example.com/cover1.jpg",
+      isbn: "987654321",
+    },
+    {
+      id: 3,
+      title: "Similar Book 2",
+      cover: "https://example.com/cover2.jpg",
+      isbn: "1234567890",
+    },
   ];
 
   beforeEach(() => {

@@ -53,7 +53,9 @@ describe("ReviewsList", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllReviews.mockImplementation(() => new Promise(() => {}));
+    AdminService.getAllReviews = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <ReviewsList />
@@ -64,7 +66,7 @@ describe("ReviewsList", () => {
 
   it("renders error state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllReviews.mockRejectedValue(new Error("fail"));
+    AdminService.getAllReviews = vi.fn().mockRejectedValue(new Error("fail"));
     render(
       <MemoryRouter>
         <ReviewsList />
@@ -77,7 +79,7 @@ describe("ReviewsList", () => {
 
   it("renders 'no reviews found' state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllReviews.mockResolvedValue([]);
+    AdminService.getAllReviews = vi.fn().mockResolvedValue([]);
     render(
       <MemoryRouter>
         <ReviewsList />
@@ -90,7 +92,7 @@ describe("ReviewsList", () => {
 
   it("renders a list of reviews", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllReviews.mockResolvedValue(mockReviews);
+    AdminService.getAllReviews = vi.fn().mockResolvedValue(mockReviews);
     render(
       <MemoryRouter>
         <ReviewsList />
@@ -106,7 +108,7 @@ describe("ReviewsList", () => {
 
   it("calls navigate when book title is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getAllReviews.mockResolvedValue(mockReviews);
+    AdminService.getAllReviews = vi.fn().mockResolvedValue(mockReviews);
     render(
       <MemoryRouter>
         <ReviewsList />

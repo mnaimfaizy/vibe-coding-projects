@@ -39,7 +39,9 @@ describe("EditUser", () => {
 
   it("renders loading state", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockImplementation(() => new Promise(() => {}));
+    AdminService.getUserById = vi
+      .fn()
+      .mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <EditUser />
@@ -50,7 +52,7 @@ describe("EditUser", () => {
 
   it("renders user not found", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(null);
+    AdminService.getUserById = vi.fn().mockResolvedValue(null);
     render(
       <MemoryRouter>
         <EditUser />
@@ -63,7 +65,7 @@ describe("EditUser", () => {
 
   it("renders the form with user data", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(mockUser);
+    AdminService.getUserById = vi.fn().mockResolvedValue(mockUser);
     render(
       <MemoryRouter>
         <EditUser />
@@ -77,7 +79,7 @@ describe("EditUser", () => {
 
   it("shows validation error if name is missing", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(mockUser);
+    AdminService.getUserById = vi.fn().mockResolvedValue(mockUser);
     render(
       <MemoryRouter>
         <EditUser />
@@ -99,8 +101,8 @@ describe("EditUser", () => {
 
   it("submits the form and shows success", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(mockUser);
-    AdminService.updateUser.mockResolvedValue({});
+    AdminService.getUserById = vi.fn().mockResolvedValue(mockUser);
+    AdminService.updateUser = vi.fn().mockResolvedValue({});
     render(
       <MemoryRouter>
         <EditUser />
@@ -124,8 +126,8 @@ describe("EditUser", () => {
 
   it("shows error if API fails", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(mockUser);
-    AdminService.updateUser.mockRejectedValue({
+    AdminService.getUserById = vi.fn().mockResolvedValue(mockUser);
+    AdminService.updateUser = vi.fn().mockRejectedValue({
       response: { data: { message: "API error" } },
     });
     render(
@@ -144,7 +146,7 @@ describe("EditUser", () => {
 
   it("calls navigate when Cancel is clicked", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.getUserById.mockResolvedValue(mockUser);
+    AdminService.getUserById = vi.fn().mockResolvedValue(mockUser);
     render(
       <MemoryRouter>
         <EditUser />

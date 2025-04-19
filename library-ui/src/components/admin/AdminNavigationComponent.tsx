@@ -82,7 +82,7 @@ export function AdminNavigationComponent() {
           (item.href !== "/" && currentPath.startsWith(item.href)),
       }))
     );
-  }, [location.pathname, location.search, navigation]);
+  }, []);
 
   // Show admin navigation only if user is authenticated and has admin role
   // Also only show on admin pages

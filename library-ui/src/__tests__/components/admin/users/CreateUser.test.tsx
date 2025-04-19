@@ -67,7 +67,7 @@ describe("CreateUser", () => {
 
   it("submits the form and shows success", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.createUser.mockResolvedValue({});
+    AdminService.createUser = vi.fn().mockResolvedValue({});
     render(
       <MemoryRouter>
         <CreateUser />
@@ -93,7 +93,7 @@ describe("CreateUser", () => {
 
   it("shows error if API fails", async () => {
     const AdminService = (await import("@/services/adminService")).default;
-    AdminService.createUser.mockRejectedValue({
+    AdminService.createUser = vi.fn().mockRejectedValue({
       response: { data: { message: "API error" } },
     });
     render(
